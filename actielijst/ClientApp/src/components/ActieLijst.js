@@ -1,49 +1,76 @@
 import React, { useState, useEffect } from 'react';
-import { List, ListItem, ListItemText, Button } from '@mui/material';
+import { List, ListItem, ListItemText, IconButton } from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import axios from 'axios';
 
-function ActieLijst({ userId, refreshTrigger, onEditAction }) { // Ontvang userId als prop
+function ActieLijst({ userId, refreshTrigger, onEditAction, onShowDetail, filterType, searchTerm }) {
     const [actions, setActions] = useState([]);
 
     useEffect(() => {
         const fetchActions = async () => {
             try {
-                const response = await axios.get(`https://localhost:44361/api/actions/user/${userId}`);
+                const url = `https://localhost:44361/api/memos/user/${userId}/${filterType}`;
+                console.log(`Fetching actions from: ${url}`);
+                const response = await axios.get(url);
+                console.log('API response:', response.data);
                 setActions(response.data);
             } catch (error) {
-                console.error('Fout bij ophalen acties:', error);
+                console.error('Fout bij ophalen acties:', error.response ? error.response.data : error.message);
             }
         };
         fetchActions();
-    }, [userId, refreshTrigger]);
+    }, [userId, refreshTrigger, filterType]);
 
     const handleEdit = (action) => {
         if (onEditAction) onEditAction(action);
     };
 
+    const handleShowDetail = (action) => {
+        if (onShowDetail) onShowDetail(action);
+    };
+
     const handleDelete = async (id) => {
         try {
-            await axios.delete(`https://localhost:44361/api/actions/${id}`);
+            await axios.delete(`https://localhost:44361/api/memos/${id}`);
             console.log('Actie verwijderd:', id);
-            const response = await axios.get(`https://localhost:44361/api/actions/user/${userId}`);
+            const response = await axios.get(`https://localhost:44361/api/memos/user/${userId}/${filterType}`);
             setActions(response.data);
         } catch (error) {
             console.error('Fout bij verwijderen actie:', error);
         }
     };
 
+    const filteredActions = actions.filter(action =>
+        (action.fldOmschrijving || '').toLowerCase().includes((searchTerm || '').toLowerCase())
+    );
+
     return (
         <List>
-            {actions.map((action) => (
-                <ListItem key={action.id}>
-                    <ListItemText
-                        primary={action.title}
-                        secondary={`Beschrijving: ${action.description} - Toegewezen aan: ${action.assignee} - Vervaldatum: ${new Date(action.dueDate).toLocaleDateString('nl-NL')}`}
-                    />
-                    <Button variant="outlined" onClick={() => handleEdit(action)} style={{ marginRight: '10px' }}>Bewerken</Button>
-                    <Button variant="outlined" color="error" onClick={() => handleDelete(action.id)}>Verwijderen</Button>
+            {filteredActions.length === 0 ? (
+                <ListItem>
+                    <ListItemText primary="Geen acties gevonden" />
                 </ListItem>
-            ))}
+            ) : (
+                filteredActions.map((action) => (
+                    <ListItem key={action.fldMid}>
+                        <ListItemText
+                            primary={action.fldOmschrijving}
+                            secondary={`Type: ${action.fldMActieSoort} - Toegewezen aan ID: ${action.fldMActieVoor} - Status: ${action.fldMStatus} - Vervaldatum: ${action.fldMActieDatum ? new Date(action.fldMActieDatum).toLocaleDateString('nl-NL') : 'Geen datum'}`}
+                        />
+                        <IconButton onClick={() => handleEdit(action)} color="primary" aria-label="bewerken" style={{ marginRight: '10px' }}>
+                            <EditIcon />
+                        </IconButton>
+                        <IconButton onClick={() => handleShowDetail(action)} color="primary" aria-label="details" style={{ marginRight: '10px' }}>
+                            <VisibilityIcon />
+                        </IconButton>
+                        <IconButton onClick={() => handleDelete(action.fldMid)} color="error" aria-label="verwijderen">
+                            <DeleteIcon />
+                        </IconButton>
+                    </ListItem>
+                ))
+            )}
         </List>
     );
 }

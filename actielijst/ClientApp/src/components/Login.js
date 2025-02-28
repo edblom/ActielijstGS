@@ -1,53 +1,84 @@
 import React, { useState } from 'react';
-import { TextField, Button } from '@mui/material';
+import axios from 'axios';
+import { TextField, Button, Box, Typography, Alert } from '@mui/material';
 
 function Login({ onLogin }) {
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
+    const [voornaam, setVoornaam] = useState('');
+    const [fldLoginNaam, setFldLoginNaam] = useState('');
+    const [error, setError] = useState(null);
 
-    // Simpele hardcoded gebruikers voor demo
-    const users = [
-        { username: 'jan', password: 'jan123' },
-        { username: 'piet', password: 'piet123' }
-    ];
-
-    const handleSubmit = (event) => {
-        event.preventDefault();
-        const user = users.find(u => u.username === username && u.password === password);
-        if (user) {
-            onLogin(user.username); // Geef gebruikersnaam door aan App.js
-            setError('');
-        } else {
-            setError('Ongeldige gebruikersnaam of wachtwoord');
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            const response = await axios.post('https://localhost:44361/api/login', {
+                Voornaam: voornaam,
+                FldLoginNaam: fldLoginNaam
+            });
+            console.log('Login response:', response.data);
+            onLogin(response.data); // Geeft object met werknId en voornaam door
+            setError(null);
+        } catch (err) {
+            console.error('Login fout:', err.response ? err.response.data : err.message);
+            setError('Login mislukt. Controleer je gegevens.');
         }
     };
 
     return (
-        <div style={{ padding: '20px', maxWidth: '400px', margin: '0 auto' }}>
-            <h2>Inloggen</h2>
-            <form onSubmit={handleSubmit}>
-                <TextField
-                    label="Gebruikersnaam"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    fullWidth
-                    margin="normal"
-                />
-                <TextField
-                    label="Wachtwoord"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    fullWidth
-                    margin="normal"
-                />
-                <Button type="submit" variant="contained" color="primary" fullWidth>
+        <Box
+            sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minHeight: '100vh',
+                padding: 2,
+                backgroundColor: '#f5f5f5',
+            }}
+        >
+            <Box
+                sx={{
+                    width: '100%',
+                    maxWidth: 400,
+                    backgroundColor: 'white',
+                    padding: 3,
+                    borderRadius: 2,
+                    boxShadow: 3,
+                }}
+            >
+                <Typography variant="h5" align="center" gutterBottom>
                     Inloggen
-                </Button>
-                {error && <p style={{ color: 'red' }}>{error}</p>}
-            </form>
-        </div>
+                </Typography>
+                {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+                <form onSubmit={handleSubmit}>
+                    <TextField
+                        label="Voornaam"
+                        variant="outlined"
+                        fullWidth
+                        margin="normal"
+                        value={voornaam}
+                        onChange={(e) => setVoornaam(e.target.value)}
+                    />
+                    <TextField
+                        label="Login Naam"
+                        type="password"
+                        variant="outlined"
+                        fullWidth
+                        margin="normal"
+                        value={fldLoginNaam}
+                        onChange={(e) => setFldLoginNaam(e.target.value)}
+                    />
+                    <Button
+                        type="submit"
+                        variant="contained"
+                        color="primary"
+                        fullWidth
+                        sx={{ mt: 2 }}
+                    >
+                        Inloggen
+                    </Button>
+                </form>
+            </Box>
+        </Box>
     );
 }
 

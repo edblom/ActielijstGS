@@ -2,37 +2,37 @@ import React, { useState, useEffect } from 'react';
 import { TextField, Button } from '@mui/material';
 import axios from 'axios';
 
-function ActieForm({ initialAction, onActionAdded, currentUser }) { // Voeg currentUser toe
+function ActieForm({ initialAction, onActionAdded, currentUser }) {
     const [formData, setFormData] = useState({
-        id: '',
-        title: '',
-        description: '',
-        assignee: '',
-        dueDate: '',
-        status: 'Pending',
-        creator: currentUser || 'jan' // Gebruik ingelogde gebruiker
+        fldMid: '',
+        fldOmschrijving: '',
+        fldMActieVoor: '',
+        fldMActieDatum: '',
+        fldMActieSoort: '',
+        fldMStatus: 'Open',
+        werknId: currentUser || 0
     });
 
     useEffect(() => {
         if (initialAction) {
             setFormData({
-                id: initialAction.id || '',
-                title: initialAction.title || '',
-                description: initialAction.description || '',
-                assignee: initialAction.assignee || '',
-                dueDate: initialAction.dueDate ? initialAction.dueDate.split('T')[0] : '',
-                status: initialAction.status || 'Pending',
-                creator: initialAction.creator || currentUser || 'jan'
+                fldMid: initialAction.fldMid || '',
+                fldOmschrijving: initialAction.fldOmschrijving || '',
+                fldMActieVoor: initialAction.fldMActieVoor || '',
+                fldMActieDatum: initialAction.fldMActieDatum ? initialAction.fldMActieDatum.split('T')[0] : '',
+                fldMActieSoort: initialAction.fldMActieSoort || '',
+                fldMStatus: initialAction.fldMStatus || 'Open',
+                werknId: initialAction.werknId || currentUser || 0
             });
         } else {
             setFormData({
-                id: '',
-                title: '',
-                description: '',
-                assignee: '',
-                dueDate: '',
-                status: 'Pending',
-                creator: currentUser || 'jan'
+                fldMid: '',
+                fldOmschrijving: '',
+                fldMActieVoor: '',
+                fldMActieDatum: '',
+                fldMActieSoort: '',
+                fldMStatus: 'Open',
+                werknId: currentUser || 0
             });
         }
     }, [initialAction, currentUser]);
@@ -46,29 +46,31 @@ function ActieForm({ initialAction, onActionAdded, currentUser }) { // Voeg curr
         event.preventDefault();
         const actionData = {
             ...formData,
-            dueDate: formData.dueDate ? `${formData.dueDate}T00:00:00` : new Date().toISOString()
+            fldMActieDatum: formData.fldMActieDatum ? `${formData.fldMActieDatum}T00:00:00` : null,
+            fldMActieVoor: parseInt(formData.fldMActieVoor) || null,
+            werknId: parseInt(formData.werknId) || null
         };
-        if (!actionData.id) {
-            delete actionData.id;
+        if (!actionData.fldMid) {
+            delete actionData.fldMid;
         }
 
         console.log('Verzonden data:', actionData);
         try {
-            if (actionData.id) {
-                const response = await axios.put(`https://localhost:44361/api/actions/${actionData.id}`, actionData);
+            if (actionData.fldMid) {
+                const response = await axios.put(`https://localhost:44361/api/memos/${actionData.fldMid}`, actionData);
                 console.log('Actie bijgewerkt:', response.data);
             } else {
-                const response = await axios.post('https://localhost:44361/api/actions', actionData);
+                const response = await axios.post('https://localhost:44361/api/memos', actionData);
                 console.log('Actie toegevoegd:', response.data);
             }
             setFormData({
-                id: '',
-                title: '',
-                description: '',
-                assignee: '',
-                dueDate: '',
-                status: 'Pending',
-                creator: currentUser || 'jan'
+                fldMid: '',
+                fldOmschrijving: '',
+                fldMActieVoor: '',
+                fldMActieDatum: '',
+                fldMActieSoort: '',
+                fldMStatus: 'Open',
+                werknId: currentUser || 0
             });
             if (onActionAdded) onActionAdded();
         } catch (error) {
@@ -78,12 +80,13 @@ function ActieForm({ initialAction, onActionAdded, currentUser }) { // Voeg curr
 
     return (
         <form onSubmit={handleSubmit}>
-            <TextField name="title" label="Titel" value={formData.title} onChange={handleInputChange} fullWidth margin="normal" />
-            <TextField name="description" label="Beschrijving" value={formData.description} onChange={handleInputChange} multiline rows={4} fullWidth margin="normal" />
-            <TextField name="assignee" label="Toegewezen aan" value={formData.assignee} onChange={handleInputChange} fullWidth margin="normal" />
-            <TextField name="dueDate" label="Vervaldatum" type="date" value={formData.dueDate} onChange={handleInputChange} InputLabelProps={{ shrink: true }} fullWidth margin="normal" />
+            <TextField name="fldOmschrijving" label="Beschrijving" value={formData.fldOmschrijving} onChange={handleInputChange} multiline rows={4} fullWidth margin="normal" />
+            <TextField name="fldMActieVoor" label="Toegewezen aan (ID)" value={formData.fldMActieVoor} onChange={handleInputChange} type="number" fullWidth margin="normal" />
+            <TextField name="fldMActieDatum" label="Vervaldatum" type="date" value={formData.fldMActieDatum} onChange={handleInputChange} InputLabelProps={{ shrink: true }} fullWidth margin="normal" />
+            <TextField name="fldMActieSoort" label="Actie Type" value={formData.fldMActieSoort} onChange={handleInputChange} fullWidth margin="normal" />
+            <TextField name="fldMStatus" label="Status" value={formData.fldMStatus} onChange={handleInputChange} fullWidth margin="normal" />
             <Button type="submit" variant="contained" color="primary">
-                {formData.id ? 'Opslaan' : 'Actie Toevoegen'}
+                {formData.fldMid ? 'Opslaan' : 'Actie Toevoegen'}
             </Button>
         </form>
     );
