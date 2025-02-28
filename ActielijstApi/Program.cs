@@ -89,6 +89,21 @@ app.MapGet("/api/memos/user/{userId:int}/{filterType}", async (int userId, strin
 .WithName("GetMemosForUser")
 .WithOpenApi();
 
+app.MapGet("/api/actiesoorten/all", async (ApplicationDbContext context) =>
+{
+    try
+    {
+        var allActiesoorten = await context.ActieSoorten.ToListAsync();
+        return Results.Ok(allActiesoorten);
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(ex.Message);
+    }
+})
+.WithName("GetAllActiesoorten")
+.WithOpenApi();
+
 app.MapGet("/api/memos/all", async (ApplicationDbContext context) =>
 {
     try
