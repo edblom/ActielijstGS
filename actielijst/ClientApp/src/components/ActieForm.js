@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { TextField, Button } from '@mui/material';
+import { TextField, Select, MenuItem, Button } from '@mui/material';
 import axios from 'axios';
 
 function ActieForm({ initialAction, onActionAdded, currentUser }) {
@@ -12,7 +12,10 @@ function ActieForm({ initialAction, onActionAdded, currentUser }) {
         fldMStatus: 'Open',
         werknId: currentUser || 0
     });
+    const [workers, setWorkers] = useState([]);
+    const actionTypes = ['Urgent', 'Normaal', 'Laag']; // Hardcoded voor nu
 
+    // Initialiseer formData bij laden of bij verandering van initialAction/currentUser
     useEffect(() => {
         if (initialAction) {
             setFormData({
@@ -36,6 +39,18 @@ function ActieForm({ initialAction, onActionAdded, currentUser }) {
             });
         }
     }, [initialAction, currentUser]);
+
+    // Haal werknemers uit de API
+    useEffect(() => {
+        axios.get('https://localhost:44361/api/werknemers')
+            .then(response => {
+                const sortedWorkers = response.data.sort((a, b) =>
+                    a.voornaam.localeCompare(b.voornaam)
+                );
+                setWorkers(sortedWorkers);
+            })
+            .catch(error => console.error('Fout bij ophalen werknemers:', error));
+    }, []);
 
     const handleInputChange = (event) => {
         const { name, value } = event.target;
@@ -80,11 +95,64 @@ function ActieForm({ initialAction, onActionAdded, currentUser }) {
 
     return (
         <form onSubmit={handleSubmit}>
-            <TextField name="fldOmschrijving" label="Beschrijving" value={formData.fldOmschrijving} onChange={handleInputChange} multiline rows={4} fullWidth margin="normal" />
-            <TextField name="fldMActieVoor" label="Toegewezen aan (ID)" value={formData.fldMActieVoor} onChange={handleInputChange} type="number" fullWidth margin="normal" />
-            <TextField name="fldMActieDatum" label="Vervaldatum" type="date" value={formData.fldMActieDatum} onChange={handleInputChange} InputLabelProps={{ shrink: true }} fullWidth margin="normal" />
-            <TextField name="fldMActieSoort" label="Actie Type" value={formData.fldMActieSoort} onChange={handleInputChange} fullWidth margin="normal" />
-            <TextField name="fldMStatus" label="Status" value={formData.fldMStatus} onChange={handleInputChange} fullWidth margin="normal" />
+            <TextField
+                name="fldOmschrijving"
+                label="Beschrijving"
+                value={formData.fldOmschrijving}
+                onChange={handleInputChange}
+                multiline
+                rows={4}
+                fullWidth
+                margin="normal"
+            />
+            <Select
+                name="fldMActieVoor"
+                value={formData.fldMActieVoor}
+                onChange={handleInputChange}
+                displayEmpty
+                fullWidth
+                margin="normal"
+            >
+                <MenuItem value="">Kies werknemer</MenuItem>
+                {workers.map((worker) => (
+                    <MenuItem key={worker.werknId} value={worker.werknId}>
+                        {worker.voornaam}
+                    </MenuItem>
+                ))}
+            </Select>
+            <TextField
+                name="fldMActieDatum"
+                label="Vervaldatum"
+                type="date"
+                value={formData.fldMActieDatum}
+                onChange={handleInputChange}
+                InputLabelProps={{ shrink: true }}
+                fullWidth
+                margin="normal"
+            />
+            <Select
+                name="fldMActieSoort"
+                value={formData.fldMActieSoort}
+                onChange={handleInputChange}
+                displayEmpty
+                fullWidth
+                margin="normal"
+            >
+                <MenuItem value="">Kies actiesoort</MenuItem>
+                {actionTypes.map((type) => (
+                    <MenuItem key={type} value={type}>
+                        {type}
+                    </MenuItem>
+                ))}
+            </Select>
+            <TextField
+                name="fldMStatus"
+                label="Status"
+                value={formData.fldMStatus}
+                onChange={handleInputChange}
+                fullWidth
+                margin="normal"
+            />
             <Button type="submit" variant="contained" color="primary">
                 {formData.fldMid ? 'Opslaan' : 'Actie Toevoegen'}
             </Button>

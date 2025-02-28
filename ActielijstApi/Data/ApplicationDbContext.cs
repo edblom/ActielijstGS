@@ -1,5 +1,6 @@
-﻿// ActielijstGS/Data/ApplicationDbContext.cs
+﻿// ActielijstApi/Data/ApplicationDbContext.cs
 using Microsoft.EntityFrameworkCore;
+using ActielijstApi.Models; // Voeg deze namespace toe
 
 namespace ActielijstApi.Data
 {
@@ -9,6 +10,7 @@ namespace ActielijstApi.Data
 
         public DbSet<Memo> Memos { get; set; }
         public DbSet<Werknemer> Werknemers { get; set; }
+        public DbSet<ActieSoort> ActieSoorten { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -18,7 +20,10 @@ namespace ActielijstApi.Data
             modelBuilder.Entity<Werknemer>().ToTable("Werknemers", "dbo");
             modelBuilder.Entity<Werknemer>().HasKey(w => w.WerknId);
 
-            // Default waarden
+            modelBuilder.Entity<ActieSoort>().ToTable("stblActieSoort", "dbo");
+            modelBuilder.Entity<ActieSoort>().HasKey(a => a.Id);
+
+            // Default waarden voor Memo
             modelBuilder.Entity<Memo>().Property(m => m.WerknId).HasDefaultValue(0);
             modelBuilder.Entity<Memo>().Property(m => m.FldMKlantId).HasDefaultValue(0);
             modelBuilder.Entity<Memo>().Property(m => m.FldMOfferteId).HasDefaultValue(0);
@@ -29,10 +34,10 @@ namespace ActielijstApi.Data
 
             // Configureer SSMA_TimeStamp als timestamp
             modelBuilder.Entity<Memo>()
-              .Property(m => m.SSMA_TimeStamp)
-              .HasColumnType("timestamp")
-              .IsRowVersion()
-              .IsConcurrencyToken();
+                .Property(m => m.SSMA_TimeStamp)
+                .HasColumnType("timestamp")
+                .IsRowVersion()
+                .IsConcurrencyToken();
         }
     }
 }
