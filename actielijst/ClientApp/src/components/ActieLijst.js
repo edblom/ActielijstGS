@@ -31,11 +31,9 @@ function ActieLijst({ userId, refreshTrigger, onEditAction, onShowDetail, filter
                     axios.get(`https://localhost:44361/api/memos/user/${userId}/${filterType}`),
                     axios.get('https://localhost:44361/api/priorities')
                 ]);
-                console.log(`Fetching actions from: https://localhost:44361/api/memos/user/${userId}/${filterType}`);
-                console.log('Actions API response:', actionsResponse.data);
-                console.log('Priorities API response:', prioriteitenResponse.data);
+                console.log('Prioriteiten response in ActieLijst:', prioriteitenResponse.data);
                 setActions(actionsResponse.data);
-                setPrioriteiten(prioriteitenResponse.data);
+                setPrioriteiten(prioriteitenResponse.data || []);
             } catch (error) {
                 console.error('Fout bij ophalen acties of prioriteiten:', error.response ? error.response.data : error.message);
             } finally {
@@ -91,10 +89,11 @@ function ActieLijst({ userId, refreshTrigger, onEditAction, onShowDetail, filter
                     </ListItem>
                 ) : (
                     filteredActions.map((action) => {
-                        const prioriteit = prioriteiten.find(p => p.id === action.fldMPrioriteit);
+                        const prioriteit = prioriteiten.find(p => p.prioriteit === action.fldMPrioriteit);
+                        console.log('Prioriteit voor actie', action.fldMid, ':', prioriteit);
                         const backgroundColor = prioriteit && prioriteit.kleur
-                            ? lightenColor(prioriteit.kleur, 0.5)
-                            : '#FFFFFF';
+                            ? lightenColor(prioriteit.kleur, 0.2)
+                            : '#F0F0F0';
                         return (
                             <ListItem
                                 key={action.fldMid}

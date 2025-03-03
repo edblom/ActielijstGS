@@ -10,59 +10,70 @@ function ActieForm({ initialAction, onActionAdded, currentUser }) {
         fldMActieDatum: '',
         fldMActieSoort: '',
         fldMStatus: 'Open',
-        fldMPrioriteit: '',
+        fldMPrioriteit: '', // Start met lege string
         werknId: currentUser || 0
     });
     const [workers, setWorkers] = useState([]);
-    const [prioriteiten, setPrioriteiten] = useState([]);
-    const actionTypes = ['Urgent', 'Normaal', 'Laag'];
+    const [prioriteiten, setPrioriteiten] = useState([]); // Bevat nu prioriteit, omschrijving, kleur
+    const [actieSoorten, setActieSoorten] = useState([]);
+    const [isDataLoaded, setIsDataLoaded] = useState(false);
 
     useEffect(() => {
-        if (initialAction) {
-            setFormData({
+        const fetchData = async () => {
+            try {
+                const [workersResponse, prioriteitenResponse, actieSoortenResponse] = await Promise.all([
+                    axios.get('https://localhost:44361/api/werknemers'),
+                    axios.get('https://localhost:44361/api/priorities'),
+                    axios.get('https://localhost:44361/api/actiesoorten/all')
+                ]);
+                console.log('Workers response:', workersResponse.data);
+                console.log('Prioriteiten response:', prioriteitenResponse.data);
+                console.log('ActieSoorten response:', actieSoortenResponse.data);
+                const sortedWorkers = workersResponse.data.sort((a, b) => a.voornaam.localeCompare(b.voornaam));
+                setWorkers(sortedWorkers || []);
+                setPrioriteiten(prioriteitenResponse.data || []); // Verwacht { prioriteit, omschrijving, kleur }
+                setActieSoorten(actieSoortenResponse.data || []);
+                setIsDataLoaded(true);
+            } catch (error) {
+                console.error('Fout bij ophalen data:', error.response ? error.response.data : error.message);
+            }
+        };
+        fetchData();
+    }, []);
+
+    useEffect(() => {
+        if (isDataLoaded && initialAction) {
+            const validPrioriteit = prioriteiten.find(p => p.prioriteit === parseInt(initialAction.fldMPrioriteit))?.prioriteit.toString() || '0';
+            setFormData(prevState => ({
+                ...prevState,
                 fldMid: initialAction.fldMid || '',
                 fldOmschrijving: initialAction.fldOmschrijving || '',
                 fldMActieVoor: initialAction.fldMActieVoor || '',
                 fldMActieDatum: initialAction.fldMActieDatum ? initialAction.fldMActieDatum.split('T')[0] : '',
                 fldMActieSoort: initialAction.fldMActieSoort || '',
                 fldMStatus: initialAction.fldMStatus || 'Open',
-                fldMPrioriteit: initialAction.fldMPrioriteit || '',
+                fldMPrioriteit: validPrioriteit,
                 werknId: initialAction.werknId || currentUser || 0
-            });
-        } else {
-            setFormData({
+            }));
+        } else if (isDataLoaded && !initialAction) {
+            setFormData(prevState => ({
+                ...prevState,
                 fldMid: '',
                 fldOmschrijving: '',
                 fldMActieVoor: '',
                 fldMActieDatum: '',
                 fldMActieSoort: '',
                 fldMStatus: 'Open',
-                fldMPrioriteit: '',
+                fldMPrioriteit: '0',
                 werknId: currentUser || 0
-            });
+            }));
         }
-    }, [initialAction, currentUser]);
-
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const [workersResponse, prioriteitenResponse] = await Promise.all([
-                    axios.get('https://localhost:44361/api/werknemers'),
-                    axios.get('https://localhost:44361/api/priorities')
-                ]);
-                const sortedWorkers = workersResponse.data.sort((a, b) => a.voornaam.localeCompare(b.voornaam));
-                setWorkers(sortedWorkers);
-                setPrioriteiten(prioriteitenResponse.data);
-            } catch (error) {
-                console.error('Fout bij ophalen data:', error);
-            }
-        };
-        fetchData();
-    }, []);
+    }, [isDataLoaded, initialAction, currentUser, prioriteiten]);
 
     const handleInputChange = (event) => {
         const { name, value } = event.target;
         setFormData({ ...formData, [name]: value });
+        console.log(`Changed ${name} to ${value} (type: ${typeof value})`);
     };
 
     const handleSubmit = async (event) => {
@@ -72,7 +83,7 @@ function ActieForm({ initialAction, onActionAdded, currentUser }) {
             fldMActieDatum: formData.fldMActieDatum ? `${formData.fldMActieDatum}T00:00:00` : null,
             fldMActieVoor: parseInt(formData.fldMActieVoor) || null,
             werknId: parseInt(formData.werknId) || null,
-            fldMPrioriteit: parseInt(formData.fldMPrioriteit) || null
+            fldMPrioriteit: formData.fldMPrioriteit === '' ? 0 : parseInt(formData.fldMPrioriteit)
         };
         if (!actionData.fldMid) {
             delete actionData.fldMid;
@@ -82,10 +93,10 @@ function ActieForm({ initialAction, onActionAdded, currentUser }) {
         try {
             if (actionData.fldMid) {
                 const response = await axios.put(`https://localhost:44361/api/memos/${actionData.fldMid}`, actionData);
-                console.log('Actie bijgewerkt:', response.data);
+                console.log('Actie bijgewerkt - Server response:', response.data);
             } else {
                 const response = await axios.post('https://localhost:44361/api/memos', actionData);
-                console.log('Actie toegevoegd:', response.data);
+                console.log('Actie toegevoegd - Server response:', response.data);
             }
             setFormData({
                 fldMid: '',
@@ -94,7 +105,7 @@ function ActieForm({ initialAction, onActionAdded, currentUser }) {
                 fldMActieDatum: '',
                 fldMActieSoort: '',
                 fldMStatus: 'Open',
-                fldMPrioriteit: '',
+                fldMPrioriteit: '0',
                 werknId: currentUser || 0
             });
             if (onActionAdded) onActionAdded();
@@ -125,7 +136,7 @@ function ActieForm({ initialAction, onActionAdded, currentUser }) {
             >
                 <MenuItem value="">Kies werknemer</MenuItem>
                 {workers.map((worker) => (
-                    <MenuItem key={worker.werknId} value={worker.werknId}>
+                    <MenuItem key={worker.werknId} value={worker.werknId.toString()}>
                         {worker.voornaam}
                     </MenuItem>
                 ))}
@@ -149,9 +160,9 @@ function ActieForm({ initialAction, onActionAdded, currentUser }) {
                 margin="normal"
             >
                 <MenuItem value="">Kies actiesoort</MenuItem>
-                {actionTypes.map((type) => (
-                    <MenuItem key={type} value={type}>
-                        {type}
+                {actieSoorten.map((actieSoort) => (
+                    <MenuItem key={actieSoort.id} value={actieSoort.omschrijving}>
+                        {actieSoort.omschrijving}
                     </MenuItem>
                 ))}
             </Select>
@@ -163,9 +174,9 @@ function ActieForm({ initialAction, onActionAdded, currentUser }) {
                 fullWidth
                 margin="normal"
             >
-                <MenuItem value="">Kies prioriteit</MenuItem>
+                <MenuItem value="0">Geen</MenuItem>
                 {prioriteiten.map((prioriteit) => (
-                    <MenuItem key={prioriteit.id} value={prioriteit.id}>
+                    <MenuItem key={prioriteit.prioriteit} value={prioriteit.prioriteit.toString()}>
                         {prioriteit.omschrijving}
                     </MenuItem>
                 ))}

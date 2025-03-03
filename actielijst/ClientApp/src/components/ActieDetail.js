@@ -16,7 +16,7 @@ function ActieDetail({ action, open, onClose, onSave }) {
                 fldMActieDatum: action.fldMActieDatum ? action.fldMActieDatum.split('T')[0] : '',
                 fldMActieSoort: action.fldMActieSoort || '',
                 fldMStatus: action.fldMStatus || 'Open',
-                fldMPrioriteit: action.fldMPrioriteit || '',
+                fldMPrioriteit: action.fldMPrioriteit || '0', // Standaard '0'
                 werknId: action.werknId || 0
             });
         }
@@ -29,10 +29,11 @@ function ActieDetail({ action, open, onClose, onSave }) {
                     axios.get('https://localhost:44361/api/werknemers'),
                     axios.get('https://localhost:44361/api/priorities')
                 ]);
+                console.log('Prioriteiten response in ActieDetail:', prioriteitenResponse.data);
                 setWerknemers(werknemersResponse.data);
-                setPrioriteiten(prioriteitenResponse.data);
+                setPrioriteiten(prioriteitenResponse.data || []);
             } catch (error) {
-                console.error('Fout bij ophalen data:', error);
+                console.error('Fout bij ophalen data in ActieDetail:', error);
             }
         };
         fetchData();
@@ -50,7 +51,7 @@ function ActieDetail({ action, open, onClose, onSave }) {
             fldMActieDatum: formData.fldMActieDatum ? `${formData.fldMActieDatum}T00:00:00` : null,
             fldMActieVoor: parseInt(formData.fldMActieVoor) || null,
             werknId: parseInt(formData.werknId) || null,
-            fldMPrioriteit: parseInt(formData.fldMPrioriteit) || null
+            fldMPrioriteit: formData.fldMPrioriteit === '' ? 0 : parseInt(formData.fldMPrioriteit)
         };
         try {
             await axios.put(`https://localhost:44361/api/memos/${updatedAction.fldMid}`, updatedAction);
@@ -77,7 +78,7 @@ function ActieDetail({ action, open, onClose, onSave }) {
                 />
                 <Select
                     name="fldMActieVoor"
-                    value={formData.fldMActieVoor || ''}
+                    value={formData.fldMActieVoor}
                     onChange={handleInputChange}
                     displayEmpty
                     fullWidth
@@ -85,7 +86,7 @@ function ActieDetail({ action, open, onClose, onSave }) {
                 >
                     <MenuItem value="">Kies werknemer</MenuItem>
                     {werknemers.map((worker) => (
-                        <MenuItem key={worker.werknId} value={worker.werknId}>
+                        <MenuItem key={worker.werknId} value={worker.werknId.toString()}>
                             {worker.voornaam}
                         </MenuItem>
                     ))}
@@ -110,15 +111,15 @@ function ActieDetail({ action, open, onClose, onSave }) {
                 />
                 <Select
                     name="fldMPrioriteit"
-                    value={formData.fldMPrioriteit || ''}
+                    value={formData.fldMPrioriteit}
                     onChange={handleInputChange}
                     displayEmpty
                     fullWidth
                     margin="normal"
                 >
-                    <MenuItem value="">Kies prioriteit</MenuItem>
+                    <MenuItem value="0">Geen</MenuItem>
                     {prioriteiten.map((prioriteit) => (
-                        <MenuItem key={prioriteit.id} value={prioriteit.id}>
+                        <MenuItem key={prioriteit.prioriteit} value={prioriteit.prioriteit.toString()}>
                             {prioriteit.omschrijving}
                         </MenuItem>
                     ))}
