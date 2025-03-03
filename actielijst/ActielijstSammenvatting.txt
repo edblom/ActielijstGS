@@ -1,0 +1,46 @@
+﻿=== Actielijst Applicatie Samenvatting (26 februari 2025) ===
+
+Projectmap: C:\Users\Ed\source\repos\actielijst\actielijst
+- Web API: https://localhost:44361
+- React Frontend: http://localhost:44310
+
+=== Belangrijke Bestanden ===
+Web API:
+- ActionsController.cs: CRUD endpoints (GET, POST, PUT, DELETE)
+- ApplicationDbContext.cs: Model ActionItem (Id, Title, Description, Assignee, DueDate, Status, Creator)
+- Startup.cs: CORS en routing configuratie
+- appsettings.json: Connection string "Server=DOJO\\SQL2019;Database=ActieLijst;Integrated Security=True;"
+
+React Frontend (ClientApp):
+- src\App.js: Hoofdcomponent met login en actielijst logica
+- src\components\ActieForm.js: Formulier voor toevoegen/bewerken
+- src\components\ActieLijst.js: Lijst met acties, bewerken en verwijderen
+- src\components\Login.js: Simpele inlogfunctionaliteit
+- package.json: Dependencies (@mui/material, axios, react 18, etc.)
+
+=== Functionaliteit ===
+- Inloggen: Hardcoded gebruikers (jan:jan123, piet:piet123)
+- Toevoegen: POST naar api/actions
+- Bewerken: PUT naar api/actions/{id}
+- Verwijderen: DELETE naar api/actions/{id} (indien toegevoegd)
+- Lijst: Gefilterd op ingelogde gebruiker (assignee of creator)
+
+=== Database ===
+- Server: DOJO\SQL2019
+- Database: ActieLijst
+- Tabel: dbo.Actions
+
+=== Hoe Verder Te Gaan ===
+1. Open project in Visual Studio 2019.
+2. Start Web API (F5).
+3. Ga naar ClientApp: 
+   - cd C:\Users\Ed\source\repos\actielijst\actielijst\ClientApp
+   - npm install
+   - npm start
+4. Test op http://localhost:44310
+
+=== Nog te Doen ===
+- Kwetsbaarheden (npm audit fix)
+- Deploy naar Azure
+- Uitloggen toevoegen
+- Echt authenticatiesysteem (JWT)
