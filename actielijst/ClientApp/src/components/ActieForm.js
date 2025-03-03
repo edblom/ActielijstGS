@@ -9,13 +9,14 @@ function ActieForm({ initialAction, onActionAdded, currentUser }) {
         fldMActieVoor: '',
         fldMActieDatum: '',
         fldMActieSoort: '',
+        fldMStatus: 'Open',
+        fldMPrioriteit: '',
         werknId: currentUser || 0
     });
     const [workers, setWorkers] = useState([]);
-    const [actionTypes, setActionTypes] = useState([]);
-    const [loadingActionTypes, setLoadingActionTypes] = useState(true);
+    const [prioriteiten, setPrioriteiten] = useState([]);
+    const actionTypes = ['Urgent', 'Normaal', 'Laag'];
 
-    // Initialiseer formData bij laden of bij verandering van initialAction/currentUser
     useEffect(() => {
         if (initialAction) {
             setFormData({
@@ -24,6 +25,8 @@ function ActieForm({ initialAction, onActionAdded, currentUser }) {
                 fldMActieVoor: initialAction.fldMActieVoor || '',
                 fldMActieDatum: initialAction.fldMActieDatum ? initialAction.fldMActieDatum.split('T')[0] : '',
                 fldMActieSoort: initialAction.fldMActieSoort || '',
+                fldMStatus: initialAction.fldMStatus || 'Open',
+                fldMPrioriteit: initialAction.fldMPrioriteit || '',
                 werknId: initialAction.werknId || currentUser || 0
             });
         } else {
@@ -33,48 +36,33 @@ function ActieForm({ initialAction, onActionAdded, currentUser }) {
                 fldMActieVoor: '',
                 fldMActieDatum: '',
                 fldMActieSoort: '',
+                fldMStatus: 'Open',
+                fldMPrioriteit: '',
                 werknId: currentUser || 0
             });
         }
     }, [initialAction, currentUser]);
 
-    // Haal werknemers uit de API
     useEffect(() => {
-        axios.get('https://localhost:44361/api/werknemers')
-            .then(response => {
-                const sortedWorkers = response.data.sort((a, b) =>
-                    a.voornaam.localeCompare(b.voornaam)
-                );
+        const fetchData = async () => {
+            try {
+                const [workersResponse, prioriteitenResponse] = await Promise.all([
+                    axios.get('https://localhost:44361/api/werknemers'),
+                    axios.get('https://localhost:44361/api/priorities')
+                ]);
+                const sortedWorkers = workersResponse.data.sort((a, b) => a.voornaam.localeCompare(b.voornaam));
                 setWorkers(sortedWorkers);
-            })
-            .catch(error => console.error('Fout bij ophalen werknemers:', error));
+                setPrioriteiten(prioriteitenResponse.data);
+            } catch (error) {
+                console.error('Fout bij ophalen data:', error);
+            }
+        };
+        fetchData();
     }, []);
-
-    // Haal actiesoorten uit de API
-    useEffect(() => {
-        axios.get('https://localhost:44361/api/actiesoorten/all')
-            .then(response => {
-                setActionTypes(response.data);
-                if (!initialAction && response.data.length > 0) {
-                    setFormData(prev => ({ ...prev, fldMActieSoort: response.data[0].omschrijving }));
-                }
-                setLoadingActionTypes(false);
-            })
-            .catch(error => {
-                console.error('Fout bij ophalen actiesoorten:', error);
-                setLoadingActionTypes(false);
-            });
-    }, [initialAction]);
 
     const handleInputChange = (event) => {
         const { name, value } = event.target;
-        // Voor fldMActieSoort zoeken we de omschrijving op basis van het geselecteerde ID
-        if (name === 'fldMActieSoort') {
-            const selectedType = actionTypes.find(type => type.id === parseInt(value));
-            setFormData({ ...formData, [name]: selectedType ? selectedType.omschrijving : '' });
-        } else {
-            setFormData({ ...formData, [name]: value });
-        }
+        setFormData({ ...formData, [name]: value });
     };
 
     const handleSubmit = async (event) => {
@@ -84,20 +72,19 @@ function ActieForm({ initialAction, onActionAdded, currentUser }) {
             fldMActieDatum: formData.fldMActieDatum ? `${formData.fldMActieDatum}T00:00:00` : null,
             fldMActieVoor: parseInt(formData.fldMActieVoor) || null,
             werknId: parseInt(formData.werknId) || null,
-            fldMActieSoort: formData.fldMActieSoort || null // Dit is nu de omschrijving
+            fldMPrioriteit: parseInt(formData.fldMPrioriteit) || null
         };
         if (!actionData.fldMid) {
             delete actionData.fldMid;
         }
 
-        console.log('Verzonden data:', JSON.stringify(actionData, null, 2));
+        console.log('Verzonden data:', actionData);
         try {
-            let response;
             if (actionData.fldMid) {
-                response = await axios.put(`https://localhost:44361/api/memos/${actionData.fldMid}`, actionData);
+                const response = await axios.put(`https://localhost:44361/api/memos/${actionData.fldMid}`, actionData);
                 console.log('Actie bijgewerkt:', response.data);
             } else {
-                response = await axios.post('https://localhost:44361/api/memos', actionData);
+                const response = await axios.post('https://localhost:44361/api/memos', actionData);
                 console.log('Actie toegevoegd:', response.data);
             }
             setFormData({
@@ -105,16 +92,14 @@ function ActieForm({ initialAction, onActionAdded, currentUser }) {
                 fldOmschrijving: '',
                 fldMActieVoor: '',
                 fldMActieDatum: '',
-                fldMActieSoort: actionTypes.length > 0 ? actionTypes[0].omschrijving : '',
+                fldMActieSoort: '',
+                fldMStatus: 'Open',
+                fldMPrioriteit: '',
                 werknId: currentUser || 0
             });
             if (onActionAdded) onActionAdded();
         } catch (error) {
-            console.error('Fout bij opslaan actie:', {
-                message: error.message,
-                response: error.response ? error.response.data : null,
-                status: error.response ? error.response.status : null
-            });
+            console.error('Fout bij opslaan actie:', error.response ? error.response.data : error.message);
         }
     };
 
@@ -157,21 +142,43 @@ function ActieForm({ initialAction, onActionAdded, currentUser }) {
             />
             <Select
                 name="fldMActieSoort"
-                value={actionTypes.find(type => type.omschrijving === formData.fldMActieSoort)?.id || ''}
+                value={formData.fldMActieSoort}
                 onChange={handleInputChange}
                 displayEmpty
                 fullWidth
                 margin="normal"
-                disabled={loadingActionTypes}
             >
                 <MenuItem value="">Kies actiesoort</MenuItem>
                 {actionTypes.map((type) => (
-                    <MenuItem key={type.id} value={type.id}>
-                        {type.omschrijving}
+                    <MenuItem key={type} value={type}>
+                        {type}
                     </MenuItem>
                 ))}
             </Select>
-            <Button type="submit" variant="contained" color="primary" disabled={loadingActionTypes}>
+            <Select
+                name="fldMPrioriteit"
+                value={formData.fldMPrioriteit}
+                onChange={handleInputChange}
+                displayEmpty
+                fullWidth
+                margin="normal"
+            >
+                <MenuItem value="">Kies prioriteit</MenuItem>
+                {prioriteiten.map((prioriteit) => (
+                    <MenuItem key={prioriteit.id} value={prioriteit.id}>
+                        {prioriteit.omschrijving}
+                    </MenuItem>
+                ))}
+            </Select>
+            <TextField
+                name="fldMStatus"
+                label="Status"
+                value={formData.fldMStatus}
+                onChange={handleInputChange}
+                fullWidth
+                margin="normal"
+            />
+            <Button type="submit" variant="contained" color="primary">
                 {formData.fldMid ? 'Opslaan' : 'Actie Toevoegen'}
             </Button>
         </form>
