@@ -139,11 +139,12 @@ app.MapPut("/api/memos/{id}", async (int id, Memo updatedMemo, ApplicationDbCont
     existingMemo.FldMActieDatum = updatedMemo.FldMActieDatum;
     existingMemo.FldMActieSoort = updatedMemo.FldMActieSoort;
     existingMemo.WerknId = updatedMemo.WerknId;
+    existingMemo.FldMPrioriteit = updatedMemo.FldMPrioriteit; // Dit zou 4 moeten accepteren
 
     try
     {
         await context.SaveChangesAsync();
-        return Results.NoContent();
+        return Results.Ok(existingMemo); // Retourneer de bijgewerkte memo
     }
     catch (DbUpdateConcurrencyException ex)
     {
