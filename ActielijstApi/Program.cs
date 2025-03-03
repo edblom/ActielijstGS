@@ -216,7 +216,7 @@ public class ExceptionMiddleware
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Een onverwerkte fout is opgetreden.");
+            _logger.LogError(ex, "Een onverwerkte fout is opgetreden!");
             context.Response.StatusCode = 500;
             context.Response.ContentType = "application/json";
             await context.Response.WriteAsync(JsonSerializer.Serialize(new { error = ex.Message }));
