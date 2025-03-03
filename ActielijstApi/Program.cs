@@ -136,6 +136,7 @@ app.MapPut("/api/memos/{id}", async (int id, Memo updatedMemo, ApplicationDbCont
 
     existingMemo.FldOmschrijving = updatedMemo.FldOmschrijving;
     existingMemo.FldMActieVoor = updatedMemo.FldMActieVoor;
+    existingMemo.FldMActieVoor2 = updatedMemo.FldMActieVoor2;
     existingMemo.FldMActieDatum = updatedMemo.FldMActieDatum;
     existingMemo.FldMActieSoort = updatedMemo.FldMActieSoort;
     existingMemo.WerknId = updatedMemo.WerknId;

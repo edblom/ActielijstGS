@@ -1,148 +1,115 @@
 ﻿import React, { useState, useEffect } from 'react';
-import { TextField, Select, MenuItem, Button, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography } from '@mui/material';
 import axios from 'axios';
 
-function ActieDetail({ action, open, onClose, onSave }) {
-    const [formData, setFormData] = useState(action || {});
+function ActieDetail({ action, open = false, onClose }) {
     const [werknemers, setWerknemers] = useState([]);
     const [prioriteiten, setPrioriteiten] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        if (action) {
-            setFormData({
-                fldMid: action.fldMid || '',
-                fldOmschrijving: action.fldOmschrijving || '',
-                fldMActieVoor: action.fldMActieVoor || '',
-                fldMActieDatum: action.fldMActieDatum ? action.fldMActieDatum.split('T')[0] : '',
-                fldMActieSoort: action.fldMActieSoort || '',
-                fldMStatus: action.fldMStatus || 'Open',
-                fldMPrioriteit: action.fldMPrioriteit || '0', // Standaard '0'
-                werknId: action.werknId || 0
-            });
-        }
-    }, [action]);
-
-    useEffect(() => {
+        let isMounted = true; // Voorkom memory leaks
         const fetchData = async () => {
+            setIsLoading(true);
             try {
                 const [werknemersResponse, prioriteitenResponse] = await Promise.all([
                     axios.get('https://localhost:44361/api/werknemers'),
                     axios.get('https://localhost:44361/api/priorities')
                 ]);
-                console.log('Prioriteiten response in ActieDetail:', prioriteitenResponse.data);
-                setWerknemers(werknemersResponse.data);
-                setPrioriteiten(prioriteitenResponse.data || []);
+                if (isMounted) {
+                    setWerknemers(werknemersResponse.data || []);
+                    setPrioriteiten(prioriteitenResponse.data || []);
+                }
             } catch (error) {
                 console.error('Fout bij ophalen data in ActieDetail:', error);
+            } finally {
+                if (isMounted) {
+                    setIsLoading(false);
+                }
             }
         };
         fetchData();
+        return () => { isMounted = false };
     }, []);
 
-    const handleInputChange = (event) => {
-        const { name, value } = event.target;
-        setFormData({ ...formData, [name]: value });
+    // Helper om werknemer naam op te halen
+    const getWerknemerNaam = (werknId) => {
+        if (!werknId || !werknemers.length) return 'Onbekend';
+        const werknemer = werknemers.find(w => w.werknId === parseInt(werknId));
+        return werknemer ? werknemer.voornaam : 'Onbekend';
     };
 
-    const handleSubmit = async (event) => {
-        event.preventDefault();
-        const updatedAction = {
-            ...formData,
-            fldMActieDatum: formData.fldMActieDatum ? `${formData.fldMActieDatum}T00:00:00` : null,
-            fldMActieVoor: parseInt(formData.fldMActieVoor) || null,
-            werknId: parseInt(formData.werknId) || null,
-            fldMPrioriteit: formData.fldMPrioriteit === '' ? 0 : parseInt(formData.fldMPrioriteit)
-        };
-        try {
-            await axios.put(`https://localhost:44361/api/memos/${updatedAction.fldMid}`, updatedAction);
-            if (onSave) onSave(updatedAction);
-            onClose();
-        } catch (error) {
-            console.error('Fout bij opslaan actie:', error.response ? error.response.data : error.message);
-        }
+    // Helper om prioriteit omschrijving op te halen
+    const getPrioriteitOmschrijving = (prioriteitId) => {
+        if (!prioriteitId || !prioriteiten.length) return 'Geen';
+        const prioriteit = prioriteiten.find(p => p.prioriteit === parseInt(prioriteitId));
+        return prioriteit ? prioriteit.omschrijving : 'Geen';
     };
+
+    // Formatteer datum zonder tijd
+    const formatteerDatum = (datum) => {
+        return datum ? datum.split('T')[0] : 'Niet ingesteld';
+    };
+
+    // Toon alleen "Laden..." als data nog niet geladen is
+    if (isLoading) {
+        return (
+            <Dialog open={open} onClose={onClose}>
+                <DialogTitle>Laden...</DialogTitle>
+                <DialogContent>
+                    <Typography>Actie-details worden geladen.</Typography>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={onClose} color="primary">
+                        Sluiten
+                    </Button>
+                </DialogActions>
+            </Dialog>
+        );
+    }
+
+    // Geen render als er geen action is
+    if (!action) {
+        return null;
+    }
 
     return (
         <Dialog open={open} onClose={onClose}>
             <DialogTitle>Actie Details</DialogTitle>
             <DialogContent>
-                <TextField
-                    name="fldOmschrijving"
-                    label="Beschrijving"
-                    value={formData.fldOmschrijving || ''}
-                    onChange={handleInputChange}
-                    multiline
-                    rows={4}
-                    fullWidth
-                    margin="normal"
-                />
-                <Select
-                    name="fldMActieVoor"
-                    value={formData.fldMActieVoor}
-                    onChange={handleInputChange}
-                    displayEmpty
-                    fullWidth
-                    margin="normal"
-                >
-                    <MenuItem value="">Kies werknemer</MenuItem>
-                    {werknemers.map((worker) => (
-                        <MenuItem key={worker.werknId} value={worker.werknId.toString()}>
-                            {worker.voornaam}
-                        </MenuItem>
-                    ))}
-                </Select>
-                <TextField
-                    name="fldMActieDatum"
-                    label="Vervaldatum"
-                    type="date"
-                    value={formData.fldMActieDatum || ''}
-                    onChange={handleInputChange}
-                    InputLabelProps={{ shrink: true }}
-                    fullWidth
-                    margin="normal"
-                />
-                <TextField
-                    name="fldMActieSoort"
-                    label="Actie Soort"
-                    value={formData.fldMActieSoort || ''}
-                    onChange={handleInputChange}
-                    fullWidth
-                    margin="normal"
-                />
-                <Select
-                    name="fldMPrioriteit"
-                    value={formData.fldMPrioriteit}
-                    onChange={handleInputChange}
-                    displayEmpty
-                    fullWidth
-                    margin="normal"
-                >
-                    <MenuItem value="0">Geen</MenuItem>
-                    {prioriteiten.map((prioriteit) => (
-                        <MenuItem key={prioriteit.prioriteit} value={prioriteit.prioriteit.toString()}>
-                            {prioriteit.omschrijving}
-                        </MenuItem>
-                    ))}
-                </Select>
-                <TextField
-                    name="fldMStatus"
-                    label="Status"
-                    value={formData.fldMStatus || ''}
-                    onChange={handleInputChange}
-                    fullWidth
-                    margin="normal"
-                />
+                <Typography variant="body1" gutterBottom>
+                    <strong>Beschrijving:</strong> {action.fldOmschrijving || 'Geen beschrijving'}
+                </Typography>
+                <Typography variant="body1" gutterBottom>
+                    <strong>Actie voor:</strong> {getWerknemerNaam(action.fldMActieVoor)}
+                </Typography>
+                <Typography variant="body1" gutterBottom>
+                    <strong>Tweede actie voor:</strong> {getWerknemerNaam(action.fldMActieVoor2) || 'Niet ingesteld'}
+                </Typography>
+                <Typography variant="body1" gutterBottom>
+                    <strong>Vervaldatum:</strong> {formatteerDatum(action.fldMActieDatum)}
+                </Typography>
+                <Typography variant="body1" gutterBottom>
+                    <strong>Actie soort:</strong> {action.fldMActieSoort || 'Niet ingesteld'}
+                </Typography>
+                <Typography variant="body1" gutterBottom>
+                    <strong>Prioriteit:</strong> {getPrioriteitOmschrijving(action.fldMPrioriteit)}
+                </Typography>
+                <Typography variant="body1" gutterBottom>
+                    <strong>Status:</strong> {action.fldMStatus || 'Open'}
+                </Typography>
             </DialogContent>
             <DialogActions>
-                <Button onClick={onClose} color="secondary">
-                    Annuleren
-                </Button>
-                <Button type="submit" onClick={handleSubmit} color="primary">
-                    Opslaan
+                <Button onClick={onClose} color="primary">
+                    Sluiten
                 </Button>
             </DialogActions>
         </Dialog>
     );
 }
+
+ActieDetail.defaultProps = {
+    open: false,
+};
 
 export default ActieDetail;

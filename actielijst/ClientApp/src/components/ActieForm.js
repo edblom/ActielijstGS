@@ -7,6 +7,7 @@ function ActieForm({ initialAction, onActionAdded, currentUser }) {
         fldMid: '',
         fldOmschrijving: '',
         fldMActieVoor: '',
+        fldMActieVoor2: '',
         fldMActieDatum: '',
         fldMActieSoort: '',
         fldMStatus: 'Open',
@@ -49,6 +50,7 @@ function ActieForm({ initialAction, onActionAdded, currentUser }) {
                 fldMid: initialAction.fldMid || '',
                 fldOmschrijving: initialAction.fldOmschrijving || '',
                 fldMActieVoor: initialAction.fldMActieVoor || '',
+                fldMActieVoor2: initialAction.fldMActieVoor2 || '',
                 fldMActieDatum: initialAction.fldMActieDatum ? initialAction.fldMActieDatum.split('T')[0] : '',
                 fldMActieSoort: initialAction.fldMActieSoort || '',
                 fldMStatus: initialAction.fldMStatus || 'Open',
@@ -61,6 +63,7 @@ function ActieForm({ initialAction, onActionAdded, currentUser }) {
                 fldMid: '',
                 fldOmschrijving: '',
                 fldMActieVoor: '',
+                fldMActieVoor2: '',
                 fldMActieDatum: '',
                 fldMActieSoort: '',
                 fldMStatus: 'Open',
@@ -82,6 +85,7 @@ function ActieForm({ initialAction, onActionAdded, currentUser }) {
             ...formData,
             fldMActieDatum: formData.fldMActieDatum ? `${formData.fldMActieDatum}T00:00:00` : null,
             fldMActieVoor: parseInt(formData.fldMActieVoor) || null,
+            fldMActieVoor2: parseInt(formData.fldMActieVoor2) || null,
             werknId: parseInt(formData.werknId) || null,
             fldMPrioriteit: formData.fldMPrioriteit === '' ? 0 : parseInt(formData.fldMPrioriteit)
         };
@@ -102,6 +106,7 @@ function ActieForm({ initialAction, onActionAdded, currentUser }) {
                 fldMid: '',
                 fldOmschrijving: '',
                 fldMActieVoor: '',
+                fldMActieVoor2: '',
                 fldMActieDatum: '',
                 fldMActieSoort: '',
                 fldMStatus: 'Open',
@@ -128,6 +133,7 @@ function ActieForm({ initialAction, onActionAdded, currentUser }) {
             />
             <Select
                 name="fldMActieVoor"
+                label="Bestemd voor"
                 value={formData.fldMActieVoor}
                 onChange={handleInputChange}
                 displayEmpty
@@ -141,6 +147,24 @@ function ActieForm({ initialAction, onActionAdded, currentUser }) {
                     </MenuItem>
                 ))}
             </Select>
+
+            {/* Toegevoegde dropdown voor fldMActieVoor2 */ }
+            <Select
+                name="fldMActieVoor2"
+                value={formData.fldMActieVoor2}
+                onChange={handleInputChange}
+                displayEmpty
+                fullWidth
+                margin="normal"
+            >
+                <MenuItem value="">Kies tweede werknemer (optioneel)</MenuItem>
+                {workers.map((worker) => (
+                    <MenuItem key={worker.werknId} value={worker.werknId.toString()}>
+                        {worker.voornaam}
+                    </MenuItem>
+                ))}
+            </Select>
+
             <TextField
                 name="fldMActieDatum"
                 label="Vervaldatum"
@@ -153,6 +177,7 @@ function ActieForm({ initialAction, onActionAdded, currentUser }) {
             />
             <Select
                 name="fldMActieSoort"
+                label="Soort actie"
                 value={formData.fldMActieSoort}
                 onChange={handleInputChange}
                 displayEmpty
@@ -174,7 +199,6 @@ function ActieForm({ initialAction, onActionAdded, currentUser }) {
                 fullWidth
                 margin="normal"
             >
-                <MenuItem value="0">Geen</MenuItem>
                 {prioriteiten.map((prioriteit) => (
                     <MenuItem key={prioriteit.prioriteit} value={prioriteit.prioriteit.toString()}>
                         {prioriteit.omschrijving}

@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { List, ListItem, ListItemText, IconButton } from '@mui/material';
+import { List, ListItem, ListItemText, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import VisibilityIcon from '@mui/icons-material/Visibility';
 import axios from 'axios';
 import ActieDetail from './ActieDetail';
 
-function ActieLijst({ userId, refreshTrigger, onEditAction, onShowDetail, filterType, searchTerm }) {
+function ActieLijst({ userId, refreshTrigger, onEditAction, filterType, searchTerm }) {
     const [actions, setActions] = useState([]);
     const [prioriteiten, setPrioriteiten] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedAction, setSelectedAction] = useState(null);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false); // Nieuwe state voor verwijderdialoog
+    const [actionToDelete, setActionToDelete] = useState(null); // Actie die verwijderd moet worden
 
     const lightenColor = (hex, percent) => {
         let r = parseInt(hex.slice(1, 3), 16);
@@ -47,28 +48,42 @@ function ActieLijst({ userId, refreshTrigger, onEditAction, onShowDetail, filter
         if (onEditAction) onEditAction(action);
     };
 
-    const handleShowDetail = (action) => {
+    const handleOpenDetail = (action) => {
         setSelectedAction(action);
-        if (onShowDetail) onShowDetail(action);
     };
 
-    const handleDelete = async (id) => {
-        try {
-            await axios.delete(`https://localhost:44361/api/memos/${id}`);
-            console.log('Actie verwijderd:', id);
-            const response = await axios.get(`https://localhost:44361/api/memos/user/${userId}/${filterType}`);
-            setActions(response.data);
-        } catch (error) {
-            console.error('Fout bij verwijderen actie:', error);
+    const handleCloseDetail = () => {
+        setSelectedAction(null);
+    };
+
+    const handleDeleteConfirm = async () => {
+        if (actionToDelete) {
+            try {
+                await axios.delete(`https://localhost:44361/api/memos/${actionToDelete.fldMid}`);
+                console.log('Actie verwijderd:', actionToDelete.fldMid);
+                const response = await axios.get(`https://localhost:44361/api/memos/user/${userId}/${filterType}`);
+                setActions(response.data);
+            } catch (error) {
+                console.error('Fout bij verwijderen actie:', error);
+            } finally {
+                setDeleteDialogOpen(false);
+                setActionToDelete(null);
+            }
         }
+    };
+
+    const handleDeleteOpen = (action) => {
+        setActionToDelete(action);
+        setDeleteDialogOpen(true);
+    };
+
+    const handleDeleteClose = () => {
+        setDeleteDialogOpen(false);
+        setActionToDelete(null);
     };
 
     const handleSaveDetail = (updatedAction) => {
         setActions(actions.map(action => action.fldMid === updatedAction.fldMid ? updatedAction : action));
-        setSelectedAction(null);
-    };
-
-    const handleCloseDetail = () => {
         setSelectedAction(null);
     };
 
@@ -90,26 +105,23 @@ function ActieLijst({ userId, refreshTrigger, onEditAction, onShowDetail, filter
                 ) : (
                     filteredActions.map((action) => {
                         const prioriteit = prioriteiten.find(p => p.prioriteit === action.fldMPrioriteit);
-                        console.log('Prioriteit voor actie', action.fldMid, ':', prioriteit);
                         const backgroundColor = prioriteit && prioriteit.kleur
                             ? lightenColor(prioriteit.kleur, 0.2)
                             : '#F0F0F0';
                         return (
                             <ListItem
                                 key={action.fldMid}
-                                style={{ backgroundColor }}
+                                style={{ backgroundColor, cursor: 'pointer' }}
+                                onClick={() => handleOpenDetail(action)}
                             >
                                 <ListItemText
                                     primary={action.fldOmschrijving}
                                     secondary={`Type: ${action.fldMActieSoort} - Toegewezen aan ID: ${action.fldMActieVoor} - Status: ${action.fldMStatus} - Vervaldatum: ${action.fldMActieDatum ? new Date(action.fldMActieDatum).toLocaleDateString('nl-NL') : 'Geen datum'}`}
                                 />
-                                <IconButton onClick={() => handleEdit(action)} color="primary" aria-label="bewerken" style={{ marginRight: '10px' }}>
+                                <IconButton onClick={(e) => { e.stopPropagation(); handleEdit(action); }} color="primary" aria-label="bewerken" style={{ marginRight: '10px' }}>
                                     <EditIcon />
                                 </IconButton>
-                                <IconButton onClick={() => handleShowDetail(action)} color="primary" aria-label="details" style={{ marginRight: '10px' }}>
-                                    <VisibilityIcon />
-                                </IconButton>
-                                <IconButton onClick={() => handleDelete(action.fldMid)} color="error" aria-label="verwijderen">
+                                <IconButton onClick={(e) => { e.stopPropagation(); handleDeleteOpen(action); }} color="error" aria-label="verwijderen">
                                     <DeleteIcon />
                                 </IconButton>
                             </ListItem>
@@ -120,9 +132,24 @@ function ActieLijst({ userId, refreshTrigger, onEditAction, onShowDetail, filter
             <ActieDetail
                 action={selectedAction}
                 open={!!selectedAction}
-                onSave={handleSaveDetail}
                 onClose={handleCloseDetail}
+                onSave={handleSaveDetail}
             />
+            {/* Verwijderdialoog */}
+            <Dialog open={deleteDialogOpen} onClose={handleDeleteClose}>
+                <DialogTitle>Bevestig verwijdering</DialogTitle>
+                <DialogContent>
+                    <Typography>Weet je zeker dat je de actie "<strong>{actionToDelete?.fldOmschrijving || 'Onbekende actie'}</strong>" wilt verwijderen?</Typography>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleDeleteClose} color="primary">
+                        Annuleren
+                    </Button>
+                    <Button onClick={handleDeleteConfirm} color="error">
+                        Verwijderen
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </>
     );
 }
