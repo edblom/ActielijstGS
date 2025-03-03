@@ -189,6 +189,23 @@ app.MapGet("/api/priorities", async (ApplicationDbContext context) =>
 .WithName("GetPriorities")
 .WithOpenApi();
 
+// Nieuwe endpoint voor inspecties (gebruik de view)
+app.MapGet("/api/inspecties", async (ApplicationDbContext context) =>
+{
+    try
+    {
+        var inspecties = await context.Inspecties.ToListAsync();
+        Console.WriteLine(JsonSerializer.Serialize(inspecties)); // Debug
+        return Results.Ok(inspecties);
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(ex.Message);
+    }
+})
+.WithName("GetInspecties")
+.WithOpenApi();
+
 app.UseExceptionMiddleware();
 
 app.Run();

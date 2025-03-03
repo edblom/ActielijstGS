@@ -11,6 +11,7 @@ namespace ActielijstApi.Data
         public DbSet<Werknemer> Werknemers { get; set; }
         public DbSet<ActieSoort> ActieSoorten { get; set; }
         public DbSet<StblPriority> StblPriorities { get; set; } // Toegevoegd
+        public DbSet<Inspectie> Inspecties { get; set; } // Toegevoegd
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -25,6 +26,12 @@ namespace ActielijstApi.Data
 
             modelBuilder.Entity<StblPriority>().ToTable("stblPriority", "dbo"); // Toegevoegd
             modelBuilder.Entity<StblPriority>().HasKey(p => p.Id); // Toegevoegd
+
+            modelBuilder.Entity<Inspectie>(entity =>
+            {
+                entity.HasNoKey(); // Geen primaire sleutel, omdat het een view is
+                entity.ToView("vw_KIWAInspecties"); // Map naar de view
+            });
 
             // Default waarden voor Memo
             modelBuilder.Entity<Memo>().Property(m => m.WerknId).HasDefaultValue(0);
