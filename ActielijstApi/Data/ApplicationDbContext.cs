@@ -1,6 +1,5 @@
-﻿// ActielijstApi/Data/ApplicationDbContext.cs
-using Microsoft.EntityFrameworkCore;
-using ActielijstApi.Models; // Voeg deze namespace toe
+﻿using Microsoft.EntityFrameworkCore;
+using ActielijstApi.Models;
 
 namespace ActielijstApi.Data
 {
@@ -11,6 +10,7 @@ namespace ActielijstApi.Data
         public DbSet<Memo> Memos { get; set; }
         public DbSet<Werknemer> Werknemers { get; set; }
         public DbSet<ActieSoort> ActieSoorten { get; set; }
+        public DbSet<StblPriority> StblPriorities { get; set; } // Toegevoegd
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -22,6 +22,9 @@ namespace ActielijstApi.Data
 
             modelBuilder.Entity<ActieSoort>().ToTable("stblActieSoort", "dbo");
             modelBuilder.Entity<ActieSoort>().HasKey(a => a.Id);
+
+            modelBuilder.Entity<StblPriority>().ToTable("stblPriority", "dbo"); // Toegevoegd
+            modelBuilder.Entity<StblPriority>().HasKey(p => p.Id); // Toegevoegd
 
             // Default waarden voor Memo
             modelBuilder.Entity<Memo>().Property(m => m.WerknId).HasDefaultValue(0);

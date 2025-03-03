@@ -1,4 +1,3 @@
-// ActielijstGS/Program.cs
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
@@ -135,7 +134,6 @@ app.MapPut("/api/memos/{id}", async (int id, Memo updatedMemo, ApplicationDbCont
 
     if (id != updatedMemo.FldMid) return Results.BadRequest();
 
-    // Werk alleen de gewijzigde velden bij
     existingMemo.FldOmschrijving = updatedMemo.FldOmschrijving;
     existingMemo.FldMActieVoor = updatedMemo.FldMActieVoor;
     existingMemo.FldMActieDatum = updatedMemo.FldMActieDatum;
@@ -171,6 +169,22 @@ app.MapGet("/api/memos/test-error", () =>
     throw new ArgumentException("Dit is een testfout!");
 })
 .WithName("TestError")
+.WithOpenApi();
+
+// Nieuwe endpoint voor prioriteiten
+app.MapGet("/api/priorities", async (ApplicationDbContext context) =>
+{
+    try
+    {
+        var priorities = await context.StblPriorities.ToListAsync();
+        return Results.Ok(priorities);
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(ex.Message);
+    }
+})
+.WithName("GetPriorities")
 .WithOpenApi();
 
 app.UseExceptionMiddleware();
