@@ -14,7 +14,7 @@ function ActieLijst({ userId, refreshTrigger, onEditAction, filterType, searchTe
     const [selectedAction, setSelectedAction] = useState(null);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [actionToDelete, setActionToDelete] = useState(null);
-    const [statusFilter, setStatusFilter] = useState('open'); // Standaardwaarde nu "open"
+    const [statusFilter, setStatusFilter] = useState('open'); // Standaardwaarde "open"
     const [priorityFilter, setPriorityFilter] = useState('all'); // Filter op prioriteit
 
     const lightenColor = (hex, percent) => {
@@ -27,6 +27,13 @@ function ActieLijst({ userId, refreshTrigger, onEditAction, filterType, searchTe
         b = Math.min(255, Math.round(b + (255 - b) * percent));
 
         return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+    };
+
+    const getLighterGray = (percent) => {
+        // Specifieke verlichting voor grijze achtergrond (#D3D3D3)
+        const baseGray = parseInt('D3', 16); // Decimale waarde van D3
+        const lighterGray = Math.min(255, Math.round(baseGray + (255 - baseGray) * percent));
+        return `#${lighterGray.toString(16).padStart(2, '0')}${lighterGray.toString(16).padStart(2, '0')}${lighterGray.toString(16).padStart(2, '0')}`;
     };
 
     useEffect(() => {
@@ -150,7 +157,7 @@ function ActieLijst({ userId, refreshTrigger, onEditAction, filterType, searchTe
                         const prioriteit = prioriteiten.find(p => p.prioriteit === action.fldMPrioriteit);
                         const backgroundColor = prioriteit && prioriteit.kleur
                             ? lightenColor(prioriteit.kleur, 0.2)
-                            : '#F0F0F0';
+                            : '#F0F0F0'; // Grijze achtergrond voor acties zonder prioriteit
                         const isCompleted = !!action.fldMActieGereed;
                         // Haal voornamen op
                         const voornaam1 = getVoornaam(action.fldMActieVoor);
@@ -162,6 +169,17 @@ function ActieLijst({ userId, refreshTrigger, onEditAction, filterType, searchTe
                                 style={{
                                     backgroundColor: isCompleted ? '#D3D3D3' : backgroundColor,
                                     cursor: 'pointer',
+                                    transition: 'background-color 0.2s',
+                                }}
+                                onMouseEnter={(e) => {
+                                    if (isCompleted) {
+                                        e.currentTarget.style.backgroundColor = getLighterGray(0.3); // Subtiele verlichting voor gereedde acties
+                                    } else {
+                                        e.currentTarget.style.backgroundColor = lightenColor(backgroundColor.replace('#', ''), 0.3);
+                                    }
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.backgroundColor = isCompleted ? '#D3D3D3' : backgroundColor;
                                 }}
                                 onClick={() => handleOpenDetail(action)}
                             >
@@ -174,10 +192,10 @@ function ActieLijst({ userId, refreshTrigger, onEditAction, filterType, searchTe
                                         },
                                     }}
                                 />
-                                <IconButton onClick={(e) => { e.stopPropagation(); handleEdit(action); }} color="primary" aria-label="bewerken" style={{ marginRight: '10px' }}>
+                                <IconButton onClick={(e) => { e.stopPropagation(); handleEdit(action); }} color="primary" aria-label="bewerken" style={{ marginRight: '10px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                                     <EditIcon />
                                 </IconButton>
-                                <IconButton onClick={(e) => { e.stopPropagation(); handleDeleteOpen(action); }} color="error" aria-label="verwijderen">
+                                <IconButton onClick={(e) => { e.stopPropagation(); handleDeleteOpen(action); }} color="error" aria-label="verwijderen" style={{ boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                                     <DeleteIcon />
                                 </IconButton>
                             </ListItem>
@@ -191,7 +209,7 @@ function ActieLijst({ userId, refreshTrigger, onEditAction, filterType, searchTe
                 onClose={handleCloseDetail}
                 onSave={handleSaveDetail}
             />
-            <Dialog open={deleteDialogOpen} onClose={handleDeleteClose}>
+            <Dialog open={deleteDialogOpen} onClose={handleDeleteClose} PaperProps={{ style: { backgroundColor: '#ffffff', padding: '16px', borderRadius: '8px' } }}>
                 <DialogTitle>Bevestig verwijdering</DialogTitle>
                 <DialogContent>
                     <Typography>Weet je zeker dat je de actie "<strong>{actionToDelete?.fldOmschrijving || 'Onbekende actie'}</strong>" wilt verwijderen?</Typography>

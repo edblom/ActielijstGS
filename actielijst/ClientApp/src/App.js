@@ -73,9 +73,9 @@ function App() {
     return (
         <ThemeProvider theme={theme}>
             <div className="App" style={{ padding: '20px', position: 'relative', minHeight: '100vh' }}>
-                <AppBar position="static">
+                <AppBar position="static" style={{ backgroundColor: theme.palette.appBar.main }}>
                     <Toolbar>
-                        <Typography variant="h6" style={{ flexGrow: 1 }}>
+                        <Typography variant="h6" style={{ flexGrow: 1, color: theme.palette.common.white }}>
                             {listType === 'assigned' ? `Acties voor ${userVoornaam}` : `Acties van ${userVoornaam}`}
                         </Typography>
                         <TextField
@@ -122,7 +122,7 @@ function App() {
                     color="primary"
                     aria-label="add"
                     onClick={handleAddAction}
-                    style={{ position: 'fixed', bottom: '20px', right: '20px' }}
+                    style={{ position: 'fixed', bottom: '20px', right: '20px', boxShadow: '0 3px 5px rgba(0,0,0,0.2)', borderRadius: '50%' }}
                 >
                     <AddIcon />
                 </Fab>
