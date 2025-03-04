@@ -1,7 +1,7 @@
 ﻿// ClientApp/src/components/InspectionList.js
 import React, { useState, useEffect } from 'react';
 import { DataGrid } from '@mui/x-data-grid';
-import { TextField, Button, Box, Typography } from '@mui/material';
+import { TextField, Button, Box } from '@mui/material';
 import axios from 'axios';
 
 function InspectionList({ inspecteurId }) {
@@ -65,11 +65,21 @@ function InspectionList({ inspecteurId }) {
             (filterType === 'all' || row.status === filterType);
     });
 
+    const handleShowAll = () => {
+        setFilterType('all');
+        setSearchTerm('');
+    };
+
     return (
-        <Box sx={{ height: 600, width: '100%', p: 2 }}>
-            <Typography variant="h5" gutterBottom>
-                Aankomende Inspecties
-            </Typography>
+        <Box
+            sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                minHeight: 'calc(100vh - 64px)', // Min-hoogte om onder AppBar te passen
+                p: 2,
+                overflow: 'hidden', // Voorkom scrollbar op Box
+            }}
+        >
             <div style={{ marginBottom: 10 }}>
                 <TextField
                     label="Zoek naar"
@@ -80,7 +90,7 @@ function InspectionList({ inspecteurId }) {
                 />
                 <Button
                     variant="contained"
-                    onClick={() => setFilterType('all')}
+                    onClick={handleShowAll}
                     style={{ marginRight: 10 }}
                 >
                     Alle tonen
@@ -93,17 +103,28 @@ function InspectionList({ inspecteurId }) {
                     Opdracht
                 </Button>
             </div>
-            <DataGrid
-                rows={filteredRows}
-                columns={columns}
-                loading={loading}
-                getRowId={(row) => row?.psid || Math.random()}
-                initialState={{ pagination: { paginationModel: { pageSize: 10 } } }}
-                pageSizeOptions={[5, 10, 20]}
-                checkboxSelection={false}
-                disableRowSelectionOnClick
-                style={{ height: 600, width: '100%' }}
-            />
+            <Box sx={{ flex: 1, display: 'flex' }}>
+                <DataGrid
+                    rows={filteredRows}
+                    columns={columns}
+                    loading={loading}
+                    getRowId={(row) => row?.psid || Math.random()}
+                    initialState={{ pagination: { paginationModel: { pageSize: 10 } } }}
+                    pageSizeOptions={[5, 10, 20]}
+                    checkboxSelection={false}
+                    disableRowSelectionOnClick
+                    disableVirtualization // Schakel virtualisatie uit voor dynamische hoogte
+                    sx={{
+                        flex: 1,
+                        '& .MuiDataGrid-root': {
+                            border: 'none', // Optioneel: verwijder randen
+                        },
+                        '& .MuiDataGrid-virtualScroller': {
+                            overflow: 'hidden', // Verberg scrollbar
+                        },
+                    }}
+                />
+            </Box>
         </Box>
     );
 }
