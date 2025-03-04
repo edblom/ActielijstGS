@@ -2,18 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { List, ListItem, ListItemText, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, Select, MenuItem, FormControl, span } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import CancelIcon from '@mui/icons-material/Cancel'; // Nieuw voor Annuleer
+import CancelIcon from '@mui/icons-material/Cancel';
 import axios from 'axios';
 import ActieDetail from './ActieDetail';
 
 function ActieLijst({ userId, refreshTrigger, onEditAction, filterType, searchTerm }) {
     const [actions, setActions] = useState([]);
     const [prioriteiten, setPrioriteiten] = useState([]);
+    const [workers, setWorkers] = useState([]); // Lijst met werknemers
     const [loading, setLoading] = useState(true);
     const [selectedAction, setSelectedAction] = useState(null);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [actionToDelete, setActionToDelete] = useState(null);
-    const [statusFilter, setStatusFilter] = useState('open'); // Filter op status: all, open, gereed
+    const [statusFilter, setStatusFilter] = useState('open'); // Standaardwaarde nu "open"
     const [priorityFilter, setPriorityFilter] = useState('all'); // Filter op prioriteit
 
     const lightenColor = (hex, percent) => {
@@ -31,15 +32,18 @@ function ActieLijst({ userId, refreshTrigger, onEditAction, filterType, searchTe
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [actionsResponse, prioriteitenResponse] = await Promise.all([
+                const [actionsResponse, prioriteitenResponse, workersResponse] = await Promise.all([
                     axios.get(`https://localhost:44361/api/memos/user/${userId}/${filterType}`),
                     axios.get('https://localhost:44361/api/priorities'),
+                    axios.get('https://localhost:44361/api/werknemers'), // Haal workers op
                 ]);
                 console.log('Prioriteiten response in ActieLijst:', prioriteitenResponse.data);
+                console.log('Workers response in ActieLijst:', workersResponse.data);
                 setActions(actionsResponse.data);
                 setPrioriteiten(prioriteitenResponse.data || []);
+                setWorkers(workersResponse.data.sort((a, b) => a.voornaam.localeCompare(b.voornaam)) || []);
             } catch (error) {
-                console.error('Fout bij ophalen acties of prioriteiten:', error.response ? error.response.data : error.message);
+                console.error('Fout bij ophalen acties, prioriteiten of workers:', error.response ? error.response.data : error.message);
             } finally {
                 setLoading(false);
             }
@@ -88,6 +92,12 @@ function ActieLijst({ userId, refreshTrigger, onEditAction, filterType, searchTe
     const handleSaveDetail = (updatedAction) => {
         setActions(actions.map(action => action.fldMid === updatedAction.fldMid ? updatedAction : action));
         setSelectedAction(null);
+    };
+
+    // Haal de voornaam op basis van werknemer-ID
+    const getVoornaam = (werknId) => {
+        const worker = workers.find(w => w.werknId === parseInt(werknId));
+        return worker ? worker.voornaam : 'Onbekend';
     };
 
     // Gefilterde acties
@@ -142,6 +152,10 @@ function ActieLijst({ userId, refreshTrigger, onEditAction, filterType, searchTe
                             ? lightenColor(prioriteit.kleur, 0.2)
                             : '#F0F0F0';
                         const isCompleted = !!action.fldMActieGereed;
+                        // Haal voornamen op
+                        const voornaam1 = getVoornaam(action.fldMActieVoor);
+                        const voornaam2 = action.fldMActieVoor2 ? getVoornaam(action.fldMActieVoor2) : null;
+                        const assignedToText = voornaam2 ? `Voor ${voornaam1} / ${voornaam2}` : `Voor ${voornaam1}`;
                         return (
                             <ListItem
                                 key={action.fldMid}
@@ -153,7 +167,7 @@ function ActieLijst({ userId, refreshTrigger, onEditAction, filterType, searchTe
                             >
                                 <ListItemText
                                     primary={action.fldOmschrijving}
-                                    secondary={`Type: ${action.fldMActieSoort} - Toegewezen aan ID: ${action.fldMActieVoor} - Status: ${action.fldMActieGereed ? 'Gereed' : 'Open'} - Vervaldatum: ${action.fldMActieDatum ? new Date(action.fldMActieDatum).toLocaleDateString('nl-NL') : 'Geen datum'}`}
+                                    secondary={`Type: ${action.fldMActieSoort} - ${assignedToText} - Status: ${action.fldMActieGereed ? 'Gereed' : 'Open'} - Vervaldatum: ${action.fldMActieDatum ? new Date(action.fldMActieDatum).toLocaleDateString('nl-NL') : 'Geen datum'}`}
                                     primaryTypographyProps={{
                                         style: {
                                             textDecoration: isCompleted ? 'line-through' : 'none',
