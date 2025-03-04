@@ -12,6 +12,8 @@ namespace ActielijstApi.Data
         public DbSet<ActieSoort> ActieSoorten { get; set; }
         public DbSet<StblPriority> StblPriorities { get; set; } // Toegevoegd
         public DbSet<Inspectie> Inspecties { get; set; } // Toegevoegd
+        public DbSet<AankomendeInspectie> AankomendeInspecties { get; set; } // Toegevoegd
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -31,6 +33,12 @@ namespace ActielijstApi.Data
             {
                 entity.HasNoKey(); // Geen primaire sleutel, omdat het een view is
                 entity.ToView("vw_KIWAInspecties"); // Map naar de view
+            });
+
+            modelBuilder.Entity<AankomendeInspectie>(entity => // Toegevoegd
+            {
+                entity.HasNoKey();
+                entity.ToView("vw_AankomendeInspecties");
             });
 
             // Default waarden voor Memo

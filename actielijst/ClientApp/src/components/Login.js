@@ -15,7 +15,11 @@ function Login({ onLogin }) {
                 FldLoginNaam: fldLoginNaam
             });
             console.log('Login response:', response.data);
-            onLogin(response.data); // Geeft object met werknId en voornaam door
+            onLogin({
+                werknId: response.data.werknId,
+                voornaam: response.data.voornaam,
+                initialen: response.data.initialen // Toegevoegd
+            });
             setError(null);
         } catch (err) {
             console.error('Login fout:', err.response ? err.response.data : err.message);

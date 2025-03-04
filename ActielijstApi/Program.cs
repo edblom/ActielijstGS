@@ -61,7 +61,12 @@ app.MapPost("/api/login", async (LoginRequest login, ApplicationDbContext contex
         return Results.Unauthorized();
     }
 
-    return Results.Ok(new { WerknId = werknemer.WerknId, Voornaam = werknemer.Voornaam });
+    return Results.Ok(new
+    {
+        WerknId = werknemer.WerknId,
+        Voornaam = werknemer.Voornaam,
+        Initialen = werknemer.Initialen // Toegevoegd
+    });
 })
 .WithName("Login")
 .WithOpenApi();
@@ -221,6 +226,45 @@ app.MapGet("/api/inspecties", async (ApplicationDbContext context) =>
     }
 })
 .WithName("GetInspecties")
+.WithOpenApi();
+
+
+app.MapGet("/api/upcominginspections", async (ApplicationDbContext context, [FromQuery] string inspecteurId) =>
+{
+    try
+    {
+        if (string.IsNullOrEmpty(inspecteurId))
+        {
+            return Results.BadRequest("InspecteurId is verplicht.");
+        }
+
+        var inspecties = await context.AankomendeInspecties
+            .Where(i => i.InspecteurId == inspecteurId)
+            .OrderBy(i => i.DatumGereed)
+            .ToListAsync();
+        Console.WriteLine(JsonSerializer.Serialize(inspecties)); // Debug
+        if (!inspecties.Any())
+        {
+            return Results.NotFound($"Geen aankomende inspecties gevonden voor inspecteur {inspecteurId}.");
+        }
+
+        // Debug: retourneer de rauwe data om te zien wat EF Core ophaalt
+        return Results.Ok(inspecties); //.Select(i => new
+        //{
+        //    i.PSID,
+        //    i.Project,
+        //    i.InspecteurId,
+        //    i.DatumGereed,
+        //    ToegewezenRaw = i.Toegewezen, // Wat is de waarde precies?
+        //    ToegewezenType = i.Toegewezen.GetType().Name // Wat is het type?
+        //}));
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(ex.ToString()); // Volledige stacktrace
+    }
+})
+.WithName("GetUpcomingInspections")
 .WithOpenApi();
 
 app.UseExceptionMiddleware();
