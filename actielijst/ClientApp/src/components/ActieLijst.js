@@ -13,7 +13,7 @@ function ActieLijst({ userId, refreshTrigger, onEditAction, filterType, searchTe
     const [selectedAction, setSelectedAction] = useState(null);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [actionToDelete, setActionToDelete] = useState(null);
-    const [statusFilter, setStatusFilter] = useState('all'); // Filter op status: all, open, gereed
+    const [statusFilter, setStatusFilter] = useState('open'); // Filter op status: all, open, gereed
     const [priorityFilter, setPriorityFilter] = useState('all'); // Filter op prioriteit
 
     const lightenColor = (hex, percent) => {
