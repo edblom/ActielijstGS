@@ -76,12 +76,12 @@ function App() {
                 <AppBar position="static">
                     <Toolbar>
                         <Typography variant="h6" style={{ flexGrow: 1 }}>
-                            Memo Lijst (Ingelogd als: {userVoornaam})
+                            {listType === 'assigned' ? `Acties voor ${userVoornaam}` : `Acties van ${userVoornaam}`}
                         </Typography>
                         <TextField
                             variant="outlined"
                             size="small"
-                            placeholder="Zoek memos..."
+                            placeholder="Zoek acties..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             sx={{
@@ -103,13 +103,12 @@ function App() {
                             anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
                             transformOrigin={{ vertical: 'top', horizontal: 'right' }}
                         >
-                            <MenuItem onClick={() => handleListChange('assigned')}>Memos voor Mij</MenuItem>
-                            <MenuItem onClick={() => handleListChange('created')}>Memos van Mij</MenuItem>
+                            <MenuItem onClick={() => handleListChange('assigned')}>Acties voor Mij</MenuItem>
+                            <MenuItem onClick={() => handleListChange('created')}>Acties van Mij</MenuItem>
                         </Menu>
                     </Toolbar>
                 </AppBar>
 
-                <h2>{listType === 'assigned' ? 'Memos voor Mij' : 'Memos van Mij'}</h2>
                 <ActieLijst
                     userId={currentUser}
                     refreshTrigger={refreshTrigger}

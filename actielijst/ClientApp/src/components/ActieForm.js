@@ -10,12 +10,12 @@ function ActieForm({ initialAction, onActionAdded, currentUser }) {
         fldMActieVoor2: '',
         fldMActieDatum: '',
         fldMActieSoort: '',
-        fldMStatus: 'Open',
+        fldMActieGereed: null, // Alleen gereedheid veld
         fldMPrioriteit: '', // Start met lege string
-        werknId: currentUser || 0
+        werknId: currentUser || 0,
     });
     const [workers, setWorkers] = useState([]);
-    const [prioriteiten, setPrioriteiten] = useState([]); // Bevat nu prioriteit, omschrijving, kleur
+    const [prioriteiten, setPrioriteiten] = useState([]); // Bevat prioriteit, omschrijving, kleur
     const [actieSoorten, setActieSoorten] = useState([]);
     const [isDataLoaded, setIsDataLoaded] = useState(false);
 
@@ -25,7 +25,7 @@ function ActieForm({ initialAction, onActionAdded, currentUser }) {
                 const [workersResponse, prioriteitenResponse, actieSoortenResponse] = await Promise.all([
                     axios.get('https://localhost:44361/api/werknemers'),
                     axios.get('https://localhost:44361/api/priorities'),
-                    axios.get('https://localhost:44361/api/actiesoorten/all')
+                    axios.get('https://localhost:44361/api/actiesoorten/all'),
                 ]);
                 console.log('Workers response:', workersResponse.data);
                 console.log('Prioriteiten response:', prioriteitenResponse.data);
@@ -53,9 +53,9 @@ function ActieForm({ initialAction, onActionAdded, currentUser }) {
                 fldMActieVoor2: initialAction.fldMActieVoor2 || '',
                 fldMActieDatum: initialAction.fldMActieDatum ? initialAction.fldMActieDatum.split('T')[0] : '',
                 fldMActieSoort: initialAction.fldMActieSoort || '',
-                fldMStatus: initialAction.fldMStatus || 'Open',
+                fldMActieGereed: initialAction.fldMActieGereed || null, // Alleen gereedheid
                 fldMPrioriteit: validPrioriteit,
-                werknId: initialAction.werknId || currentUser || 0
+                werknId: initialAction.werknId || currentUser || 0,
             }));
         } else if (isDataLoaded && !initialAction) {
             setFormData(prevState => ({
@@ -66,9 +66,9 @@ function ActieForm({ initialAction, onActionAdded, currentUser }) {
                 fldMActieVoor2: '',
                 fldMActieDatum: '',
                 fldMActieSoort: '',
-                fldMStatus: 'Open',
+                fldMActieGereed: null,
                 fldMPrioriteit: '0',
-                werknId: currentUser || 0
+                werknId: currentUser || 0,
             }));
         }
     }, [isDataLoaded, initialAction, currentUser, prioriteiten]);
@@ -87,11 +87,9 @@ function ActieForm({ initialAction, onActionAdded, currentUser }) {
             fldMActieVoor: parseInt(formData.fldMActieVoor) || null,
             fldMActieVoor2: parseInt(formData.fldMActieVoor2) || null,
             werknId: parseInt(formData.werknId) || null,
-            fldMPrioriteit: formData.fldMPrioriteit === '' ? 0 : parseInt(formData.fldMPrioriteit)
+            fldMPrioriteit: formData.fldMPrioriteit === '' ? 0 : parseInt(formData.fldMPrioriteit),
         };
-        if (!actionData.fldMid) {
-            delete actionData.fldMid;
-        }
+        if (!actionData.fldMid) delete actionData.fldMid;
 
         console.log('Verzonden data:', actionData);
         try {
@@ -109,13 +107,41 @@ function ActieForm({ initialAction, onActionAdded, currentUser }) {
                 fldMActieVoor2: '',
                 fldMActieDatum: '',
                 fldMActieSoort: '',
-                fldMStatus: 'Open',
+                fldMActieGereed: null,
                 fldMPrioriteit: '0',
-                werknId: currentUser || 0
+                werknId: currentUser || 0,
             });
             if (onActionAdded) onActionAdded();
         } catch (error) {
             console.error('Fout bij opslaan actie:', error.response ? error.response.data : error.message);
+        }
+    };
+
+    const handleComplete = async () => {
+        if (!formData.fldMid) {
+            console.warn('Save action first to enable completion');
+            return;
+        }
+        const newDate = formData.fldMActieGereed ? null : new Date().toISOString();
+        const updatedData = { fldMActieGereed: newDate };
+        console.log('Sending PATCH data for completion to:', `https://localhost:44361/api/memos/${formData.fldMid}`, 'with data:', updatedData);
+
+        try {
+            const response = await axios.patch(`https://localhost:44361/api/memos/${formData.fldMid}`, updatedData, {
+                headers: { 'Content-Type': 'application/json', 'accept': 'application/json' },
+            });
+            console.log('PATCH response:', response.status, response.data);
+            setFormData(prevState => ({
+                ...prevState,
+                fldMActieGereed: newDate,
+            }));
+            if (onActionAdded) onActionAdded();
+        } catch (error) {
+            console.error('Fout bij afronden actie:', error.response ? {
+                status: error.response.status,
+                data: error.response.data,
+                headers: error.response.headers,
+            } : error.message);
         }
     };
 
@@ -147,8 +173,6 @@ function ActieForm({ initialAction, onActionAdded, currentUser }) {
                     </MenuItem>
                 ))}
             </Select>
-
-            {/* Toegevoegde dropdown voor fldMActieVoor2 */ }
             <Select
                 name="fldMActieVoor2"
                 value={formData.fldMActieVoor2}
@@ -164,7 +188,6 @@ function ActieForm({ initialAction, onActionAdded, currentUser }) {
                     </MenuItem>
                 ))}
             </Select>
-
             <TextField
                 name="fldMActieDatum"
                 label="Vervaldatum"
@@ -205,15 +228,20 @@ function ActieForm({ initialAction, onActionAdded, currentUser }) {
                     </MenuItem>
                 ))}
             </Select>
-            <TextField
-                name="fldMStatus"
-                label="Status"
-                value={formData.fldMStatus}
-                onChange={handleInputChange}
-                fullWidth
-                margin="normal"
-            />
-            <Button type="submit" variant="contained" color="primary">
+            {formData.fldMid && (
+                <div>
+                    <Button
+                        variant="contained"
+                        color={formData.fldMActieGereed ? 'success' : 'primary'}
+                        onClick={handleComplete}
+                        style={{ marginTop: '16px', marginBottom: '16px' }}
+                    >
+                        {formData.fldMActieGereed ? 'Actie is gereed' : 'Zet actie op gereed'}
+                    </Button>
+                    {formData.fldMActieGereed && <p style={{ color: 'green' }}>Gereed op: {new Date(formData.fldMActieGereed).toLocaleString('nl-NL')}</p>}
+                </div>
+            )}
+            <Button type="submit" variant="contained" color="primary" style={{ marginTop: '16px' }}>
                 {formData.fldMid ? 'Opslaan' : 'Actie Toevoegen'}
             </Button>
         </form>

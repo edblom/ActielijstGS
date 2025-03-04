@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { List, ListItem, ListItemText, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography } from '@mui/material';
+import { List, ListItem, ListItemText, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, Select, MenuItem, FormControl, span } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import CancelIcon from '@mui/icons-material/Cancel'; // Nieuw voor Annuleer
 import axios from 'axios';
 import ActieDetail from './ActieDetail';
 
@@ -10,8 +11,10 @@ function ActieLijst({ userId, refreshTrigger, onEditAction, filterType, searchTe
     const [prioriteiten, setPrioriteiten] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedAction, setSelectedAction] = useState(null);
-    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false); // Nieuwe state voor verwijderdialoog
-    const [actionToDelete, setActionToDelete] = useState(null); // Actie die verwijderd moet worden
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [actionToDelete, setActionToDelete] = useState(null);
+    const [statusFilter, setStatusFilter] = useState('all'); // Filter op status: all, open, gereed
+    const [priorityFilter, setPriorityFilter] = useState('all'); // Filter op prioriteit
 
     const lightenColor = (hex, percent) => {
         let r = parseInt(hex.slice(1, 3), 16);
@@ -30,7 +33,7 @@ function ActieLijst({ userId, refreshTrigger, onEditAction, filterType, searchTe
             try {
                 const [actionsResponse, prioriteitenResponse] = await Promise.all([
                     axios.get(`https://localhost:44361/api/memos/user/${userId}/${filterType}`),
-                    axios.get('https://localhost:44361/api/priorities')
+                    axios.get('https://localhost:44361/api/priorities'),
                 ]);
                 console.log('Prioriteiten response in ActieLijst:', prioriteitenResponse.data);
                 setActions(actionsResponse.data);
@@ -87,9 +90,16 @@ function ActieLijst({ userId, refreshTrigger, onEditAction, filterType, searchTe
         setSelectedAction(null);
     };
 
-    const filteredActions = actions.filter(action =>
-        (action.fldOmschrijving || '').toLowerCase().includes((searchTerm || '').toLowerCase())
-    );
+    // Gefilterde acties
+    const filteredActions = actions.filter(action => {
+        const matchesSearch = (action.fldOmschrijving || '').toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesStatus = statusFilter === 'all' ||
+            (statusFilter === 'open' && !action.fldMActieGereed) ||
+            (statusFilter === 'gereed' && action.fldMActieGereed);
+        const matchesPriority = priorityFilter === 'all' ||
+            action.fldMPrioriteit === parseInt(priorityFilter);
+        return matchesSearch && matchesStatus && matchesPriority;
+    });
 
     if (loading) {
         return <div>Laden...</div>;
@@ -97,6 +107,29 @@ function ActieLijst({ userId, refreshTrigger, onEditAction, filterType, searchTe
 
     return (
         <>
+            {/* Filterinterface op één regel met labels ervoor */}
+            <div style={{ display: 'flex', gap: '16px', marginBottom: '16px', alignItems: 'center' }}>
+                <span>Status:</span>
+                <FormControl style={{ minWidth: '120px' }}>
+                    <Select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} displayEmpty>
+                        <MenuItem value="all">Alle</MenuItem>
+                        <MenuItem value="open">Open</MenuItem>
+                        <MenuItem value="gereed">Gereed</MenuItem>
+                    </Select>
+                </FormControl>
+                <span>Prioriteit:</span>
+                <FormControl style={{ minWidth: '120px' }}>
+                    <Select value={priorityFilter} onChange={(e) => setPriorityFilter(e.target.value)} displayEmpty>
+                        <MenuItem value="all">Alle</MenuItem>
+                        {prioriteiten.map((prioriteit) => (
+                            <MenuItem key={prioriteit.prioriteit} value={prioriteit.prioriteit.toString()}>
+                                {prioriteit.omschrijving}
+                            </MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
+            </div>
+
             <List>
                 {filteredActions.length === 0 ? (
                     <ListItem>
@@ -108,15 +141,24 @@ function ActieLijst({ userId, refreshTrigger, onEditAction, filterType, searchTe
                         const backgroundColor = prioriteit && prioriteit.kleur
                             ? lightenColor(prioriteit.kleur, 0.2)
                             : '#F0F0F0';
+                        const isCompleted = !!action.fldMActieGereed;
                         return (
                             <ListItem
                                 key={action.fldMid}
-                                style={{ backgroundColor, cursor: 'pointer' }}
+                                style={{
+                                    backgroundColor: isCompleted ? '#D3D3D3' : backgroundColor,
+                                    cursor: 'pointer',
+                                }}
                                 onClick={() => handleOpenDetail(action)}
                             >
                                 <ListItemText
                                     primary={action.fldOmschrijving}
-                                    secondary={`Type: ${action.fldMActieSoort} - Toegewezen aan ID: ${action.fldMActieVoor} - Status: ${action.fldMStatus} - Vervaldatum: ${action.fldMActieDatum ? new Date(action.fldMActieDatum).toLocaleDateString('nl-NL') : 'Geen datum'}`}
+                                    secondary={`Type: ${action.fldMActieSoort} - Toegewezen aan ID: ${action.fldMActieVoor} - Status: ${action.fldMActieGereed ? 'Gereed' : 'Open'} - Vervaldatum: ${action.fldMActieDatum ? new Date(action.fldMActieDatum).toLocaleDateString('nl-NL') : 'Geen datum'}`}
+                                    primaryTypographyProps={{
+                                        style: {
+                                            textDecoration: isCompleted ? 'line-through' : 'none',
+                                        },
+                                    }}
                                 />
                                 <IconButton onClick={(e) => { e.stopPropagation(); handleEdit(action); }} color="primary" aria-label="bewerken" style={{ marginRight: '10px' }}>
                                     <EditIcon />
@@ -135,19 +177,18 @@ function ActieLijst({ userId, refreshTrigger, onEditAction, filterType, searchTe
                 onClose={handleCloseDetail}
                 onSave={handleSaveDetail}
             />
-            {/* Verwijderdialoog */}
             <Dialog open={deleteDialogOpen} onClose={handleDeleteClose}>
                 <DialogTitle>Bevestig verwijdering</DialogTitle>
                 <DialogContent>
                     <Typography>Weet je zeker dat je de actie "<strong>{actionToDelete?.fldOmschrijving || 'Onbekende actie'}</strong>" wilt verwijderen?</Typography>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleDeleteClose} color="primary">
-                        Annuleren
-                    </Button>
-                    <Button onClick={handleDeleteConfirm} color="error">
-                        Verwijderen
-                    </Button>
+                    <IconButton onClick={handleDeleteClose} color="primary" aria-label="annuleer">
+                        <CancelIcon />
+                    </IconButton>
+                    <IconButton onClick={handleDeleteConfirm} color="error" aria-label="verwijderen">
+                        <DeleteIcon />
+                    </IconButton>
                 </DialogActions>
             </Dialog>
         </>

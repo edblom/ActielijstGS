@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -165,6 +166,22 @@ app.MapDelete("/api/memos/{id}", async (int id, ApplicationDbContext context) =>
 })
 .WithName("DeleteMemo")
 .WithOpenApi();
+
+app.MapPatch("/api/memos/{id}", async (int id, [FromBody] PatchMemoDto data, ApplicationDbContext context) =>
+{
+    var memo = await context.Memos.FindAsync(id);
+    if (memo == null) return Results.NotFound();
+
+    if (data.fldMActieGereed != null)
+    {
+        memo.fldMActieGereed = data.fldMActieGereed;
+        await context.SaveChangesAsync();
+    }
+    return Results.Ok(memo);
+})
+.WithName("PatchMemoStatus")
+.WithOpenApi();
+
 
 app.MapGet("/api/memos/test-error", () =>
 {

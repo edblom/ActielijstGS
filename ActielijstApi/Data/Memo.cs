@@ -17,7 +17,7 @@ namespace ActielijstApi.Data
         public DateTime? FldMActieDatum { get; set; } // NULL toegestaan
         public int? FldMActieVoor { get; set; } // NULL toegestaan
         public int? FldMActieVoor2 { get; set; } // NULL toegestaan
-        public DateTime? FldMActieGereed { get; set; } // NULL toegestaan
+        public DateTime? fldMActieGereed { get; set; } // NULL toegestaan
         public string FldMActieSoort { get; set; } // NULL toegestaan
         public int? FldMPrioriteit { get; set; } // NULL toegestaan
         public byte[] SSMA_TimeStamp { get; set; } // NOT NULL, timestamp
