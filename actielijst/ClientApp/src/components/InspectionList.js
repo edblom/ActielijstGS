@@ -75,9 +75,9 @@ function InspectionList({ inspecteurId }) {
             sx={{
                 display: 'flex',
                 flexDirection: 'column',
-                minHeight: 'calc(100vh - 64px)', // Min-hoogte om onder AppBar te passen
+                minHeight: 'calc(100vh - 64px)',
                 p: 2,
-                overflow: 'hidden', // Voorkom scrollbar op Box
+                overflow: 'hidden',
             }}
         >
             <div style={{ marginBottom: 10 }}>
@@ -93,14 +93,7 @@ function InspectionList({ inspecteurId }) {
                     onClick={handleShowAll}
                     style={{ marginRight: 10 }}
                 >
-                    Alle tonen
-                </Button>
-                <Button
-                    variant="contained"
-                    onClick={() => setFilterType('Opdracht')}
-                    style={{ marginRight: 10 }}
-                >
-                    Opdracht
+                    Alles tonen
                 </Button>
             </div>
             <Box sx={{ flex: 1, display: 'flex' }}>
@@ -113,14 +106,14 @@ function InspectionList({ inspecteurId }) {
                     pageSizeOptions={[5, 10, 20]}
                     checkboxSelection={false}
                     disableRowSelectionOnClick
-                    disableVirtualization // Schakel virtualisatie uit voor dynamische hoogte
+                    disableVirtualization
                     sx={{
                         flex: 1,
                         '& .MuiDataGrid-root': {
-                            border: 'none', // Optioneel: verwijder randen
+                            border: 'none',
                         },
                         '& .MuiDataGrid-virtualScroller': {
-                            overflow: 'hidden', // Verberg scrollbar
+                            overflow: 'hidden',
                         },
                     }}
                 />
