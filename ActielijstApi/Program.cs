@@ -239,7 +239,9 @@ app.MapGet("/api/upcominginspections", async (ApplicationDbContext context, [Fro
         }
 
         var inspecties = await context.AankomendeInspecties
-            .Where(i => i.InspecteurId == inspecteurId)
+            .Where(i =>
+                (i.InspecteurId == inspecteurId || (i.ExtraMedewerker != null && i.ExtraMedewerker == inspecteurId))
+                && i.Toegewezen == true)
             .OrderBy(i => i.DatumGereed)
             .ToListAsync();
         Console.WriteLine(JsonSerializer.Serialize(inspecties)); // Debug
@@ -248,20 +250,11 @@ app.MapGet("/api/upcominginspections", async (ApplicationDbContext context, [Fro
             return Results.NotFound($"Geen aankomende inspecties gevonden voor inspecteur {inspecteurId}.");
         }
 
-        // Debug: retourneer de rauwe data om te zien wat EF Core ophaalt
-        return Results.Ok(inspecties); //.Select(i => new
-        //{
-        //    i.PSID,
-        //    i.Project,
-        //    i.InspecteurId,
-        //    i.DatumGereed,
-        //    ToegewezenRaw = i.Toegewezen, // Wat is de waarde precies?
-        //    ToegewezenType = i.Toegewezen.GetType().Name // Wat is het type?
-        //}));
+        return Results.Ok(inspecties);
     }
     catch (Exception ex)
     {
-        return Results.Problem(ex.ToString()); // Volledige stacktrace
+        return Results.Problem(ex.ToString());
     }
 })
 .WithName("GetUpcomingInspections")

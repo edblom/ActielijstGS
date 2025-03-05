@@ -31,12 +31,15 @@ function InspectionList({ inspecteurId }) {
     }, [inspecteurId]);
 
     const columns = [
-        { field: 'psid', headerName: 'ID', width: 90 },
+        //{ field: 'psid', headerName: 'ID', width: 90 },
         { field: 'project', headerName: 'Project', width: 150 },
-        { field: 'projectNr', headerName: 'Project Nr', width: 120 },
+        //{ field: 'projectNr', headerName: 'Project Nr', width: 120 },
+        { field: 'opdracht', headerName: 'Opdracht Nr', width: 120 },
         { field: 'adres', headerName: 'Adres', width: 200 },
         { field: 'applicateur', headerName: 'Applicateur', width: 120 },
+        { field: 'soort', headerName: 'Soort', width: 120 },
         { field: 'omschrijving', headerName: 'Omschrijving', width: 200 },
+        { field: 'toegewezen', headerName: 'Toegewezen', width: 100, type: 'boolean' },
         {
             field: 'datumGereed',
             headerName: 'Datum Gereed',
@@ -45,8 +48,7 @@ function InspectionList({ inspecteurId }) {
             valueFormatter: (params) => (params ? params.toLocaleDateString('nl-NL') : ''),
         },
         { field: 'status', headerName: 'Status', width: 120 },
-        { field: 'soort', headerName: 'Soort', width: 120 },
-        { field: 'toegewezen', headerName: 'Toegewezen', width: 100, type: 'boolean' },
+
         {
             field: 'appointmentDateTime',
             headerName: 'Afspraak',
