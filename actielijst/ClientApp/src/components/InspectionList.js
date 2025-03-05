@@ -10,27 +10,12 @@ function InspectionList({ inspecteurId }) {
     const [searchTerm, setSearchTerm] = useState('');
     const [filterType, setFilterType] = useState('all');
 
-    useEffect(() => {
-        if (!inspecteurId) return;
+    // State voor kolomzichtbaarheid en breedtes
+    const [columnVisibilityModel, setColumnVisibilityModel] = useState({});
+    const [columnWidths, setColumnWidths] = useState({});
 
-        const fetchInspections = async () => {
-            setLoading(true);
-            try {
-                const response = await axios.get(
-                    `https://localhost:44361/api/upcominginspections?inspecteurId=${inspecteurId}`
-                );
-                setRows(response.data || []);
-            } catch (error) {
-                console.error('Fout bij ophalen inspecties:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchInspections();
-    }, [inspecteurId]);
-
-    const columns = [
+    // Originele kolomdefinities (default waarden)
+    const defaultColumns = [
         //{ field: 'psid', headerName: 'ID', width: 90 },
         { field: 'project', headerName: 'Project', width: 150 },
         //{ field: 'projectNr', headerName: 'Project Nr', width: 120 },
@@ -57,6 +42,39 @@ function InspectionList({ inspecteurId }) {
         },
     ];
 
+    useEffect(() => {
+        if (!inspecteurId) return;
+
+        // Laad opgeslagen instellingen uit localStorage bij mounten
+        const savedSettings = localStorage.getItem(`gridSettings_${inspecteurId}`);
+        if (savedSettings) {
+            const settings = JSON.parse(savedSettings);
+            setColumnVisibilityModel(settings.visibility || {});
+            setColumnWidths(settings.widths || {});
+        }
+
+        const fetchInspections = async () => {
+            setLoading(true);
+            try {
+                const response = await axios.get(
+                    `https://localhost:44361/api/upcominginspections?inspecteurId=${inspecteurId}`
+                );
+                setRows(response.data || []);
+            } catch (error) {
+                console.error('Fout bij ophalen inspecties:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchInspections();
+    }, [inspecteurId]);
+
+    const columns = defaultColumns.map(col => ({
+        ...col,
+        width: columnWidths[col.field] || col.width, // Gebruik opgeslagen breedte of standaard
+    }));
+
     const filteredRows = rows.filter(row => {
         if (!row || typeof row !== 'object') return false;
         return Object.values(row)
@@ -69,6 +87,38 @@ function InspectionList({ inspecteurId }) {
     const handleShowAll = () => {
         setFilterType('all');
         setSearchTerm('');
+    };
+
+    // Sla instellingen direct op bij wijziging
+    const handleColumnVisibilityChange = (newModel) => {
+        setColumnVisibilityModel(newModel);
+        saveSettings(newModel, columnWidths); // Sla direct op met de nieuwe model
+    };
+
+    const handleColumnWidthChange = (params) => {
+        const newWidths = {
+            ...columnWidths,
+            [params.colDef.field]: params.width,
+        };
+        setColumnWidths(newWidths);
+        saveSettings(columnVisibilityModel, newWidths); // Sla direct op met de nieuwe breedtes
+    };
+
+    const saveSettings = (visibility, widths) => {
+        const settings = {
+            visibility: visibility,
+            widths: widths,
+        };
+        localStorage.setItem(`gridSettings_${inspecteurId}`, JSON.stringify(settings));
+        console.log(`Settings saved for ${inspecteurId}:`, settings); // Debug-log
+    };
+
+    // Reset-functie naar standaardinstellingen
+    const handleResetSettings = () => {
+        setColumnVisibilityModel({}); // Reset zichtbaarheid (alle kolommen zichtbaar)
+        setColumnWidths({}); // Reset breedtes naar standaard
+        localStorage.removeItem(`gridSettings_${inspecteurId}`); // Verwijder opgeslagen instellingen
+        console.log(`Settings reset to default for ${inspecteurId}`);
     };
 
     return (
@@ -99,8 +149,16 @@ function InspectionList({ inspecteurId }) {
                 <Button
                     variant="contained"
                     onClick={handleShowAll}
+                    sx={{ mr: 1 }}
                 >
                     Alles tonen
+                </Button>
+                <Button
+                    variant="outlined"
+                    onClick={handleResetSettings}
+                    color="secondary"
+                >
+                    Herstel
                 </Button>
             </Box>
             <Box
@@ -114,9 +172,12 @@ function InspectionList({ inspecteurId }) {
                     columns={columns}
                     loading={loading}
                     getRowId={(row) => row?.psid || Math.random()}
-                    disableColumnMenu
+                    disableColumnMenu={false} // Enable column menu for visibility and resizing
                     disableRowSelectionOnClick
                     autoHeight={false}
+                    columnVisibilityModel={columnVisibilityModel}
+                    onColumnVisibilityModelChange={handleColumnVisibilityChange}
+                    onColumnWidthChange={handleColumnWidthChange}
                     sx={{
                         '& .MuiDataGrid-root': {
                             border: 'none',
