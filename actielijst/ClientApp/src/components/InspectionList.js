@@ -123,7 +123,7 @@ function InspectionList({ inspecteurId }) {
                         },
                         '& .MuiDataGrid-virtualScroller': {
                             overflowY: 'auto', // Scrollbar in tabel
-                            maxHeight: 'calc(100vh - 152px)', // 64px AppBar + 88px zoekbalk
+                            maxHeight: 'calc(100vh - 200px)', // 64px AppBar + 16px App padding boven + 88px zoekbalk + 16px App padding onder + 16px marge
                         },
                         '& .MuiDataGrid-footerContainer': {
                             display: 'none', // Geen paginering

@@ -1,5 +1,5 @@
 // ClientApp/src/App.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Fab, AppBar, Toolbar, IconButton, Menu, MenuItem, Typography, TextField, ThemeProvider, Box, CssBaseline } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import AddIcon from '@mui/icons-material/Add';
@@ -12,6 +12,7 @@ import Dialog from '@mui/material/Dialog';
 import { theme } from './theme';
 
 function App() {
+    // Standaardgebruiker voor automatisch inloggen (alleen in development)
     const [currentUser, setCurrentUser] = useState(null); // WerknId
     const [userVoornaam, setUserVoornaam] = useState(''); // Voornaam
     const [userInitialen, setUserInitialen] = useState(''); // Initialen
@@ -23,6 +24,20 @@ function App() {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedDetailAction, setSelectedDetailAction] = useState(null);
     const [openDetail, setOpenDetail] = useState(false);
+
+    // Automatisch inloggen met een vaste gebruiker (bijv. Joris)
+    useEffect(() => {
+        if (process.env.NODE_ENV === 'development') {
+            const defaultUser = {
+                werknId: 73, // Vervang door een geldige WerknId
+                voornaam: 'Joris',
+                initialen: 'JZA', // Vervang door geldige initialen
+            };
+            setCurrentUser(defaultUser.werknId);
+            setUserVoornaam(defaultUser.voornaam);
+            setUserInitialen(defaultUser.initialen);
+        }
+    }, []);
 
     const handleLogin = (loginData) => {
         setCurrentUser(loginData.werknId);
@@ -86,7 +101,7 @@ function App() {
                     <AppBar position="static" style={{ backgroundColor: theme.palette.appBar.main }}>
                         <Toolbar />
                     </AppBar>
-                    <Box sx={{ p: 2, flex: 1, overflow: 'auto' }}>
+                    <Box sx={{ p: 2, flex: 1, overflow: 'auto', mx: 1, my: 1 }}>
                         <Login onLogin={handleLogin} />
                     </Box>
                 </Box>
@@ -139,7 +154,7 @@ function App() {
                         </Menu>
                     </Toolbar>
                 </AppBar>
-                <Box sx={{ p: 2, flex: 1, overflow: 'auto', height: 'calc(100% - 64px)' }}>
+                <Box sx={{ p: 2, flex: 1, overflow: 'auto', mx: 1, my: 1 }}>
                     {listType === 'inspections' ? (
                         <InspectionList inspecteurId={userInitialen} />
                     ) : (
