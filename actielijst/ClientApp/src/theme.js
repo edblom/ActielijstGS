@@ -27,9 +27,8 @@ export const theme = createTheme({
         },
         MuiDataGrid: {
             styleOverrides: {
-                columnHeaders: {
-                    backgroundColor: '#ff0000 !important', // Test met rood
-                    color: '#000000 !important', // Zwart voor contrast
+                columnHeader: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.04)', // Standaard MUI grijs
                 },
             },
         },

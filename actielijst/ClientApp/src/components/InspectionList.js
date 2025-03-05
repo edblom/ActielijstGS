@@ -10,15 +10,11 @@ function InspectionList({ inspecteurId }) {
     const [searchTerm, setSearchTerm] = useState('');
     const [filterType, setFilterType] = useState('all');
 
-    // State voor kolomzichtbaarheid en breedtes
     const [columnVisibilityModel, setColumnVisibilityModel] = useState({});
     const [columnWidths, setColumnWidths] = useState({});
 
-    // Originele kolomdefinities (default waarden)
     const defaultColumns = [
-        //{ field: 'psid', headerName: 'ID', width: 90 },
         { field: 'project', headerName: 'Project', width: 150 },
-        //{ field: 'projectNr', headerName: 'Project Nr', width: 120 },
         { field: 'opdracht', headerName: 'Opdracht Nr', width: 120 },
         { field: 'adres', headerName: 'Adres', width: 200 },
         { field: 'applicateur', headerName: 'Applicateur', width: 120 },
@@ -45,7 +41,6 @@ function InspectionList({ inspecteurId }) {
     useEffect(() => {
         if (!inspecteurId) return;
 
-        // Laad opgeslagen instellingen uit localStorage bij mounten
         const savedSettings = localStorage.getItem(`gridSettings_${inspecteurId}`);
         if (savedSettings) {
             const settings = JSON.parse(savedSettings);
@@ -72,7 +67,7 @@ function InspectionList({ inspecteurId }) {
 
     const columns = defaultColumns.map(col => ({
         ...col,
-        width: columnWidths[col.field] || col.width, // Gebruik opgeslagen breedte of standaard
+        width: columnWidths[col.field] || col.width,
     }));
 
     const filteredRows = rows.filter(row => {
@@ -89,10 +84,9 @@ function InspectionList({ inspecteurId }) {
         setSearchTerm('');
     };
 
-    // Sla instellingen direct op bij wijziging
     const handleColumnVisibilityChange = (newModel) => {
         setColumnVisibilityModel(newModel);
-        saveSettings(newModel, columnWidths); // Sla direct op met de nieuwe model
+        saveSettings(newModel, columnWidths);
     };
 
     const handleColumnWidthChange = (params) => {
@@ -101,7 +95,7 @@ function InspectionList({ inspecteurId }) {
             [params.colDef.field]: params.width,
         };
         setColumnWidths(newWidths);
-        saveSettings(columnVisibilityModel, newWidths); // Sla direct op met de nieuwe breedtes
+        saveSettings(columnVisibilityModel, newWidths);
     };
 
     const saveSettings = (visibility, widths) => {
@@ -110,14 +104,13 @@ function InspectionList({ inspecteurId }) {
             widths: widths,
         };
         localStorage.setItem(`gridSettings_${inspecteurId}`, JSON.stringify(settings));
-        console.log(`Settings saved for ${inspecteurId}:`, settings); // Debug-log
+        console.log(`Settings saved for ${inspecteurId}:`, settings);
     };
 
-    // Reset-functie naar standaardinstellingen
     const handleResetSettings = () => {
-        setColumnVisibilityModel({}); // Reset zichtbaarheid (alle kolommen zichtbaar)
-        setColumnWidths({}); // Reset breedtes naar standaard
-        localStorage.removeItem(`gridSettings_${inspecteurId}`); // Verwijder opgeslagen instellingen
+        setColumnVisibilityModel({});
+        setColumnWidths({});
+        localStorage.removeItem(`gridSettings_${inspecteurId}`);
         console.log(`Settings reset to default for ${inspecteurId}`);
     };
 
@@ -126,8 +119,8 @@ function InspectionList({ inspecteurId }) {
             sx={{
                 display: 'flex',
                 flexDirection: 'column',
-                height: '100%', // Vul de resterende ruimte van App.js
-                overflow: 'hidden', // Geen extra scrollbar
+                height: '100%',
+                overflow: 'hidden',
             }}
         >
             <Box
@@ -135,8 +128,8 @@ function InspectionList({ inspecteurId }) {
                     p: 2,
                     display: 'flex',
                     alignItems: 'center',
-                    flexShrink: 0, // Zoekbalk krimpt niet
-                    backgroundColor: '#f5f5f5', // Optioneel: visuele scheiding
+                    flexShrink: 0,
+                    backgroundColor: '#f5f5f5',
                 }}
             >
                 <TextField
@@ -163,8 +156,8 @@ function InspectionList({ inspecteurId }) {
             </Box>
             <Box
                 sx={{
-                    flex: 1, // Resterende ruimte
-                    overflow: 'hidden', // Geen extra scrollbar
+                    flex: 1,
+                    overflow: 'hidden',
                 }}
             >
                 <DataGrid
@@ -172,7 +165,6 @@ function InspectionList({ inspecteurId }) {
                     columns={columns}
                     loading={loading}
                     getRowId={(row) => row?.psid || Math.random()}
-                    disableColumnMenu={false} // Enable column menu for visibility and resizing
                     disableRowSelectionOnClick
                     autoHeight={false}
                     columnVisibilityModel={columnVisibilityModel}
@@ -183,11 +175,11 @@ function InspectionList({ inspecteurId }) {
                             border: 'none',
                         },
                         '& .MuiDataGrid-virtualScroller': {
-                            overflowY: 'auto', // Scrollbar in tabel
-                            maxHeight: 'calc(100vh - 200px)', // 64px AppBar + 16px App padding boven + 88px zoekbalk + 16px App padding onder + 16px marge
+                            overflowY: 'auto',
+                            maxHeight: 'calc(100vh - 200px)',
                         },
                         '& .MuiDataGrid-footerContainer': {
-                            display: 'none', // Geen paginering
+                            display: 'none',
                         },
                     }}
                 />
