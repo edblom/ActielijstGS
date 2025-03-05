@@ -48,7 +48,6 @@ function InspectionList({ inspecteurId }) {
             valueFormatter: (params) => (params ? params.toLocaleDateString('nl-NL') : ''),
         },
         { field: 'status', headerName: 'Status', width: 120 },
-
         {
             field: 'appointmentDateTime',
             headerName: 'Afspraak',
@@ -77,45 +76,57 @@ function InspectionList({ inspecteurId }) {
             sx={{
                 display: 'flex',
                 flexDirection: 'column',
-                minHeight: 'calc(100vh - 64px)',
-                p: 2,
-                overflow: 'hidden',
+                height: '100%', // Vul de resterende ruimte van App.js
+                overflow: 'hidden', // Geen extra scrollbar
             }}
         >
-            <div style={{ marginBottom: 10 }}>
+            <Box
+                sx={{
+                    p: 2,
+                    display: 'flex',
+                    alignItems: 'center',
+                    flexShrink: 0, // Zoekbalk krimpt niet
+                    backgroundColor: '#f5f5f5', // Optioneel: visuele scheiding
+                }}
+            >
                 <TextField
                     label="Zoek naar"
                     variant="outlined"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    style={{ marginRight: 10 }}
+                    sx={{ mr: 1 }}
                 />
                 <Button
                     variant="contained"
                     onClick={handleShowAll}
-                    style={{ marginRight: 10 }}
                 >
                     Alles tonen
                 </Button>
-            </div>
-            <Box sx={{ flex: 1, display: 'flex' }}>
+            </Box>
+            <Box
+                sx={{
+                    flex: 1, // Resterende ruimte
+                    overflow: 'hidden', // Geen extra scrollbar
+                }}
+            >
                 <DataGrid
                     rows={filteredRows}
                     columns={columns}
                     loading={loading}
                     getRowId={(row) => row?.psid || Math.random()}
-                    initialState={{ pagination: { paginationModel: { pageSize: 10 } } }}
-                    pageSizeOptions={[5, 10, 20]}
-                    checkboxSelection={false}
+                    disableColumnMenu
                     disableRowSelectionOnClick
-                    disableVirtualization
+                    autoHeight={false}
                     sx={{
-                        flex: 1,
                         '& .MuiDataGrid-root': {
                             border: 'none',
                         },
                         '& .MuiDataGrid-virtualScroller': {
-                            overflow: 'hidden',
+                            overflowY: 'auto', // Scrollbar in tabel
+                            maxHeight: 'calc(100vh - 152px)', // 64px AppBar + 88px zoekbalk
+                        },
+                        '& .MuiDataGrid-footerContainer': {
+                            display: 'none', // Geen paginering
                         },
                     }}
                 />

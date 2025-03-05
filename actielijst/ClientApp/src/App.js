@@ -1,6 +1,6 @@
 // ClientApp/src/App.js
 import React, { useState } from 'react';
-import { Fab, AppBar, Toolbar, IconButton, Menu, MenuItem, Typography, TextField, ThemeProvider } from '@mui/material';
+import { Fab, AppBar, Toolbar, IconButton, Menu, MenuItem, Typography, TextField, ThemeProvider, Box, CssBaseline } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import AddIcon from '@mui/icons-material/Add';
 import ActieLijst from './components/ActieLijst';
@@ -14,7 +14,7 @@ import { theme } from './theme';
 function App() {
     const [currentUser, setCurrentUser] = useState(null); // WerknId
     const [userVoornaam, setUserVoornaam] = useState(''); // Voornaam
-    const [userInitialen, setUserInitialen] = useState(''); // Toegevoegd: Initialen
+    const [userInitialen, setUserInitialen] = useState(''); // Initialen
     const [refreshTrigger, setRefreshTrigger] = useState(0);
     const [selectedAction, setSelectedAction] = useState(null);
     const [openForm, setOpenForm] = useState(false);
@@ -27,13 +27,13 @@ function App() {
     const handleLogin = (loginData) => {
         setCurrentUser(loginData.werknId);
         setUserVoornaam(loginData.voornaam);
-        setUserInitialen(loginData.initialen); // Toegevoegd
+        setUserInitialen(loginData.initialen);
     };
 
     const handleLogout = () => {
         setCurrentUser(null);
         setUserVoornaam('');
-        setUserInitialen(''); // Toegevoegd
+        setUserInitialen('');
         setListType('assigned');
         setAnchorEl(null);
     };
@@ -79,12 +79,25 @@ function App() {
     };
 
     if (!currentUser) {
-        return <Login onLogin={handleLogin} />;
+        return (
+            <ThemeProvider theme={theme}>
+                <Box sx={{ height: '100vh', overflow: 'hidden' }}>
+                    <CssBaseline /> {/* Verwijder standaard body margin */}
+                    <AppBar position="static" style={{ backgroundColor: theme.palette.appBar.main }}>
+                        <Toolbar />
+                    </AppBar>
+                    <Box sx={{ p: 2, flex: 1, overflow: 'auto' }}>
+                        <Login onLogin={handleLogin} />
+                    </Box>
+                </Box>
+            </ThemeProvider>
+        );
     }
 
     return (
         <ThemeProvider theme={theme}>
-            <div className="App" style={{ padding: '20px', position: 'relative', minHeight: '100vh' }}>
+            <Box sx={{ height: '100vh', overflow: 'hidden' }}>
+                <CssBaseline /> {/* Verwijder standaard body margin */}
                 <AppBar position="static" style={{ backgroundColor: theme.palette.appBar.main }}>
                     <Toolbar>
                         <Typography variant="h6" style={{ flexGrow: 1, color: theme.palette.common.white }}>
@@ -126,20 +139,20 @@ function App() {
                         </Menu>
                     </Toolbar>
                 </AppBar>
-
-                {listType === 'inspections' ? (
-                    <InspectionList inspecteurId={userInitialen} />
-                ) : (
-                    <ActieLijst
-                        userId={currentUser}
-                        refreshTrigger={refreshTrigger}
-                        onEditAction={handleEditAction}
-                        onShowDetail={handleShowDetail}
-                        filterType={listType}
-                        searchTerm={searchTerm}
-                    />
-                )}
-
+                <Box sx={{ p: 2, flex: 1, overflow: 'auto', height: 'calc(100% - 64px)' }}>
+                    {listType === 'inspections' ? (
+                        <InspectionList inspecteurId={userInitialen} />
+                    ) : (
+                        <ActieLijst
+                            userId={currentUser}
+                            refreshTrigger={refreshTrigger}
+                            onEditAction={handleEditAction}
+                            onShowDetail={handleShowDetail}
+                            filterType={listType}
+                            searchTerm={searchTerm}
+                        />
+                    )}
+                </Box>
                 {listType !== 'inspections' && (
                     <Fab
                         color="primary"
@@ -150,7 +163,6 @@ function App() {
                         <AddIcon />
                     </Fab>
                 )}
-
                 <Dialog open={openForm} onClose={() => setOpenForm(false)}>
                     <div style={{ padding: '20px' }}>
                         <ActieForm
@@ -160,13 +172,12 @@ function App() {
                         />
                     </div>
                 </Dialog>
-
                 <Dialog open={openDetail} onClose={handleCloseDetail}>
                     <div style={{ padding: '20px' }}>
                         <ActieDetail action={selectedDetailAction} onClose={handleCloseDetail} />
                     </div>
                 </Dialog>
-            </div>
+            </Box>
         </ThemeProvider>
     );
 }
