@@ -1,6 +1,7 @@
 ﻿@page "/inspecties"
 @inject HttpClient Http
 @using Radzen.Blazor
+@using Radzen
 @using System.Text.Json
 
 <style>
@@ -29,7 +30,11 @@
 
 @if (inspecties != null && fields.Any())
 {
-        <RadzenDataGrid Data="@filteredInspecties" TItem="Dictionary<string, object>" Style="width: 100%; border: 1px solid #ddd;">
+        <RadzenDataGrid Data="@filteredInspecties" TItem="Dictionary<string, object>" 
+                Style="width: 100%; border: 1px solid #ddd;"
+                AllowSorting="true" 
+                AllowFiltering="true" 
+                FilterMode="FilterMode.Simple">
             <Columns>
             @foreach (var field in fields.OrderBy(f => f.DisplayOrder))
             {
