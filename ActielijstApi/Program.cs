@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Http;
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -229,7 +230,7 @@ app.MapGet("/api/inspecties", async (ApplicationDbContext context) =>
 .WithOpenApi();
 
 
-app.MapGet("/api/upcominginspections", async (ApplicationDbContext context, [FromQuery] string inspecteurId) =>
+app.MapGet("/api/upcominginspections", async (ApplicationDbContext context, [FromQuery] string inspecteurId, [FromQuery] bool? includeMetadata) =>
 {
     try
     {
@@ -250,6 +251,19 @@ app.MapGet("/api/upcominginspections", async (ApplicationDbContext context, [Fro
             return Results.NotFound($"Geen aankomende inspecties gevonden voor inspecteur {inspecteurId}.");
         }
 
+        if (includeMetadata == true)
+        {
+            var fields = new List<object>
+            {
+                new { FieldName = "id", DisplayOrder = 1, ColumnWidth = "50px" },
+                new { FieldName = "klant", DisplayOrder = 2, ColumnWidth = "200px" },
+                new { FieldName = "datumGereed", DisplayOrder = 3, ColumnWidth = "150px" },
+                new { FieldName = "inspecteurId", DisplayOrder = 4, ColumnWidth = "100px" },
+                new { FieldName = "extraMedewerker", DisplayOrder = 5, ColumnWidth = "150px" }
+            };
+            return Results.Ok(new { data = inspecties, fields });
+        }
+
         return Results.Ok(inspecties);
     }
     catch (Exception ex)
@@ -259,7 +273,6 @@ app.MapGet("/api/upcominginspections", async (ApplicationDbContext context, [Fro
 })
 .WithName("GetUpcomingInspections")
 .WithOpenApi();
-
 app.UseExceptionMiddleware();
 
 app.Run();

@@ -1,0 +1,81 @@
+﻿@page "/inspecties"
+@inject HttpClient Http
+@using Radzen.Blazor
+@using System.Text.Json
+
+<h3>Aankomende Inspecties</h3>
+@if (inspecties != null && fields.Any())
+{
+    <RadzenDataGrid Data="@inspecties" TItem="Dictionary<string, object>">
+        <Columns>
+            @foreach (var field in fields.OrderBy(f => f.DisplayOrder))
+            {
+                <RadzenDataGridColumn TItem="Dictionary<string, object>"
+                                      Title="@field.FieldName"
+                                      Property="@field.FieldName"
+                                      Width="@field.ColumnWidth">
+                    <Template Context="row">
+                        @row[field.FieldName]?.ToString()
+                    </Template>
+                </RadzenDataGridColumn>
+            }
+        </Columns>
+    </RadzenDataGrid>
+}
+else
+{
+    <p>@statusMessage</p>
+}
+
+@code {
+    private List<Dictionary<string, object>>? inspecties;
+    private List<FieldDefinition> fields = [];
+    private string statusMessage = "Laden...";
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            statusMessage = "Bezig met ophalen van inspecties voor JZA...";
+            var httpResponse = await Http.GetAsync("api/upcominginspections?inspecteurId=JZA&includeMetadata=true");
+            var json = await httpResponse.Content.ReadAsStringAsync();
+            Console.WriteLine($"Raw JSON van API: {json}");
+            Console.WriteLine($"Statuscode: {httpResponse.StatusCode}");
+
+            if (httpResponse.IsSuccessStatusCode)
+            {
+                var response = JsonSerializer.Deserialize<InspectionResponse>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                inspecties = response?.Data;
+                fields = response?.Fields ?? [];
+                statusMessage = inspecties?.Any() == true ? "Data geladen!" : "Geen inspecties gevonden voor JZA.";
+            }
+            else
+            {
+                statusMessage = $"API fout: {httpResponse.StatusCode} - {json}";
+            }
+        }
+        catch (HttpRequestException ex)
+        {
+            statusMessage = $"Netwerkfout: {ex.Message}";
+            Console.WriteLine($"Netwerkfout details: {ex}");
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"Onverwachte fout: {ex.Message}";
+            Console.WriteLine($"Onverwachte fout details: {ex}");
+        }
+    }
+
+    public class InspectionResponse
+    {
+        public List<Dictionary<string, object>>? Data { get; set; }
+        public List<FieldDefinition>? Fields { get; set; }
+    }
+
+    public class FieldDefinition
+    {
+        public string? FieldName { get; set; }
+        public int DisplayOrder { get; set; }
+        public string? ColumnWidth { get; set; }
+    }
+}

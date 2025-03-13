@@ -13,6 +13,7 @@
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.2" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.2" />
+    <PackageReference Include="Radzen.Blazor" Version="6.2.6" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.7.0" />
   </ItemGroup>
 
