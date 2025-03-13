@@ -254,13 +254,17 @@ app.MapGet("/api/upcominginspections", async (ApplicationDbContext context, [Fro
         if (includeMetadata == true)
         {
             var fields = new List<object>
-            {
-                new { FieldName = "id", DisplayOrder = 1, ColumnWidth = "50px" },
-                new { FieldName = "klant", DisplayOrder = 2, ColumnWidth = "200px" },
-                new { FieldName = "datumGereed", DisplayOrder = 3, ColumnWidth = "150px" },
-                new { FieldName = "inspecteurId", DisplayOrder = 4, ColumnWidth = "100px" },
-                new { FieldName = "extraMedewerker", DisplayOrder = 5, ColumnWidth = "150px" }
-            };
+    {
+        new { FieldName = "project", DisplayOrder = 1, ColumnWidth = "200px" },
+        new { FieldName = "projectNr", DisplayOrder = 2, ColumnWidth = "100px" },
+        new { FieldName = "adres", DisplayOrder = 3, ColumnWidth = "250px" },
+        new { FieldName = "applicateur", DisplayOrder = 4, ColumnWidth = "150px" },
+        new { FieldName = "soort", DisplayOrder = 5, ColumnWidth = "100px" },
+        new { FieldName = "omschrijving", DisplayOrder = 6, ColumnWidth = "200px" },
+        new { FieldName = "toegewezen", DisplayOrder = 7, ColumnWidth = "80px" },
+        new { FieldName = "datumGereed", DisplayOrder = 8, ColumnWidth = "120px" },
+        new { FieldName = "status", DisplayOrder = 9, ColumnWidth = "100px" }
+    };
             return Results.Ok(new { data = inspecties, fields });
         }
 

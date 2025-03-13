@@ -3,34 +3,62 @@
 @using Radzen.Blazor
 @using System.Text.Json
 
-<h3>Aankomende Inspecties</h3>
+<style>
+    .radzen-header-cell {
+        text-align: left;
+        font-weight: bold;
+        background-color: #f5f5f5;
+    }
+    .radzen-header-cell.toegewezen {
+        text-align: center;
+    }
+    .radzen-cell {
+        text-align: left;
+    }
+    .radzen-cell.toegewezen {
+        text-align: center;
+    }
+</style>
+
+<h3>Aankomende Inspecties voor Joris</h3>
+<div style="margin-bottom: 10px;">
+    <input type="text" @bind="filterText" @oninput="OnFilterChanged" placeholder="Zoek naar..." style="padding: 5px; margin-right: 10px;" />
+    <button style="padding: 5px 10px; background-color: #007bff; color: white; border: none; cursor: pointer;" @onclick="ResetFilter">Alles tonen</button>
+    <button style="padding: 5px 10px; background-color: #dc3545; color: white; border: none; cursor: pointer;" @onclick="ResetFilter">Herstel</button>
+</div>
+
 @if (inspecties != null && fields.Any())
 {
-    <RadzenDataGrid Data="@inspecties" TItem="Dictionary<string, object>">
-        <Columns>
+        <RadzenDataGrid Data="@filteredInspecties" TItem="Dictionary<string, object>" Style="width: 100%; border: 1px solid #ddd;">
+            <Columns>
             @foreach (var field in fields.OrderBy(f => f.DisplayOrder))
             {
-                <RadzenDataGridColumn TItem="Dictionary<string, object>"
-                                      Title="@field.FieldName"
-                                      Property="@field.FieldName"
-                                      Width="@field.ColumnWidth">
-                    <Template Context="row">
-                        @row[field.FieldName]?.ToString()
-                    </Template>
-                </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="Dictionary<string, object>" 
+                                              Title="@(field.FieldName == "projectNr" ? "Opdracht Nr" : 
+                                              field.FieldName == "datumGereed" ? "Datum Gereed" : 
+                                              field.FieldName == "toegewezen" ? "Toegewezen" : field.FieldName)" 
+                                              Property="@field.FieldName" 
+                                              Width="@field.ColumnWidth"
+                                              CssClass="@(field.FieldName == "toegewezen" ? "toegewezen" : "")">
+                            <Template Context="row">
+                        @GetCellValue(row, field.FieldName)
+                            </Template>
+                        </RadzenDataGridColumn>
             }
-        </Columns>
-    </RadzenDataGrid>
+            </Columns>
+        </RadzenDataGrid>
 }
 else
 {
-    <p>@statusMessage</p>
+        <p>@statusMessage</p>
 }
 
 @code {
     private List<Dictionary<string, object>>? inspecties;
+    private List<Dictionary<string, object>> filteredInspecties = [];
     private List<FieldDefinition> fields = [];
     private string statusMessage = "Laden...";
+    private string filterText = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -40,30 +68,81 @@ else
             var httpResponse = await Http.GetAsync("api/upcominginspections?inspecteurId=JZA&includeMetadata=true");
             var json = await httpResponse.Content.ReadAsStringAsync();
             Console.WriteLine($"Raw JSON van API: {json}");
-            Console.WriteLine($"Statuscode: {httpResponse.StatusCode}");
 
             if (httpResponse.IsSuccessStatusCode)
             {
                 var response = JsonSerializer.Deserialize<InspectionResponse>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                inspecties = response?.Data;
-                fields = response?.Fields ?? [];
-                statusMessage = inspecties?.Any() == true ? "Data geladen!" : "Geen inspecties gevonden voor JZA.";
+                if (response == null)
+                {
+                    statusMessage = "Deserialisatie mislukt: response is null.";
+                }
+                else
+                {
+                    inspecties = response.Data;
+                    filteredInspecties = inspecties?.ToList() ?? [];
+                    fields = response.Fields ?? [];
+                    statusMessage = inspecties?.Any() == true ? "Data geladen!" : "Geen inspecties gevonden voor JZA.";
+                }
             }
             else
             {
                 statusMessage = $"API fout: {httpResponse.StatusCode} - {json}";
             }
         }
-        catch (HttpRequestException ex)
-        {
-            statusMessage = $"Netwerkfout: {ex.Message}";
-            Console.WriteLine($"Netwerkfout details: {ex}");
-        }
         catch (Exception ex)
         {
-            statusMessage = $"Onverwachte fout: {ex.Message}";
-            Console.WriteLine($"Onverwachte fout details: {ex}");
+            statusMessage = $"Fout: {ex.Message}";
+            Console.WriteLine($"Fout details: {ex}");
         }
+    }
+
+    private async Task OnFilterChanged(ChangeEventArgs args)
+    {
+        filterText = args.Value?.ToString() ?? "";
+        if (inspecties != null)
+        {
+            if (string.IsNullOrEmpty(filterText))
+            {
+                filteredInspecties = inspecties.ToList();
+            }
+            else
+            {
+                filteredInspecties = inspecties
+                    .Where(i => i["project"]?.ToString()?.Contains(filterText, StringComparison.OrdinalIgnoreCase) == true)
+                    .ToList();
+            }
+            StateHasChanged();
+        }
+    }
+
+    private void ResetFilter()
+    {
+        filterText = "";
+        filteredInspecties = inspecties?.ToList() ?? [];
+        StateHasChanged();
+    }
+
+    private string GetCellValue(Dictionary<string, object> row, string? fieldName)
+    {
+        if (string.IsNullOrEmpty(fieldName) || !row.TryGetValue(fieldName, out var value))
+        {
+            return "N/A";
+        }
+
+        if (fieldName == "toegewezen" && value != null)
+        {
+            if (value is JsonElement jsonElement)
+            {
+                return jsonElement.GetBoolean() ? "✔" : "✘";
+            }
+            return (bool)value ? "✔" : "✘";
+        }
+        else if (fieldName == "datumGereed" && value is DateTime date)
+        {
+            return date.ToString("yyyy-MM-dd");
+        }
+
+        return value?.ToString() ?? "N/A";
     }
 
     public class InspectionResponse
