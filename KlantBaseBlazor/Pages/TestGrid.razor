@@ -1,0 +1,18 @@
+@page "/testgrid"
+@using Radzen.Blazor
+@using Radzen
+
+<h3>Test DataGrid</h3>
+
+<RadzenDataGrid Data="@testItems" TItem="TestItem" 
+                AllowSorting="true" 
+                AllowFiltering="true" 
+                FilterMode="@FilterMode.Advanced"
+                AllowPaging="true">
+    <Columns>
+        <RadzenDataGridColumn TItem="TestItem" Property="Id" Title="ID" />
+        <RadzenDataGridColumn TItem="TestItem" Property="Name" Title="Name" />
+        <RadzenDataGridColumn TItem="TestItem" Property="Date" Title="Date" />
+        <RadzenDataGridColumn TItem="TestItem" Property="IsActive" Title="Active" />
+    </Columns>
+</RadzenDataGrid>

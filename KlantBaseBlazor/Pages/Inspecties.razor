@@ -1,5 +1,6 @@
 ﻿@page "/inspecties"
 @inject HttpClient Http
+@using ActielijstApi.Data
 @using Radzen.Blazor
 @using Radzen
 @using System.Text.Json
@@ -25,47 +26,50 @@
 <div style="margin-bottom: 10px;">
     <input type="text" @bind="filterText" @oninput="OnFilterChanged" placeholder="Zoek naar..." style="padding: 5px; margin-right: 10px;" />
     <button style="padding: 5px 10px; background-color: #007bff; color: white; border: none; cursor: pointer;" @onclick="ResetFilter">Alles tonen</button>
-    <button style="padding: 5px 10px; background-color: #dc3545; color: white; border: none; cursor: pointer;" @onclick="ResetFilter">Herstel</button>
 </div>
 
-@if (inspecties != null && fields.Any())
+@if (inspecties != null)
 {
-        <RadzenDataGrid Data="@filteredInspecties" TItem="Dictionary<string, object>" 
-                Style="width: 100%; border: 1px solid #ddd;"
-                AllowSorting="true" 
-                AllowFiltering="true" 
-                FilterMode="FilterMode.Simple">
-            <Columns>
-            @foreach (var field in fields.OrderBy(f => f.DisplayOrder))
-            {
-                        <RadzenDataGridColumn TItem="Dictionary<string, object>" 
-                                              Title="@(field.FieldName == "projectNr" ? "Opdracht Nr" : 
-                                              field.FieldName == "datumGereed" ? "Datum Gereed" : 
-                                              field.FieldName == "toegewezen" ? "Toegewezen" : field.FieldName)" 
-                                              Property="@field.FieldName" 
-                                              Width="@field.ColumnWidth"
-                                              CssClass="@(field.FieldName == "toegewezen" ? "toegewezen" : "")">
-                            <Template Context="row">
-                        @GetCellValue(row, field.FieldName)
-                            </Template>
-                        </RadzenDataGridColumn>
-            }
-            </Columns>
-        </RadzenDataGrid>
+    <RadzenDataGrid Data="@filteredInspecties" TItem="AankomendeInspectie" 
+                    Style="width: 100%; border: 1px solid #ddd;"
+                    AllowSorting="true" 
+                    AllowFiltering="true" 
+                    FilterMode="FilterMode.Advanced"
+                    AllowPaging="true"
+                    ShowPagingSummary="true"
+                    PageSizeOptions="@(new int[]{5, 10, 20, 30})"
+                    @ref="grid">
+        <Columns>
+            <RadzenDataGridColumn TItem="AankomendeInspectie" Property="Project" Title="project" Width="200px" />
+            <RadzenDataGridColumn TItem="AankomendeInspectie" Property="ProjectNr" Title="Opdracht Nr" Width="100px" />
+            <RadzenDataGridColumn TItem="AankomendeInspectie" Property="Adres" Title="adres" Width="250px" />
+            <RadzenDataGridColumn TItem="AankomendeInspectie" Property="Applicateur" Title="applicateur" Width="150px" />
+            <RadzenDataGridColumn TItem="AankomendeInspectie" Property="Soort" Title="soort" Width="100px" />
+            <RadzenDataGridColumn TItem="AankomendeInspectie" Property="Omschrijving" Title="omschrijving" Width="200px" />
+            <RadzenDataGridColumn TItem="AankomendeInspectie" Property="Toegewezen" Title="Toegewezen" Width="80px" CssClass="toegewezen" FormatString="{0:✔;✘;N/A}" />
+            <RadzenDataGridColumn TItem="AankomendeInspectie" Property="DatumGereed" Title="Datum Gereed" Width="120px" FormatString="yyyy-MM-dd" />
+            <RadzenDataGridColumn TItem="AankomendeInspectie" Property="Status" Title="status" Width="100px" />
+        </Columns>
+    </RadzenDataGrid>
 }
 else
 {
-        <p>@statusMessage</p>
+    <p>@statusMessage</p>
 }
 
 @code {
-    private List<Dictionary<string, object>>? inspecties;
-    private List<Dictionary<string, object>> filteredInspecties = [];
-    private List<FieldDefinition> fields = [];
+    private List<AankomendeInspectie>? inspecties;
+    private List<AankomendeInspectie> filteredInspecties = [];
     private string statusMessage = "Laden...";
     private string filterText = "";
+    private RadzenDataGrid<AankomendeInspectie>? grid;
 
     protected override async Task OnInitializedAsync()
+    {
+        await LoadInspections();
+    }
+
+    private async Task LoadInspections()
     {
         try
         {
@@ -77,16 +81,15 @@ else
             if (httpResponse.IsSuccessStatusCode)
             {
                 var response = JsonSerializer.Deserialize<InspectionResponse>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                if (response == null)
+                if (response == null || response.Data == null)
                 {
                     statusMessage = "Deserialisatie mislukt: response is null.";
                 }
                 else
                 {
                     inspecties = response.Data;
-                    filteredInspecties = inspecties?.ToList() ?? [];
-                    fields = response.Fields ?? [];
-                    statusMessage = inspecties?.Any() == true ? "Data geladen!" : "Geen inspecties gevonden voor JZA.";
+                    filteredInspecties = inspecties.ToList();
+                    statusMessage = inspecties.Any() ? "Data geladen!" : "Geen inspecties gevonden voor JZA.";
                 }
             }
             else
@@ -113,7 +116,9 @@ else
             else
             {
                 filteredInspecties = inspecties
-                    .Where(i => i["project"]?.ToString()?.Contains(filterText, StringComparison.OrdinalIgnoreCase) == true)
+                    .Where(i => i.Project.Contains(filterText, StringComparison.OrdinalIgnoreCase) ||
+                                i.Adres.Contains(filterText, StringComparison.OrdinalIgnoreCase) ||
+                                i.Omschrijving.Contains(filterText, StringComparison.OrdinalIgnoreCase))
                     .ToList();
             }
             StateHasChanged();
@@ -127,32 +132,9 @@ else
         StateHasChanged();
     }
 
-    private string GetCellValue(Dictionary<string, object> row, string? fieldName)
-    {
-        if (string.IsNullOrEmpty(fieldName) || !row.TryGetValue(fieldName, out var value))
-        {
-            return "N/A";
-        }
-
-        if (fieldName == "toegewezen" && value != null)
-        {
-            if (value is JsonElement jsonElement)
-            {
-                return jsonElement.GetBoolean() ? "✔" : "✘";
-            }
-            return (bool)value ? "✔" : "✘";
-        }
-        else if (fieldName == "datumGereed" && value is DateTime date)
-        {
-            return date.ToString("yyyy-MM-dd");
-        }
-
-        return value?.ToString() ?? "N/A";
-    }
-
     public class InspectionResponse
     {
-        public List<Dictionary<string, object>>? Data { get; set; }
+        public List<AankomendeInspectie>? Data { get; set; }
         public List<FieldDefinition>? Fields { get; set; }
     }
 

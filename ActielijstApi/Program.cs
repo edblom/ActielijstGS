@@ -4,15 +4,17 @@ using Microsoft.OpenApi.Models;
 using ActielijstApi.Data;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
-using System.Linq;
-using System.Text.Json;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
+using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Wordprocessing;
+using System.Text.Json;
+using System.Linq;
+using Microsoft.Extensions.Hosting;
 using System.Collections.Generic;
+using System.IO;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -51,7 +53,7 @@ else
 
 app.UseCors("AllowAll");
 
-// Login Endpoint (al aanwezig)
+// Login Endpoint
 app.MapPost("/api/login", async (LoginRequest login, ApplicationDbContext context) =>
 {
     var werknemer = await context.Werknemers
@@ -66,13 +68,13 @@ app.MapPost("/api/login", async (LoginRequest login, ApplicationDbContext contex
     {
         WerknId = werknemer.WerknId,
         Voornaam = werknemer.Voornaam,
-        Initialen = werknemer.Initialen // Toegevoegd
+        Initialen = werknemer.Initialen
     });
 })
 .WithName("Login")
 .WithOpenApi();
 
-// Nieuwe Werknemers Endpoint voor Dropdown
+// Werknemers Endpoint
 app.MapGet("/api/werknemers", async (ApplicationDbContext context) =>
 {
     var workers = await context.Werknemers.ToListAsync();
@@ -81,7 +83,7 @@ app.MapGet("/api/werknemers", async (ApplicationDbContext context) =>
 .WithName("GetWerknemers")
 .WithOpenApi();
 
-// Bestaande Memo Endpoints
+// Memo Endpoints
 app.MapGet("/api/memos/user/{userId:int}/{filterType}", async (int userId, string filterType, ApplicationDbContext context) =>
 {
     var memos = filterType.ToLower() switch
@@ -147,16 +149,16 @@ app.MapPut("/api/memos/{id}", async (int id, Memo updatedMemo, ApplicationDbCont
     existingMemo.FldMActieDatum = updatedMemo.FldMActieDatum;
     existingMemo.FldMActieSoort = updatedMemo.FldMActieSoort;
     existingMemo.WerknId = updatedMemo.WerknId;
-    existingMemo.FldMPrioriteit = updatedMemo.FldMPrioriteit; // Dit zou 4 moeten accepteren
+    existingMemo.FldMPrioriteit = updatedMemo.FldMPrioriteit;
 
     try
     {
         await context.SaveChangesAsync();
-        return Results.Ok(existingMemo); // Retourneer de bijgewerkte memo
+        return Results.Ok(existingMemo);
     }
     catch (DbUpdateConcurrencyException ex)
     {
-        return Results.Conflict(new { error = "Concurrency conflict: The record was modified by another user." });
+        return Results.Conflict(new { error = "Concurrency conflict: The record was modified by another user." + ex.Message });
     }
 })
 .WithName("PutMemo")
@@ -173,12 +175,12 @@ app.MapDelete("/api/memos/{id}", async (int id, ApplicationDbContext context) =>
 .WithName("DeleteMemo")
 .WithOpenApi();
 
-app.MapPatch("/api/memos/{id}", async (int id, [FromBody] PatchMemoDto data, ApplicationDbContext context) =>
+app.MapPatch("/api/memos/{id}", async (int id, PatchMemoDto data, ApplicationDbContext context) =>
 {
     var memo = await context.Memos.FindAsync(id);
     if (memo == null) return Results.NotFound();
 
-    if (data.fldMActieGereed != null)
+    if (data.fldMActieGereed.HasValue)
     {
         memo.fldMActieGereed = data.fldMActieGereed;
         await context.SaveChangesAsync();
@@ -188,7 +190,6 @@ app.MapPatch("/api/memos/{id}", async (int id, [FromBody] PatchMemoDto data, App
 .WithName("PatchMemoStatus")
 .WithOpenApi();
 
-
 app.MapGet("/api/memos/test-error", () =>
 {
     throw new ArgumentException("Dit is een testfout!");
@@ -196,7 +197,7 @@ app.MapGet("/api/memos/test-error", () =>
 .WithName("TestError")
 .WithOpenApi();
 
-// Nieuwe endpoint voor prioriteiten
+// Prioriteiten Endpoint
 app.MapGet("/api/priorities", async (ApplicationDbContext context) =>
 {
     try
@@ -212,13 +213,13 @@ app.MapGet("/api/priorities", async (ApplicationDbContext context) =>
 .WithName("GetPriorities")
 .WithOpenApi();
 
-// Nieuwe endpoint voor inspecties (gebruik de view)
+// Inspecties Endpoint
 app.MapGet("/api/inspecties", async (ApplicationDbContext context) =>
 {
     try
     {
         var inspecties = await context.Inspecties.ToListAsync();
-        Console.WriteLine(JsonSerializer.Serialize(inspecties)); // Debug
+        Console.WriteLine(JsonSerializer.Serialize(inspecties));
         return Results.Ok(inspecties);
     }
     catch (Exception ex)
@@ -229,23 +230,33 @@ app.MapGet("/api/inspecties", async (ApplicationDbContext context) =>
 .WithName("GetInspecties")
 .WithOpenApi();
 
-
-app.MapGet("/api/upcominginspections", async (ApplicationDbContext context, [FromQuery] string inspecteurId, [FromQuery] bool? includeMetadata) =>
+// Upcoming Inspections Endpoint
+app.MapGet("/api/upcominginspections", async (ApplicationDbContext context, string inspecteurId, bool? includeMetadata) =>
 {
     try
     {
+        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+
         if (string.IsNullOrEmpty(inspecteurId))
         {
             return Results.BadRequest("InspecteurId is verplicht.");
         }
 
+        var queryStart = stopwatch.ElapsedMilliseconds;
         var inspecties = await context.AankomendeInspecties
             .Where(i =>
                 (i.InspecteurId == inspecteurId || (i.ExtraMedewerker != null && i.ExtraMedewerker == inspecteurId))
                 && i.Toegewezen == true)
             .OrderBy(i => i.DatumGereed)
             .ToListAsync();
-        Console.WriteLine(JsonSerializer.Serialize(inspecties)); // Debug
+        var queryEnd = stopwatch.ElapsedMilliseconds;
+        Console.WriteLine($"Databasequery duurde: {queryEnd - queryStart} ms");
+
+        var debugStart = stopwatch.ElapsedMilliseconds;
+        Console.WriteLine(JsonSerializer.Serialize(inspecties));
+        var debugEnd = stopwatch.ElapsedMilliseconds;
+        Console.WriteLine($"Debuglogging duurde: {debugEnd - debugStart} ms");
+
         if (!inspecties.Any())
         {
             return Results.NotFound($"Geen aankomende inspecties gevonden voor inspecteur {inspecteurId}.");
@@ -253,21 +264,29 @@ app.MapGet("/api/upcominginspections", async (ApplicationDbContext context, [Fro
 
         if (includeMetadata == true)
         {
+            var metadataStart = stopwatch.ElapsedMilliseconds;
             var fields = new List<object>
-    {
-        new { FieldName = "project", DisplayOrder = 1, ColumnWidth = "200px" },
-        new { FieldName = "projectNr", DisplayOrder = 2, ColumnWidth = "100px" },
-        new { FieldName = "adres", DisplayOrder = 3, ColumnWidth = "250px" },
-        new { FieldName = "applicateur", DisplayOrder = 4, ColumnWidth = "150px" },
-        new { FieldName = "soort", DisplayOrder = 5, ColumnWidth = "100px" },
-        new { FieldName = "omschrijving", DisplayOrder = 6, ColumnWidth = "200px" },
-        new { FieldName = "toegewezen", DisplayOrder = 7, ColumnWidth = "80px" },
-        new { FieldName = "datumGereed", DisplayOrder = 8, ColumnWidth = "120px" },
-        new { FieldName = "status", DisplayOrder = 9, ColumnWidth = "100px" }
-    };
+            {
+                new { FieldName = "project", DisplayOrder = 1, ColumnWidth = "200px" },
+                new { FieldName = "projectNr", DisplayOrder = 2, ColumnWidth = "100px" },
+                new { FieldName = "adres", DisplayOrder = 3, ColumnWidth = "250px" },
+                new { FieldName = "applicateur", DisplayOrder = 4, ColumnWidth = "150px" },
+                new { FieldName = "soort", DisplayOrder = 5, ColumnWidth = "100px" },
+                new { FieldName = "omschrijving", DisplayOrder = 6, ColumnWidth = "200px" },
+                new { FieldName = "toegewezen", DisplayOrder = 7, ColumnWidth = "80px" },
+                new { FieldName = "datumGereed", DisplayOrder = 8, ColumnWidth = "120px" },
+                new { FieldName = "status", DisplayOrder = 9, ColumnWidth = "100px" }
+            };
+            var metadataEnd = stopwatch.ElapsedMilliseconds;
+            Console.WriteLine($"Metadata aanmaken duurde: {metadataEnd - metadataStart} ms");
+
+            stopwatch.Stop();
+            Console.WriteLine($"Totale tijd met metadata: {stopwatch.ElapsedMilliseconds} ms");
             return Results.Ok(new { data = inspecties, fields });
         }
 
+        stopwatch.Stop();
+        Console.WriteLine($"Totale tijd zonder metadata: {stopwatch.ElapsedMilliseconds} ms");
         return Results.Ok(inspecties);
     }
     catch (Exception ex)
@@ -277,14 +296,193 @@ app.MapGet("/api/upcominginspections", async (ApplicationDbContext context, [Fro
 })
 .WithName("GetUpcomingInspections")
 .WithOpenApi();
+
+// Document Generate Endpoint
+app.MapPost("/api/documents/generate/{inspectieId}", async (int inspectieId, ApplicationDbContext context, ILogger<Program> logger) =>
+{
+    var inspectie = await context.Inspecties
+        .FirstOrDefaultAsync(i => i.OpdrachtId == inspectieId);
+    if (inspectie == null) return Results.NotFound($"Inspectie met ID {inspectieId} niet gevonden.");
+
+    var correspondentie = new Correspondentie
+    {
+        KlantID = inspectie.fldOpdrachtgeverId ?? 0,
+        fldCorProjNum = inspectie.fldProjectId,
+        fldCorOpdrachtNum = inspectie.fldOpdrachtId,
+        fldCorAuteur = inspectie.ExtraMedewerker ?? inspectie.fldProjectLeider ?? "Onbekend",
+        fldCorDatum = DateTime.Now,
+        fldCorOmschrijving = inspectie.Omschrijving ?? "Inspectierapport",
+        fldCorCPersId = inspectie.fldContactpersoonId
+    };
+    context.Correspondentie.Add(correspondentie);
+    await context.SaveChangesAsync();
+
+    string templatePath = @"M:\Projectdossier\sjablonen\adressjabloon.docx";
+    string documentPath = $@"M:\Projectdossier\2025\documenten\rapport_{correspondentie.Id}.docx";
+
+    try
+    {
+        string? directory = Path.GetDirectoryName(documentPath);
+        if (directory != null && !Directory.Exists(directory))
+            Directory.CreateDirectory(directory);
+
+        if (!File.Exists(templatePath))
+            return Results.Problem($"Sjabloonbestand niet gevonden op: {templatePath}");
+
+        File.Copy(templatePath, documentPath, true);
+
+        using (WordprocessingDocument doc = WordprocessingDocument.Open(documentPath, true))
+        {
+            var customPropsPart = doc.CustomFilePropertiesPart;
+            if (customPropsPart == null || customPropsPart.Properties == null)
+            {
+                logger.LogWarning("Geen custom properties gevonden in het sjabloon.");
+                // Ga door met opslaan, zelfs als er geen properties zijn
+            }
+            else
+            {
+                var props = customPropsPart.Properties;
+
+                // Log bestaande properties
+                logger.LogInformation("Bestaande custom properties in het sjabloon:");
+                foreach (var prop in props.Elements<DocumentFormat.OpenXml.CustomProperties.CustomDocumentProperty>())
+                {
+                    logger.LogInformation($"Naam: {prop.Name?.Value}, Waarde: {prop.InnerText}, Type: {prop.FirstChild?.LocalName}");
+                }
+
+                // Haal alle velddefinities uit StblCorrespondentieFields
+                var fieldDefs = await context.StblCorrespondentieFields.ToListAsync();
+
+                // Wijzig alleen properties die "adres" als tabel hebben
+                foreach (var prop in props.Elements<DocumentFormat.OpenXml.CustomProperties.CustomDocumentProperty>())
+                {
+                    string propName = prop.Name?.Value ?? "";
+                    if (string.IsNullOrEmpty(propName)) continue;
+
+                    // Zoek de corresponderende velddefinitie
+                    var fieldDef = fieldDefs.FirstOrDefault(f => f.ReplaceString == propName);
+                    if (fieldDef == null)
+                    {
+                        logger.LogWarning($"Geen velddefinitie gevonden voor custom property '{propName}'. Property wordt genegeerd.");
+                        continue;
+                    }
+
+                    // Verwerk alleen als Tabel="adres"
+                    if (fieldDef.Tabel?.ToLower() != "adres")
+                    {
+                        logger.LogInformation($"Custom property '{propName}' gebruikt tabel '{fieldDef.Tabel}', wat niet 'adres' is. Property wordt genegeerd.");
+                        continue;
+                    }
+
+                    // Haal de waarde op via de helper
+                    string newValue = await CorrespondentieHelper.GetCorrespondentieVeldValueAsync(context, fieldDef, correspondentie);
+                    if (string.IsNullOrEmpty(newValue))
+                    {
+                        logger.LogWarning($"Geen waarde gevonden voor custom property '{propName}'. Waarde wordt leeg gemaakt.");
+                        newValue = "";
+                    }
+
+                    // Update de property-waarde
+                    UpdatePropertyValue(prop, newValue);
+                    logger.LogInformation($"Property '{propName}' gewijzigd naar: '{newValue}'");
+                }
+
+                customPropsPart.Properties.Save();
+            }
+
+            // Voeg de UpdateFields-instelling toe om velden automatisch bij te werken bij het openen
+            UpdateFieldsInDocument(doc);
+
+            // Sla het hele document expliciet op
+            doc.MainDocumentPart?.Document.Save();
+        }
+
+        correspondentie.fldCorBestand = documentPath;
+        await context.SaveChangesAsync();
+
+        return Results.Ok(new { FilePath = documentPath, CorrespondentieID = correspondentie.Id });
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Fout bij genereren van document");
+        return Results.Problem($"Fout bij genereren van document: {ex.Message}");
+    }
+})
+.WithName("GenerateDocument")
+.WithOpenApi();
+
+// Methode om de UpdateFields-instelling toe te voegen
+static void UpdateFieldsInDocument(WordprocessingDocument doc)
+{
+    // Toegang tot de DocumentSettingsPart
+    var settingsPart = doc.MainDocumentPart.DocumentSettingsPart;
+    if (settingsPart == null)
+    {
+        settingsPart = doc.MainDocumentPart.AddNewPart<DocumentSettingsPart>();
+        settingsPart.Settings = new Settings();
+    }
+
+    // Controleer of de UpdateFields-instelling al bestaat
+    var updateFields = settingsPart.Settings.Elements<UpdateFieldsOnOpen>().FirstOrDefault();
+    if (updateFields == null)
+    {
+        updateFields = new UpdateFieldsOnOpen { Val = true };
+        settingsPart.Settings.Append(updateFields);
+    }
+    else
+    {
+        updateFields.Val = true;
+    }
+
+    // Sla de instellingen op
+    settingsPart.Settings.Save();
+}
+
+// Hulpmethode om de waarde van een custom property te updaten
+static void UpdatePropertyValue(DocumentFormat.OpenXml.CustomProperties.CustomDocumentProperty prop, string newValue)
+{
+    if (prop.VTLPWSTR != null)
+    {
+        prop.RemoveChild(prop.VTLPWSTR); // Verwijder de oude VTLPWSTR
+        prop.VTLPWSTR = new DocumentFormat.OpenXml.VariantTypes.VTLPWSTR(newValue ?? "");
+    }
+    else if (prop.VTInt32 != null)
+    {
+        int.TryParse(newValue, out int intValue);
+        prop.RemoveChild(prop.VTInt32); // Verwijder de oude VTInt32
+        prop.VTInt32 = new DocumentFormat.OpenXml.VariantTypes.VTInt32(intValue.ToString());
+    }
+    else if (prop.VTBool != null)
+    {
+        bool.TryParse(newValue, out bool boolValue);
+        prop.RemoveChild(prop.VTBool); // Verwijder de oude VTBool
+        prop.VTBool = new DocumentFormat.OpenXml.VariantTypes.VTBool(boolValue ? "1" : "0"); // 1 voor true, 0 voor false
+    }
+    else if (prop.VTDate != null)
+    {
+        if (DateTime.TryParse(newValue, out DateTime dateValue))
+        {
+            prop.RemoveChild(prop.VTDate); // Verwijder de oude VTDate
+            prop.VTDate = new DocumentFormat.OpenXml.VariantTypes.VTDate(dateValue.ToString("O")); // Gebruik "O" (roundtrip) formaat
+        }
+        else
+        {
+            prop.RemoveChild(prop.VTDate);
+            prop.VTDate = new DocumentFormat.OpenXml.VariantTypes.VTDate(DateTime.MinValue.ToString("O"));
+        }
+    }
+    // Voeg meer typen toe als je sjabloon die gebruikt
+}
+
 app.UseExceptionMiddleware();
 
 app.Run();
 
+// Data Transfer Objects
 public class LoginRequest
 {
-    public string Voornaam { get; set; }
-    public string FldLoginNaam { get; set; }
+    public string? Voornaam { get; set; }
+    public string? FldLoginNaam { get; set; }
 }
 
 public class ExceptionMiddleware

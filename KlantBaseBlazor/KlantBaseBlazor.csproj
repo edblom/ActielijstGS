@@ -1,13 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
-
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <NoWarn>CS0168,CS1998,BL9993,CS0649,CS0436</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Radzen.Blazor" Version="*" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\ActielijstApi\ActielijstApi.csproj" />
+  </ItemGroup>
 </Project>

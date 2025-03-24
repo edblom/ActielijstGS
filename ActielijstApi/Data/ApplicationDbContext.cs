@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using ActielijstApi.Models;
 
 namespace ActielijstApi.Data
 {
@@ -10,52 +9,34 @@ namespace ActielijstApi.Data
         public DbSet<Memo> Memos { get; set; }
         public DbSet<Werknemer> Werknemers { get; set; }
         public DbSet<ActieSoort> ActieSoorten { get; set; }
-        public DbSet<StblPriority> StblPriorities { get; set; } // Toegevoegd
-        public DbSet<Inspectie> Inspecties { get; set; } // Toegevoegd
-        public DbSet<AankomendeInspectie> AankomendeInspecties { get; set; } // Toegevoegd
-
+        public DbSet<StblPriority> StblPriorities { get; set; }
+        public DbSet<Inspectie> Inspecties { get; set; }
+        public DbSet<AankomendeInspectie> AankomendeInspecties { get; set; }
+        public DbSet<Correspondentie> Correspondentie { get; set; }
+        public DbSet<StblCorrespondentieField> StblCorrespondentieFields { get; set; }
+        public DbSet<ProjectOnderdeel> ProjectOnderdelen { get; set; }
+        public DbSet<Adres> Adresses { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Memo>().ToTable("tblMemo", "dbo");
-            modelBuilder.Entity<Memo>().HasKey(m => m.FldMid);
-
-            modelBuilder.Entity<Werknemer>().ToTable("Werknemers", "dbo");
-            modelBuilder.Entity<Werknemer>().HasKey(w => w.WerknId);
-
-            modelBuilder.Entity<ActieSoort>().ToTable("stblActieSoort", "dbo");
-            modelBuilder.Entity<ActieSoort>().HasKey(a => a.Id);
-
-            modelBuilder.Entity<StblPriority>().ToTable("stblPriority", "dbo"); // Toegevoegd
-            modelBuilder.Entity<StblPriority>().HasKey(p => p.Id); // Toegevoegd
-
-            modelBuilder.Entity<Inspectie>(entity =>
-            {
-                entity.HasNoKey(); // Geen primaire sleutel, omdat het een view is
-                entity.ToView("vw_KIWAInspecties"); // Map naar de view
-            });
-
-            modelBuilder.Entity<AankomendeInspectie>(entity => // Toegevoegd
-            {
-                entity.HasNoKey();
-                entity.ToView("vw_AankomendeInspecties");
-            });
-
-            // Default waarden voor Memo
-            modelBuilder.Entity<Memo>().Property(m => m.WerknId).HasDefaultValue(0);
-            modelBuilder.Entity<Memo>().Property(m => m.FldMKlantId).HasDefaultValue(0);
-            modelBuilder.Entity<Memo>().Property(m => m.FldMOfferteId).HasDefaultValue(0);
-            modelBuilder.Entity<Memo>().Property(m => m.FldMProjectId).HasDefaultValue(0);
-            modelBuilder.Entity<Memo>().Property(m => m.FldOpdrachtId).HasDefaultValue(0);
-            modelBuilder.Entity<Memo>().Property(m => m.FldMActieVoor).HasDefaultValue(0);
-            modelBuilder.Entity<Memo>().Property(m => m.FldMPrioriteit).HasDefaultValue(0);
-
-            // Configureer SSMA_TimeStamp als timestamp
-            modelBuilder.Entity<Memo>()
-                .Property(m => m.SSMA_TimeStamp)
-                .HasColumnType("timestamp")
-                .IsRowVersion()
-                .IsConcurrencyToken();
+            modelBuilder.Entity<Memo>().ToTable("tblMemo", "dbo").HasKey(m => m.FldMid);
+            modelBuilder.Entity<Werknemer>().ToTable("Werknemers", "dbo").HasKey(w => w.WerknId);
+            modelBuilder.Entity<ActieSoort>().ToTable("stblActieSoort", "dbo").HasKey(a => a.Id);
+            modelBuilder.Entity<StblPriority>().ToTable("stblPriority", "dbo").HasKey(p => p.Id);
+            modelBuilder.Entity<Inspectie>().ToView("vw_KIWAInspecties").HasKey(i => i.OpdrachtId);
+            modelBuilder.Entity<AankomendeInspectie>().ToView("vw_AankomendeInspecties").HasNoKey();
+            modelBuilder.Entity<Correspondentie>().ToTable("correspondentie")
+                .Property(e => e.SSMA_TimeStamp).IsRowVersion();
+            modelBuilder.Entity<StblCorrespondentieField>().ToTable("stblCorrespondentieFields").HasKey(f => f.Id);
+            modelBuilder.Entity<ProjectOnderdeel>().ToTable("tblProjectOnderdelen").HasKey(p => p.fldProjectId);
+            modelBuilder.Entity<Adres>().ToTable("adres")
+                .Property(a => a.SsmaTimeStamp).IsRowVersion();
+            modelBuilder.Entity<Adres>()
+                .Property(a => a.Id).HasColumnName("ID");
+            modelBuilder.Entity<Adres>()
+                .Property(a => a.Bedrijf).HasColumnName("BEDRIJF");
+            modelBuilder.Entity<Adres>()
+                .Property(a => a.EmailAdr).HasColumnName("E-MAIL_ADR");
         }
     }
 }
