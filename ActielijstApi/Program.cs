@@ -1,3 +1,22 @@
+
+using ActielijstApi.Data;
+using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Wordprocessing;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
+using System.Text.Json;
+using System;
+
+---
+
+### Stap 3: Voeg XML-documentatiecommentaren toe aan `Program.cs`
+Ik zal de XML-documentatiecommentaren toevoegen aan je `Program.cs`, zoals eerder voorgesteld, om de code zelf te documenteren. Dit helpt bij het begrijpen van de code en maakt het mogelijk om later API-documentatie te genereren.
+
+#### Bijgewerkte `Program.cs` met XML-documentatie
+Hier is je `Program.cs` met toegevoegde XML-documentatiecommentaren:
+
+```csharp
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
@@ -53,7 +72,12 @@ else
 
 app.UseCors("AllowAll");
 
-// Login Endpoint
+/// <summary>
+/// Authenticeert een gebruiker op basis van voornaam en loginnaam.
+/// </summary>
+/// <param name="login">De inloggegevens, inclusief voornaam en loginnaam.</param>
+/// <param name="context">De databasecontext om gebruikers op te zoeken.</param>
+/// <returns>Een object met de gebruikers-ID, voornaam en initialen bij succes; anders een Unauthorized-resultaat.</returns>
 app.MapPost("/api/login", async (LoginRequest login, ApplicationDbContext context) =>
 {
     var werknemer = await context.Werknemers
@@ -74,7 +98,11 @@ app.MapPost("/api/login", async (LoginRequest login, ApplicationDbContext contex
 .WithName("Login")
 .WithOpenApi();
 
-// Werknemers Endpoint
+/// <summary>
+/// Haalt een lijst van alle werknemers op uit de database.
+/// </summary>
+/// <param name="context">De databasecontext om werknemers op te halen.</param>
+/// <returns>Een lijst van werknemers.</returns>
 app.MapGet("/api/werknemers", async (ApplicationDbContext context) =>
 {
     var workers = await context.Werknemers.ToListAsync();
@@ -83,7 +111,13 @@ app.MapGet("/api/werknemers", async (ApplicationDbContext context) =>
 .WithName("GetWerknemers")
 .WithOpenApi();
 
-// Memo Endpoints
+/// <summary>
+/// Haalt memo's op voor een specifieke gebruiker, gefilterd op type.
+/// </summary>
+/// <param name="userId">De ID van de gebruiker.</param>
+/// <param name="filterType">Het type filter: "assigned" (toegewezen memo's), "created" (aangemaakte memo's), of een andere waarde (alle memo's).</param>
+/// <param name="context">De databasecontext om memo's op te halen.</param>
+/// <returns>Een lijst van memo's die voldoen aan de filtercriteria.</returns>
 app.MapGet("/api/memos/user/{userId:int}/{filterType}", async (int userId, string filterType, ApplicationDbContext context) =>
 {
     var memos = filterType.ToLower() switch
@@ -97,6 +131,11 @@ app.MapGet("/api/memos/user/{userId:int}/{filterType}", async (int userId, strin
 .WithName("GetMemosForUser")
 .WithOpenApi();
 
+/// <summary>
+/// Haalt alle actiesoorten op uit de database.
+/// </summary>
+/// <param name="context">De databasecontext om actiesoorten op te halen.</param>
+/// <returns>Een lijst van actiesoorten; bij een fout een probleemresultaat.</returns>
 app.MapGet("/api/actiesoorten/all", async (ApplicationDbContext context) =>
 {
     try
@@ -112,6 +151,11 @@ app.MapGet("/api/actiesoorten/all", async (ApplicationDbContext context) =>
 .WithName("GetAllActiesoorten")
 .WithOpenApi();
 
+/// <summary>
+/// Haalt alle memo's op uit de database.
+/// </summary>
+/// <param name="context">De databasecontext om memo's op te halen.</param>
+/// <returns>Een lijst van memo's; bij een fout een probleemresultaat.</returns>
 app.MapGet("/api/memos/all", async (ApplicationDbContext context) =>
 {
     try
@@ -127,6 +171,12 @@ app.MapGet("/api/memos/all", async (ApplicationDbContext context) =>
 .WithName("GetAllMemos")
 .WithOpenApi();
 
+/// <summary>
+/// Voegt een nieuwe memo toe aan de database.
+/// </summary>
+/// <param name="memo">De memo die moet worden toegevoegd.</param>
+/// <param name="context">De databasecontext om de memo op te slaan.</param>
+/// <returns>Een Created-resultaat met de locatie van de nieuwe memo.</returns>
 app.MapPost("/api/memos", async (Memo memo, ApplicationDbContext context) =>
 {
     context.Memos.Add(memo);
@@ -136,6 +186,13 @@ app.MapPost("/api/memos", async (Memo memo, ApplicationDbContext context) =>
 .WithName("PostMemo")
 .WithOpenApi();
 
+/// <summary>
+/// Werkt een bestaande memo bij in de database.
+/// </summary>
+/// <param name="id">De ID van de memo die moet worden bijgewerkt.</param>
+/// <param name="updatedMemo">De bijgewerkte memo-gegevens.</param>
+/// <param name="context">De databasecontext om de memo bij te werken.</param>
+/// <returns>De bijgewerkte memo bij succes; anders een NotFound- of Conflict-resultaat.</returns>
 app.MapPut("/api/memos/{id}", async (int id, Memo updatedMemo, ApplicationDbContext context) =>
 {
     var existingMemo = await context.Memos.FindAsync(id);
@@ -164,6 +221,12 @@ app.MapPut("/api/memos/{id}", async (int id, Memo updatedMemo, ApplicationDbCont
 .WithName("PutMemo")
 .WithOpenApi();
 
+/// <summary>
+/// Verwijdert een memo uit de database.
+/// </summary>
+/// <param name="id">De ID van de memo die moet worden verwijderd.</param>
+/// <param name="context">De databasecontext om de memo te verwijderen.</param>
+/// <returns>Een NoContent-resultaat bij succes; anders een NotFound-resultaat.</returns>
 app.MapDelete("/api/memos/{id}", async (int id, ApplicationDbContext context) =>
 {
     var memo = await context.Memos.FindAsync(id);
@@ -175,6 +238,13 @@ app.MapDelete("/api/memos/{id}", async (int id, ApplicationDbContext context) =>
 .WithName("DeleteMemo")
 .WithOpenApi();
 
+/// <summary>
+/// Werkt de status van een memo bij (bijv. gereed/niet gereed).
+/// </summary>
+/// <param name="id">De ID van de memo die moet worden bijgewerkt.</param>
+/// <param name="data">De bijgewerkte statusgegevens.</param>
+/// <param name="context">De databasecontext om de memo bij te werken.</param>
+/// <returns>De bijgewerkte memo bij succes; anders een NotFound-resultaat.</returns>
 app.MapPatch("/api/memos/{id}", async (int id, PatchMemoDto data, ApplicationDbContext context) =>
 {
     var memo = await context.Memos.FindAsync(id);
@@ -190,6 +260,10 @@ app.MapPatch("/api/memos/{id}", async (int id, PatchMemoDto data, ApplicationDbC
 .WithName("PatchMemoStatus")
 .WithOpenApi();
 
+/// <summary>
+/// Testendpoint om een fout te simuleren.
+/// </summary>
+/// <returns>Gooi een ArgumentException met een testfoutmelding.</returns>
 app.MapGet("/api/memos/test-error", () =>
 {
     throw new ArgumentException("Dit is een testfout!");
@@ -197,7 +271,11 @@ app.MapGet("/api/memos/test-error", () =>
 .WithName("TestError")
 .WithOpenApi();
 
-// Prioriteiten Endpoint
+/// <summary>
+/// Haalt een lijst van prioriteiten op uit de database.
+/// </summary>
+/// <param name="context">De databasecontext om prioriteiten op te halen.</param>
+/// <returns>Een lijst van prioriteiten; bij een fout een probleemresultaat.</returns>
 app.MapGet("/api/priorities", async (ApplicationDbContext context) =>
 {
     try
@@ -213,7 +291,11 @@ app.MapGet("/api/priorities", async (ApplicationDbContext context) =>
 .WithName("GetPriorities")
 .WithOpenApi();
 
-// Inspecties Endpoint
+/// <summary>
+/// Haalt een lijst van inspecties op uit de database.
+/// </summary>
+/// <param name="context">De databasecontext om inspecties op te halen.</param>
+/// <returns>Een lijst van inspecties; bij een fout een probleemresultaat.</returns>
 app.MapGet("/api/inspecties", async (ApplicationDbContext context) =>
 {
     try
@@ -230,7 +312,13 @@ app.MapGet("/api/inspecties", async (ApplicationDbContext context) =>
 .WithName("GetInspecties")
 .WithOpenApi();
 
-// Upcoming Inspections Endpoint
+/// <summary>
+/// Haalt aankomende inspecties op voor een specifieke inspecteur.
+/// </summary>
+/// <param name="context">De databasecontext om inspecties op te halen.</param>
+/// <param name="inspecteurId">De ID van de inspecteur.</param>
+/// <param name="includeMetadata">Optioneel: of metadata (velddefinities) moet worden meegeleverd.</param>
+/// <returns>Een lijst van aankomende inspecties; bij een fout een NotFound- of probleemresultaat.</returns>
 app.MapGet("/api/upcominginspections", async (ApplicationDbContext context, string inspecteurId, bool? includeMetadata) =>
 {
     try
@@ -297,7 +385,20 @@ app.MapGet("/api/upcominginspections", async (ApplicationDbContext context, stri
 .WithName("GetUpcomingInspections")
 .WithOpenApi();
 
-// Document Generate Endpoint
+/// <summary>
+/// Genereert een Word-document op basis van een inspectie-ID en een sjabloon.
+/// Het document wordt gevuld met gegevens uit de database en opgeslagen op een specifieke locatie.
+/// Custom properties worden bijgewerkt, en de UpdateFieldsOnOpen-instelling wordt toegevoegd om velden automatisch bij te werken bij het openen.
+/// </summary>
+/// <param name="inspectieId">De ID van de inspectie waarvoor het document wordt gegenereerd.</param>
+/// <param name="context">De databasecontext om inspectiegegevens op te halen.</param>
+/// <param name="logger">De logger om fouten en informatie te loggen.</param>
+/// <returns>Een object met het bestandspad en de correspondentie-ID bij succes; anders een foutmelding.</returns>
+/// <remarks>
+/// - Het sjabloon wordt verwacht op <c>M:\Projectdossier\sjablonen\adressjabloon.docx</c>.
+/// - Het gegenereerde document wordt opgeslagen op <c>M:\Projectdossier\2025\documenten\rapport_{correspondentie.Id}.docx</c>.
+/// - Gebruikers zien een melding in Word dat velden worden bijgewerkt, wat normaal gedrag is.
+/// </remarks>
 app.MapPost("/api/documents/generate/{inspectieId}", async (int inspectieId, ApplicationDbContext context, ILogger<Program> logger) =>
 {
     var inspectie = await context.Inspecties
@@ -390,7 +491,7 @@ app.MapPost("/api/documents/generate/{inspectieId}", async (int inspectieId, App
                 customPropsPart.Properties.Save();
             }
 
-            // Voeg de UpdateFields-instelling toe om velden automatisch bij te werken bij het openen
+            // Voeg de UpdateFieldsOnOpen-instelling toe om velden automatisch bij te werken bij het openen
             UpdateFieldsInDocument(doc);
 
             // Sla het hele document expliciet op
@@ -411,7 +512,15 @@ app.MapPost("/api/documents/generate/{inspectieId}", async (int inspectieId, App
 .WithName("GenerateDocument")
 .WithOpenApi();
 
-// Methode om de UpdateFields-instelling toe te voegen
+/// <summary>
+/// Voegt de UpdateFieldsOnOpen-instelling toe aan het Word-document, zodat velden automatisch worden bijgewerkt bij het openen.
+/// Dit zorgt ervoor dat DOCPROPERTY-velden de nieuwe waarden van custom properties weergeven.
+/// Gebruikers zien een melding in Word dat velden worden bijgewerkt, wat normaal gedrag is.
+/// </summary>
+/// <param name="doc">Het WordprocessingDocument waaraan de instelling wordt toegevoegd.</param>
+/// <remarks>
+/// Deze methode wordt aangeroepen in de /api/documents/generate/{inspectieId} endpoint na het bijwerken van de custom properties.
+/// </remarks>
 static void UpdateFieldsInDocument(WordprocessingDocument doc)
 {
     // Toegang tot de DocumentSettingsPart
@@ -422,7 +531,7 @@ static void UpdateFieldsInDocument(WordprocessingDocument doc)
         settingsPart.Settings = new Settings();
     }
 
-    // Controleer of de UpdateFields-instelling al bestaat
+    // Controleer of de UpdateFieldsOnOpen-instelling al bestaat
     var updateFields = settingsPart.Settings.Elements<UpdateFieldsOnOpen>().FirstOrDefault();
     if (updateFields == null)
     {
@@ -438,7 +547,14 @@ static void UpdateFieldsInDocument(WordprocessingDocument doc)
     settingsPart.Settings.Save();
 }
 
-// Hulpmethode om de waarde van een custom property te updaten
+/// <summary>
+/// Werkt de waarde van een custom property in het Word-document bij op basis van het type van de property.
+/// </summary>
+/// <param name="prop">De custom property die moet worden bijgewerkt.</param>
+/// <param name="newValue">De nieuwe waarde voor de property.</param>
+/// <remarks>
+/// Ondersteunt de volgende typen: VTLPWSTR (string), VTInt32 (integer), VTBool (boolean), VTDate (datum).
+/// </remarks>
 static void UpdatePropertyValue(DocumentFormat.OpenXml.CustomProperties.CustomDocumentProperty prop, string newValue)
 {
     if (prop.VTLPWSTR != null)
@@ -478,13 +594,18 @@ app.UseExceptionMiddleware();
 
 app.Run();
 
-// Data Transfer Objects
+/// <summary>
+/// DTO voor inlogverzoeken, bevat de voornaam en loginnaam van de gebruiker.
+/// </summary>
 public class LoginRequest
 {
     public string? Voornaam { get; set; }
     public string? FldLoginNaam { get; set; }
 }
 
+/// <summary>
+/// Middleware voor het afhandelen van onverwerkte uitzonderingen in de API.
+/// </summary>
 public class ExceptionMiddleware
 {
     private readonly RequestDelegate _next;
@@ -512,6 +633,9 @@ public class ExceptionMiddleware
     }
 }
 
+/// <summary>
+/// Extensiemethode om de ExceptionMiddleware toe te voegen aan de ASP.NET Core-pijplijn.
+/// </summary>
 public static class ExceptionMiddlewareExtensions
 {
     public static IApplicationBuilder UseExceptionMiddleware(this IApplicationBuilder builder)
