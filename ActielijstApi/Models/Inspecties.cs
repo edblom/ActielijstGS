@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ActielijstApi.Data
+namespace ActielijstApi.Models
 {
     public class Inspectie
     {
@@ -8,14 +8,14 @@ namespace ActielijstApi.Data
         public string? Categorie { get; set; }
         public int? fldProjectId { get; set; }
         public string? fldProjectNaam { get; set; }
-        public Boolean fldCertKeuring { get; set; }
+        public bool fldCertKeuring { get; set; }
         public decimal? fldMaandBedrag { get; set; }
         public int? fldSoort { get; set; }
         public DateTime? fldPlanDatum { get; set; }
         public int? PlanJaar { get; set; }
         public string? Omschrijving { get; set; }
         public int? fldProjectNummer { get; set; }
-        public Boolean fldKiwaCert { get; set; }
+        public bool fldKiwaCert { get; set; }
         public int? fldVerwerkendBedrijf { get; set; }
         public string? fldExternNummer { get; set; }
         public string? fldPlaats { get; set; }

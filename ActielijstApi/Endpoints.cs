@@ -1,5 +1,4 @@
-﻿// Endpoints.cs
-using ActielijstApi.Data;
+﻿using ActielijstApi.Data;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -15,6 +14,8 @@ using System.IO;
 using ActielijstApi.Models;
 using Microsoft.AspNetCore.Http;
 using ActielijstApi.Helpers;
+using ActielijstApi.Dtos; // Toevoegen
+using ActielijstApi.Services; // Toevoegen
 
 namespace ActielijstApi
 {
@@ -361,6 +362,22 @@ namespace ActielijstApi
                 }
             })
             .WithName("GenerateDocument")
+            .WithOpenApi();
+
+            // Nieuw endpoint: /api/correspondence/generate
+            app.MapPost("/api/correspondence/generate", async (GenerateCorrespondenceRequest request, CorrespondenceService service) =>
+            {
+                try
+                {
+                    var response = await service.GenerateCorrespondenceAsync(request);
+                    return Results.Ok(response);
+                }
+                catch (Exception ex)
+                {
+                    return Results.Problem($"Fout bij genereren van correspondentie: {ex.Message}");
+                }
+            })
+            .WithName("GenerateCorrespondence")
             .WithOpenApi();
         }
     }

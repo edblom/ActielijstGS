@@ -1,4 +1,4 @@
-﻿namespace ActielijstApi.Data
+﻿namespace ActielijstApi.Models
 {
     public class StblCorrespondentieField
     {

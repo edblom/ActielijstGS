@@ -1,7 +1,7 @@
 ﻿// ActielijstApi/Models/AankomendeInspectie.cs
 using System;
 
-namespace ActielijstApi.Data
+namespace ActielijstApi.Models
 {
     public class AankomendeInspectie
     {

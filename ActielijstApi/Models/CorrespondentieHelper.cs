@@ -4,8 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using ActielijstApi.Data;
 
-namespace ActielijstApi.Data
+namespace ActielijstApi.Models
 {
     public static class CorrespondentieHelper
     {

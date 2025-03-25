@@ -1,7 +1,7 @@
 ﻿// Data/CorrespondentieFields.cs
 using System;
 
-namespace ActielijstApi.Data
+namespace ActielijstApi.Models
 {
     public class CorrespondentieFields
     {

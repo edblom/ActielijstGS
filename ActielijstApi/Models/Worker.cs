@@ -1,5 +1,5 @@
 ﻿// ActielijstGS/Data/Worker.cs
-namespace ActielijstGS.Data
+namespace ActielijstApi.Models
 {
     public class Worker
     {

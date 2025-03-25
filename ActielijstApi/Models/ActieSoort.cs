@@ -1,5 +1,5 @@
 ﻿// ActielijstApi/Models/ActieSoort.cs
-namespace ActielijstApi.Data
+namespace ActielijstApi.Models
 {
     public class ActieSoort
     {

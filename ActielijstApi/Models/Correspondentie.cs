@@ -3,7 +3,7 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace ActielijstApi.Data
+namespace ActielijstApi.Models
 {
     public class Correspondentie
     {

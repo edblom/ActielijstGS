@@ -1,6 +1,7 @@
 // Program.cs
 using ActielijstApi;
 using ActielijstApi.Data;
+using ActielijstApi.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -14,11 +15,17 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Memo API", Version = "v1" });
 });
+
+builder.Services.AddScoped<CorrespondenceService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<GlobalsService>();
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", builder =>
