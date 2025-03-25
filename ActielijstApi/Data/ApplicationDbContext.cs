@@ -16,6 +16,7 @@ namespace ActielijstApi.Data
         public DbSet<StblCorrespondentieField> StblCorrespondentieFields { get; set; }
         public DbSet<ProjectOnderdeel> ProjectOnderdelen { get; set; }
         public DbSet<Adres> Adresses { get; set; }
+        public DbSet<CorrespondentieFields> CorrespondentieFields { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -37,6 +38,9 @@ namespace ActielijstApi.Data
                 .Property(a => a.Bedrijf).HasColumnName("BEDRIJF");
             modelBuilder.Entity<Adres>()
                 .Property(a => a.EmailAdr).HasColumnName("E-MAIL_ADR");
+            modelBuilder.Entity<CorrespondentieFields>()
+                .ToView("vw_CorrespondentieFields")
+                .HasNoKey();
         }
     }
 }
