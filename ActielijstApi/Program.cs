@@ -1,4 +1,3 @@
-// Program.cs
 using ActielijstApi;
 using ActielijstApi.Data;
 using ActielijstApi.Models;
@@ -11,26 +10,45 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using System;
+using System.IO;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Voeg DbContext toe
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Add SmtpSettings
+// Voeg SmtpSettings toe
 builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("SmtpSettings"));
 
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+// Voeg controllers toe
+builder.Services.AddControllers();
+
+// Voeg Swagger toe
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Memo API", Version = "v1" });
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "KlantBase API", Version = "v1" });
+
+    // Voeg XML-documentatie toe
+    var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    if (File.Exists(xmlPath))
+    {
+        c.IncludeXmlComments(xmlPath);
+    }
+    else
+    {
+        Console.WriteLine($"Waarschuwing: XML-documentatiebestand niet gevonden op {xmlPath}");
+    }
 });
 
+// Voeg services toe
 builder.Services.AddScoped<CorrespondenceService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<GlobalsService>();
 
+// Voeg CORS toe
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", builder =>
@@ -38,6 +56,8 @@ builder.Services.AddCors(options =>
                .AllowAnyMethod()
                .AllowAnyHeader());
 });
+
+// Voeg logging toe
 builder.Services.AddLogging(logging =>
 {
     logging.ClearProviders();
@@ -50,21 +70,18 @@ var logger = app.Services.GetRequiredService<ILogger<Program>>();
 logger.LogDebug("Applicatie gestart in Debug-modus op {Time}", DateTime.Now);
 logger.LogInformation("Dit is een informatiebericht bij het starten.");
 
+// Configureer de HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
     app.UseSwagger();
-    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Memo API v1"));
-}
-else
-{
-    app.UseExceptionMiddleware();
-}
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "KlantBase API V1");
+        c.RoutePrefix = string.Empty;
+    });
 
-app.UseCors("AllowAll");
-
-if (app.Environment.IsDevelopment())
-{
+    // Redirect root naar Swagger UI
     app.Use(async (context, next) =>
     {
         if (context.Request.Path == "/")
@@ -75,9 +92,17 @@ if (app.Environment.IsDevelopment())
         await next();
     });
 }
+else
+{
+    app.UseExceptionMiddleware();
+}
 
+app.UseCors("AllowAll");
+
+// Registreer minimal API-endpoints uit Endpoints.cs
 app.RegisterEndpoints();
 
-app.UseExceptionMiddleware();
+// Registreer controller-endpoints
+app.MapControllers();
 
 app.Run();

@@ -1,5 +1,6 @@
 ﻿using ActielijstApi.Dtos;
 using ActielijstApi.Services;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
@@ -25,7 +26,16 @@ namespace ActielijstApi.Controllers
             _logger = logger;
         }
 
+        /// <summary>
+        /// Genereert een correspondentiedocument op basis van het verzoek.
+        /// </summary>
+        /// <param name="request">Het verzoek met details voor de correspondentie.</param>
+        /// <returns>Een GenerateCorrespondenceResponse met de details van het gegenereerde document.</returns>
+        /// <response code="200">Document succesvol gegenereerd.</response>
+        /// <response code="500">Fout bij het genereren van het document.</response>
         [HttpPost("generate")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GenerateCorrespondenceResponse))]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(object))]
         public async Task<ActionResult<GenerateCorrespondenceResponse>> Generate([FromBody] GenerateCorrespondenceRequest request)
         {
             try
@@ -40,7 +50,16 @@ namespace ActielijstApi.Controllers
             }
         }
 
+        /// <summary>
+        /// Verstuurt een e-mail voor een specifieke correspondentie.
+        /// </summary>
+        /// <param name="request">Het verzoek met de CorrespondentieId.</param>
+        /// <returns>Een SendEmailResponse met de status van de verzending.</returns>
+        /// <response code="200">E-mail succesvol verzonden.</response>
+        /// <response code="500">Fout bij het verzenden van de e-mail.</response>
         [HttpPost("send-email")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(SendEmailResponse))]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(object))]
         public async Task<ActionResult<SendEmailResponse>> SendEmail([FromBody] SendEmailRequest request)
         {
             try

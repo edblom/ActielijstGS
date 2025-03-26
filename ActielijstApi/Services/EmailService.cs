@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using System.IO;
 using System;
+using Microsoft.Extensions.Configuration; // Toevoegen voor IConfiguration
 
 namespace ActielijstApi.Services
 {
@@ -18,17 +19,20 @@ namespace ActielijstApi.Services
         private readonly GlobalsService _globalsService;
         private readonly ILogger<EmailService> _logger;
         private readonly SmtpSettings _smtpSettings;
+        private readonly IConfiguration _configuration; // Toevoegen voor toegang tot configuratie
 
         public EmailService(
             ApplicationDbContext context,
             GlobalsService globalsService,
             ILogger<EmailService> logger,
-            IOptions<SmtpSettings> smtpSettings)
+            IOptions<SmtpSettings> smtpSettings,
+            IConfiguration configuration) // Injecteer IConfiguration
         {
             _context = context;
             _globalsService = globalsService;
             _logger = logger;
             _smtpSettings = smtpSettings.Value;
+            _configuration = configuration;
         }
 
         public async Task SendEmailAsync(EmailRequest request)
@@ -44,6 +48,14 @@ namespace ActielijstApi.Services
             // Haal de instellingen uit tblGlobals
             string fromEmail = _globalsService.GetFactuurAccount() ?? _smtpSettings.FromEmail;
             bool displayMailBeforeSending = _globalsService.GetDisplayMailVoorVerzenden();
+
+            // Haal het wachtwoord uit de configuratie (user-secrets of omgevingsvariabelen)
+            string password = _configuration["EmailSettings:Password"];
+            if (string.IsNullOrEmpty(password))
+            {
+                _logger.LogError("E-mailwachtwoord is niet ingesteld in de configuratie.");
+                throw new Exception("E-mailwachtwoord is niet ingesteld. Configureer 'EmailSettings:Password' in user-secrets of omgevingsvariabelen.");
+            }
 
             // Maak de e-mail
             using var mailMessage = new MailMessage
@@ -67,7 +79,7 @@ namespace ActielijstApi.Services
             using var smtpClient = new SmtpClient(_smtpSettings.Host, _smtpSettings.Port)
             {
                 EnableSsl = _smtpSettings.EnableSsl,
-                Credentials = new NetworkCredential(_smtpSettings.Username, _smtpSettings.Password)
+                Credentials = new NetworkCredential(_smtpSettings.Username, password) // Gebruik het dynamisch opgehaalde wachtwoord
             };
 
             try
