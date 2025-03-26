@@ -6,6 +6,7 @@ namespace ActielijstApi.Services
     public interface IEmailService
     {
         Task SendEmailAsync(EmailRequest request);
+        Task SendEmailForCorrespondenceAsync(int correspondentieId);
     }
 
     public class EmailRequest

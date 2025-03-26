@@ -146,6 +146,13 @@ namespace ActielijstApi.Services
                 _logger.LogWarning($"Geen sjabloonpad opgegeven in StandaardDoc.PathDoc, gebruik standaardpad: {templatePath}");
             }
 
+            // Controleer of het sjabloon een .dotx-bestand is
+            if (Path.GetExtension(templatePath).Equals(".dotx", StringComparison.OrdinalIgnoreCase))
+            {
+                _logger.LogError($"Sjabloon {templatePath} is een .dotx-bestand. Alleen .docx-bestanden zijn toegestaan als sjabloon.");
+                throw new Exception("Alleen .docx-bestanden zijn toegestaan als sjabloon. Gebruik geen .dotx-sjablonen.");
+            }
+
             // Bepaal het opslagpad
             string savePath;
             if (standaardDoc.ProjectMap == true) // Nu een bool, direct controleren
