@@ -64,7 +64,7 @@ namespace ActielijstApi.Controllers
         {
             try
             {
-                await _emailService.SendEmailForCorrespondenceAsync(request.CorrespondentieId);
+                await _emailService.SendEmailForCorrespondenceAsync(request.CorrespondentieId, request.EmailAan);
                 return Ok(new SendEmailResponse
                 {
                     CorrespondentieId = request.CorrespondentieId,

@@ -9,7 +9,8 @@ using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using System.IO;
 using System;
-using Microsoft.Extensions.Configuration; // Toevoegen voor IConfiguration
+using Microsoft.Extensions.Configuration;
+using Azure.Core;
 
 namespace ActielijstApi.Services
 {
@@ -19,14 +20,14 @@ namespace ActielijstApi.Services
         private readonly GlobalsService _globalsService;
         private readonly ILogger<EmailService> _logger;
         private readonly SmtpSettings _smtpSettings;
-        private readonly IConfiguration _configuration; // Toevoegen voor toegang tot configuratie
+        private readonly IConfiguration _configuration;
 
         public EmailService(
             ApplicationDbContext context,
             GlobalsService globalsService,
             ILogger<EmailService> logger,
             IOptions<SmtpSettings> smtpSettings,
-            IConfiguration configuration) // Injecteer IConfiguration
+            IConfiguration configuration)
         {
             _context = context;
             _globalsService = globalsService;
@@ -68,18 +69,21 @@ namespace ActielijstApi.Services
             mailMessage.To.Add(request.To);
 
             // Voeg bijlagen toe
-            foreach (var attachmentPath in request.Attachments)
+            if (request.Attachments != null)
             {
-                if (!File.Exists(attachmentPath))
-                    throw new FileNotFoundException($"Bijlage niet gevonden: {attachmentPath}");
-                mailMessage.Attachments.Add(new Attachment(attachmentPath));
+                foreach (var attachmentPath in request.Attachments)
+                {
+                    if (!File.Exists(attachmentPath))
+                        throw new FileNotFoundException($"Bijlage niet gevonden: {attachmentPath}");
+                    mailMessage.Attachments.Add(new Attachment(attachmentPath));
+                }
             }
-
             // Configureer de SMTP-client
             using var smtpClient = new SmtpClient(_smtpSettings.Host, _smtpSettings.Port)
             {
+                Port = _smtpSettings.Port,
                 EnableSsl = _smtpSettings.EnableSsl,
-                Credentials = new NetworkCredential(_smtpSettings.Username, password) // Gebruik het dynamisch opgehaalde wachtwoord
+                Credentials = new NetworkCredential(_smtpSettings.Username, password)
             };
 
             try
@@ -87,7 +91,14 @@ namespace ActielijstApi.Services
                 // Als DisplayMailVoorVerzenden true is, loggen we de e-maildetails
                 if (displayMailBeforeSending)
                 {
-                    _logger.LogInformation($"E-mail preview: Van: {fromEmail}, Naar: {request.To}, Onderwerp: {request.Subject}, Body: {request.Body}, Bijlagen: {string.Join(", ", request.Attachments)}");
+                    if (request.Attachments != null)
+                    {
+                        _logger.LogInformation($"E-mail preview: Van: {fromEmail}, Naar: {request.To}, Onderwerp: {request.Subject}, Body: {request.Body}, Bijlagen: {string.Join(", ", request.Attachments)}");
+                    }
+                    else
+                    {
+                        _logger.LogInformation($"E-mail preview: Van: {fromEmail}, Naar: {request.To}, Onderwerp: {request.Subject}, Body: {request.Body}");
+                    }
                     // In een API-context kunnen we geen preview tonen, maar dit kan worden uitgebreid met een preview-endpoint
                 }
 
@@ -102,8 +113,12 @@ namespace ActielijstApi.Services
             }
         }
 
-        public async Task SendEmailForCorrespondenceAsync(int correspondentieId)
+        public async Task SendEmailForCorrespondenceAsync(int correspondentieId, string emailAan)
         {
+            // Valideer de EmailAan-parameter
+            if (string.IsNullOrWhiteSpace(emailAan))
+                throw new ArgumentException("Geen e-mailadres opgegeven voor ontvanger (EmailAan).");
+
             // Haal de Correspondentie-record op
             var correspondentie = await _context.Correspondentie
                 .FirstOrDefaultAsync(c => c.Id == correspondentieId)
@@ -114,8 +129,7 @@ namespace ActielijstApi.Services
                 .FirstOrDefaultAsync(sd => sd.Soort == correspondentie.fldCorSoort)
                 ?? throw new Exception($"Geen sjabloon gevonden voor soort {correspondentie.fldCorSoort}.");
 
-            // Haal e-maildetails uit StandaardDoc
-            string toEmail = standaardDoc.EmailAan ?? throw new Exception("Geen e-mailadres opgegeven in StandaardDoc (EmailAan).");
+            // Haal e-maildetails uit StandaardDoc (behalve EmailAan, dat nu uit de parameter komt)
             string subject = standaardDoc.EmailSubject ?? "Geen onderwerp opgegeven";
             string body = standaardDoc.EmailSjabloon ?? "Geen e-mailbody opgegeven";
 
@@ -125,17 +139,30 @@ namespace ActielijstApi.Services
             // Maak een EmailRequest
             var emailRequest = new EmailRequest
             {
-                To = toEmail,
+                To = emailAan, // Gebruik de meegegeven EmailAan-parameter
                 Subject = subject,
                 Body = body,
                 Attachments = new List<string> { documentPath }
             };
+            var testRequest = new EmailRequest
+            {
+                To = "ed@klantbase.nl",
+                Subject = "Test",
+                Body = "Hallo",
+                Attachments = null
+            };
+            await SendEmailAsync(testRequest);
+
+            // Log voor debuggen
+            Console.WriteLine($"Versturen naar: {emailRequest.To}, Onderwerp: {emailRequest.Subject}");
+            Console.WriteLine($"SMTP: Host={_smtpSettings.Host}, Port={_smtpSettings.Port}, SSL={_smtpSettings.EnableSsl}");
+            Console.WriteLine($"Gebruikersnaam: {_smtpSettings.Username}");
 
             // Verstuur de e-mail
             await SendEmailAsync(emailRequest);
 
             // Update de Correspondentie-record met de verzenddatum
-            correspondentie.fldCorDatum2 = DateTime.Now; // Stel de huidige datum/tijd in
+            correspondentie.fldCorDatum2 = DateTime.Now;
             await _context.SaveChangesAsync();
         }
     }
