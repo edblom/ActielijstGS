@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { List, ListItem, ListItemText, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, Select, MenuItem, FormControl, span } from '@mui/material';
+import { List, ListItem, ListItemText, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, Select, MenuItem, FormControl } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CancelIcon from '@mui/icons-material/Cancel';
@@ -9,13 +9,13 @@ import ActieDetail from './ActieDetail';
 function ActieLijst({ userId, refreshTrigger, onEditAction, filterType, searchTerm }) {
     const [actions, setActions] = useState([]);
     const [prioriteiten, setPrioriteiten] = useState([]);
-    const [workers, setWorkers] = useState([]); // Lijst met werknemers
+    const [workers, setWorkers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedAction, setSelectedAction] = useState(null);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [actionToDelete, setActionToDelete] = useState(null);
-    const [statusFilter, setStatusFilter] = useState('open'); // Standaardwaarde "open"
-    const [priorityFilter, setPriorityFilter] = useState('all'); // Filter op prioriteit
+    const [statusFilter, setStatusFilter] = useState('open');
+    const [priorityFilter, setPriorityFilter] = useState('all');
 
     const lightenColor = (hex, percent) => {
         let r = parseInt(hex.slice(1, 3), 16);
@@ -30,8 +30,7 @@ function ActieLijst({ userId, refreshTrigger, onEditAction, filterType, searchTe
     };
 
     const getLighterGray = (percent) => {
-        // Specifieke verlichting voor grijze achtergrond (#D3D3D3)
-        const baseGray = parseInt('D3', 16); // Decimale waarde van D3
+        const baseGray = parseInt('D3', 16);
         const lighterGray = Math.min(255, Math.round(baseGray + (255 - baseGray) * percent));
         return `#${lighterGray.toString(16).padStart(2, '0')}${lighterGray.toString(16).padStart(2, '0')}${lighterGray.toString(16).padStart(2, '0')}`;
     };
@@ -42,7 +41,7 @@ function ActieLijst({ userId, refreshTrigger, onEditAction, filterType, searchTe
                 const [actionsResponse, prioriteitenResponse, workersResponse] = await Promise.all([
                     axios.get(`https://localhost:44361/api/acties/user/${userId}/${filterType}`),
                     axios.get('https://localhost:44361/api/priorities'),
-                    axios.get('https://localhost:44361/api/werknemers'), // Haal workers op
+                    axios.get('https://localhost:44361/api/werknemers'),
                 ]);
                 console.log('Prioriteiten response in ActieLijst:', prioriteitenResponse.data);
                 console.log('Workers response in ActieLijst:', workersResponse.data);
@@ -101,13 +100,11 @@ function ActieLijst({ userId, refreshTrigger, onEditAction, filterType, searchTe
         setSelectedAction(null);
     };
 
-    // Haal de voornaam op basis van werknemer-ID
     const getVoornaam = (werknId) => {
         const worker = workers.find(w => w.werknId === parseInt(werknId));
         return worker ? worker.voornaam : 'Onbekend';
     };
 
-    // Gefilterde acties
     const filteredActions = actions.filter(action => {
         const matchesSearch = (action.fldOmschrijving || '').toLowerCase().includes(searchTerm.toLowerCase());
         const matchesStatus = statusFilter === 'all' ||
@@ -124,7 +121,6 @@ function ActieLijst({ userId, refreshTrigger, onEditAction, filterType, searchTe
 
     return (
         <>
-            {/* Filterinterface op één regel met labels ervoor */}
             <div style={{ display: 'flex', gap: '16px', marginBottom: '16px', alignItems: 'center' }}>
                 <span>Status:</span>
                 <FormControl style={{ minWidth: '120px' }}>
@@ -147,7 +143,14 @@ function ActieLijst({ userId, refreshTrigger, onEditAction, filterType, searchTe
                 </FormControl>
             </div>
 
-            <List>
+            <List
+                style={{
+                    maxHeight: '70vh', // Maximale hoogte gebaseerd op 70% van de viewport-hoogte
+                    overflowY: 'auto', // Voeg verticale scrollbar toe
+                    padding: '10px',
+                    backgroundColor: '#f5f5f5', // Optioneel: achtergrondkleur voor duidelijkheid
+                }}
+            >
                 {filteredActions.length === 0 ? (
                     <ListItem>
                         <ListItemText primary="Geen acties gevonden" />
@@ -157,9 +160,8 @@ function ActieLijst({ userId, refreshTrigger, onEditAction, filterType, searchTe
                         const prioriteit = prioriteiten.find(p => p.prioriteit === action.fldMPrioriteit);
                         const backgroundColor = prioriteit && prioriteit.kleur
                             ? lightenColor(prioriteit.kleur, 0.2)
-                            : '#F0F0F0'; // Grijze achtergrond voor acties zonder prioriteit
+                            : '#F0F0F0';
                         const isCompleted = !!action.fldMActieGereed;
-                        // Haal voornamen op
                         const voornaam1 = getVoornaam(action.fldMActieVoor);
                         const voornaam2 = action.fldMActieVoor2 ? getVoornaam(action.fldMActieVoor2) : null;
                         const assignedToText = voornaam2 ? `Voor ${voornaam1} / ${voornaam2}` : `Voor ${voornaam1}`;
@@ -170,10 +172,12 @@ function ActieLijst({ userId, refreshTrigger, onEditAction, filterType, searchTe
                                     backgroundColor: isCompleted ? '#D3D3D3' : backgroundColor,
                                     cursor: 'pointer',
                                     transition: 'background-color 0.2s',
+                                    marginBottom: '8px',
+                                    borderRadius: '5px',
                                 }}
                                 onMouseEnter={(e) => {
                                     if (isCompleted) {
-                                        e.currentTarget.style.backgroundColor = getLighterGray(0.3); // Subtiele verlichting voor gereedde acties
+                                        e.currentTarget.style.backgroundColor = getLighterGray(0.3);
                                     } else {
                                         e.currentTarget.style.backgroundColor = lightenColor(backgroundColor.replace('#', ''), 0.3);
                                     }

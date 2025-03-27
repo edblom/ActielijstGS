@@ -20,6 +20,6 @@ namespace ActielijstApi.Models
         public DateTime? FldMActieGereed { get; set; } // NULL toegestaan
         public string? FldMActieSoort { get; set; } // NULL toegestaan
         public int? FldMPrioriteit { get; set; } // NULL toegestaan
-        public required byte[] SSMA_TimeStamp { get; set; } // NOT NULL, timestamp
+        public byte[]? SSMA_TimeStamp { get; set; } // NOT NULL, timestamp
     }
 }

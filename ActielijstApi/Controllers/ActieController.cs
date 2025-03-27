@@ -1,4 +1,5 @@
-﻿using ActielijstApi.Models;
+﻿using ActielijstApi.Dtos;
+using ActielijstApi.Models;
 using ActielijstApi.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
@@ -56,7 +57,7 @@ namespace ActielijstApi.Controllers
         }
 
         [HttpPatch("{id}")]
-        public async Task<IActionResult> PatchActie(int id, [FromBody] Dictionary<string, object> updates)
+        public async Task<IActionResult> PatchActie(int id, [FromBody] PatchActieDto updates)
         {
             var success = await _actieService.PatchActieAsync(id, updates);
             if (!success) return NotFound();

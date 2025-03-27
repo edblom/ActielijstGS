@@ -1,10 +1,11 @@
 ﻿using ActielijstApi.Data;
+using ActielijstApi.Dtos;
 using ActielijstApi.Models;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.Linq;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace ActielijstApi.Services
 {
@@ -50,43 +51,49 @@ namespace ActielijstApi.Services
             var existingActie = await _context.Acties.FirstOrDefaultAsync(a => a.FldMid == id);
             if (existingActie == null) return false;
 
+            // Update alle velden behalve SSMA_TimeStamp
+            existingActie.FldMDatum = actie.FldMDatum;
+            existingActie.WerknId = actie.WerknId;
+            existingActie.FldMKlantId = actie.FldMKlantId;
+            existingActie.FldMContactPers = actie.FldMContactPers;
+            existingActie.FldMOfferteId = actie.FldMOfferteId;
+            existingActie.FldMProjectId = actie.FldMProjectId;
+            existingActie.FldOpdrachtId = actie.FldOpdrachtId;
             existingActie.FldOmschrijving = actie.FldOmschrijving;
+            existingActie.FldMAfspraak = actie.FldMAfspraak;
+            existingActie.FldMActieDatum = actie.FldMActieDatum;
             existingActie.FldMActieVoor = actie.FldMActieVoor;
             existingActie.FldMActieVoor2 = actie.FldMActieVoor2;
-            existingActie.FldMActieDatum = actie.FldMActieDatum;
+            existingActie.FldMActieGereed = actie.FldMActieGereed;
             existingActie.FldMActieSoort = actie.FldMActieSoort;
-            existingActie.WerknId = actie.WerknId;
             existingActie.FldMPrioriteit = actie.FldMPrioriteit;
+            // SSMA_TimeStamp wordt automatisch bijgewerkt door de database
 
-            await _context.SaveChangesAsync();
-            return true;
+            try
+            {
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                Console.WriteLine($"Concurrency conflict: {ex.Message}");
+                return false;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating action: {ex.Message}");
+                return false;
+            }
         }
 
-        public async Task<bool> PatchActieAsync(int id, Dictionary<string, object> updates)
+        public async Task<bool> PatchActieAsync(int id, PatchActieDto updates)
         {
             var actie = await _context.Acties.FirstOrDefaultAsync(a => a.FldMid == id);
             if (actie == null) return false;
 
-            foreach (var update in updates)
+            if (updates.fldMActieGereed.HasValue)
             {
-                switch (update.Key.ToLower())
-                {
-                    case "fldmdatum": actie.FldMDatum = update.Value != null ? Convert.ToDateTime(update.Value) : null; break;
-                    case "werknid": actie.WerknId = update.Value != null ? Convert.ToInt32(update.Value) : null; break;
-                    case "fldmklantid": actie.FldMKlantId = update.Value != null ? Convert.ToInt32(update.Value) : null; break;
-                    case "fldmcontactpers": actie.FldMContactPers = update.Value?.ToString(); break;
-                    case "fldmofferteid": actie.FldMOfferteId = update.Value != null ? Convert.ToInt32(update.Value) : null; break;
-                    case "fldmprojectid": actie.FldMProjectId = update.Value != null ? Convert.ToInt32(update.Value) : null; break;
-                    case "fldopdrachtid": actie.FldOpdrachtId = update.Value != null ? Convert.ToInt32(update.Value) : null; break;
-                    case "fldomschrijving": actie.FldOmschrijving = update.Value?.ToString(); break;
-                    case "fldmafspraak": actie.FldMAfspraak = update.Value?.ToString(); break;
-                    case "fldmactiedatum": actie.FldMActieDatum = update.Value != null ? Convert.ToDateTime(update.Value) : null; break;
-                    case "fldmactievoor": actie.FldMActieVoor = update.Value != null ? Convert.ToInt32(update.Value) : null; break;
-                    case "fldmactievoor2": actie.FldMActieVoor2 = update.Value != null ? Convert.ToInt32(update.Value) : null; break;
-                    case "fldmactiegereed": actie.FldMActieGereed = update.Value != null ? Convert.ToDateTime(update.Value) : null; break;
-                    case "fldmactiesoort": actie.FldMActieSoort = update.Value?.ToString(); break;
-                    case "fldmprioriteit": actie.FldMPrioriteit = update.Value != null ? Convert.ToInt32(update.Value) : null; break;
-                }
+                actie.FldMActieGereed = updates.fldMActieGereed.Value; // Kleine 'f' gebruikt
             }
 
             await _context.SaveChangesAsync();

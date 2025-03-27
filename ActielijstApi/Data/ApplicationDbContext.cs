@@ -60,8 +60,10 @@ namespace ActielijstApi.Data
                 .ToTable("correspondentie")
                 .HasKey(c => c.Id); // Alleen de sleutel hier
 
-            modelBuilder.Entity<Correspondentie>()
-                .Property(e => e.SSMA_TimeStamp).IsRowVersion(); // Apart geconfigureerd
+            modelBuilder.Entity<Actie>()
+                .Property(a => a.SSMA_TimeStamp)
+                .IsRowVersion() // Markeer als rowversion
+                .IsConcurrencyToken(); // Gebruik voor concurrency-controle
 
             // StblCorrespondentieField
             modelBuilder.Entity<StblCorrespondentieField>()
