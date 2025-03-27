@@ -40,7 +40,7 @@ function ActieLijst({ userId, refreshTrigger, onEditAction, filterType, searchTe
         const fetchData = async () => {
             try {
                 const [actionsResponse, prioriteitenResponse, workersResponse] = await Promise.all([
-                    axios.get(`https://localhost:44361/api/memos/user/${userId}/${filterType}`),
+                    axios.get(`https://localhost:44361/api/acties/user/${userId}/${filterType}`),
                     axios.get('https://localhost:44361/api/priorities'),
                     axios.get('https://localhost:44361/api/werknemers'), // Haal workers op
                 ]);
@@ -73,9 +73,9 @@ function ActieLijst({ userId, refreshTrigger, onEditAction, filterType, searchTe
     const handleDeleteConfirm = async () => {
         if (actionToDelete) {
             try {
-                await axios.delete(`https://localhost:44361/api/memos/${actionToDelete.fldMid}`);
+                await axios.delete(`https://localhost:44361/api/acties/${actionToDelete.fldMid}`);
                 console.log('Actie verwijderd:', actionToDelete.fldMid);
-                const response = await axios.get(`https://localhost:44361/api/memos/user/${userId}/${filterType}`);
+                const response = await axios.get(`https://localhost:44361/api/acties/user/${userId}/${filterType}`);
                 setActions(response.data);
             } catch (error) {
                 console.error('Fout bij verwijderen actie:', error);

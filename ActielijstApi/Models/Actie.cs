@@ -2,7 +2,7 @@
 
 namespace ActielijstApi.Models
 {
-    public class Memo
+    public class Actie
     {
         public int FldMid { get; set; } // IDENTITY, altijd gevuld
         public DateTime? FldMDatum { get; set; } // NULL toegestaan
@@ -17,7 +17,7 @@ namespace ActielijstApi.Models
         public DateTime? FldMActieDatum { get; set; } // NULL toegestaan
         public int? FldMActieVoor { get; set; } // NULL toegestaan
         public int? FldMActieVoor2 { get; set; } // NULL toegestaan
-        public DateTime? fldMActieGereed { get; set; } // NULL toegestaan
+        public DateTime? FldMActieGereed { get; set; } // NULL toegestaan
         public string? FldMActieSoort { get; set; } // NULL toegestaan
         public int? FldMPrioriteit { get; set; } // NULL toegestaan
         public required byte[] SSMA_TimeStamp { get; set; } // NOT NULL, timestamp

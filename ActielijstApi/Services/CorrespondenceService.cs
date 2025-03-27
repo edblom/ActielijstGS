@@ -98,7 +98,7 @@ namespace ActielijstApi.Services
 
         private async Task<string> GenerateDocumentAsync(StandaardDoc standaardDoc, Correspondentie correspondentie)
         {
-            var fields = await _context.CorrespondentieFields
+            var fields = await _context.CorrespondentieVelden
                 .FirstOrDefaultAsync(cf => cf.CorrespondentieNr == correspondentie.Id);
 
             // Haal paden op uit GlobalsService
@@ -155,7 +155,7 @@ namespace ActielijstApi.Services
 
             // Bepaal het opslagpad
             string savePath;
-            if (standaardDoc.ProjectMap == true) // Nu een bool, direct controleren
+            if (standaardDoc.ProjectMap) // Nu een bool, direct controleren
             {
                 // Gebruik de projectmap als ProjectMap is ingesteld op "true"
                 if (!correspondentie.fldCorProjNum.HasValue)

@@ -23,12 +23,11 @@ namespace ActielijstApi
         {
             try
             {
-                await _next(context);
+                await _next(context); // This is the only path when no exception occurs
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Een onverwerkte fout is opgetreden.");
-                context.Response.StatusCode = 500;
                 await HandleExceptionAsync(context, ex);
             }
         }
@@ -40,7 +39,7 @@ namespace ActielijstApi
             {
                 ArgumentException => (StatusCodes.Status400BadRequest, exception.Message),
                 KeyNotFoundException => (StatusCodes.Status404NotFound, "Resource niet gevonden"),
-                _ => (StatusCodes.Status500InternalServerError, "Interne serverfout")
+                _ => (StatusCodes.Status500InternalServerError, "Er is een interne serverfout opgetreden.")
             };
 
             context.Response.StatusCode = statusCode;
@@ -49,7 +48,6 @@ namespace ActielijstApi
         }
     }
 
-    // Extension method om middleware te registreren
     public static class ExceptionMiddlewareExtensions
     {
         public static IApplicationBuilder UseExceptionMiddleware(this IApplicationBuilder builder)

@@ -142,7 +142,7 @@ namespace ActielijstApi.Models
 
                 // Voer de query uit met de eigenschapnaam
                 Console.WriteLine($"Voer query uit: WHERE Id = {idValue}, SELECT {veldPropertyName}");
-                value = await context.Adresses
+                value = await context.Adressen
                     .Where(a => a.Id == idValue)
                     .Select(a => EF.Property<object>(a, veldPropertyName)) // Gebruik de eigenschapnaam
                     .FirstOrDefaultAsync();

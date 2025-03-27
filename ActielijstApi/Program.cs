@@ -47,6 +47,7 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddScoped<CorrespondenceService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<GlobalsService>();
+builder.Services.AddScoped<IActieService, ActieService>();
 
 // Voeg CORS toe
 builder.Services.AddCors(options =>

@@ -94,10 +94,10 @@ function ActieForm({ initialAction, onActionAdded, currentUser }) {
         console.log('Verzonden data:', actionData);
         try {
             if (actionData.fldMid) {
-                const response = await axios.put(`https://localhost:44361/api/memos/${actionData.fldMid}`, actionData);
+                const response = await axios.put(`https://localhost:44361/api/acties/${actionData.fldMid}`, actionData);
                 console.log('Actie bijgewerkt - Server response:', response.data);
             } else {
-                const response = await axios.post('https://localhost:44361/api/memos', actionData);
+                const response = await axios.post('https://localhost:44361/api/acties', actionData);
                 console.log('Actie toegevoegd - Server response:', response.data);
             }
             setFormData({
@@ -124,10 +124,10 @@ function ActieForm({ initialAction, onActionAdded, currentUser }) {
         }
         const newDate = formData.fldMActieGereed ? null : new Date().toISOString();
         const updatedData = { fldMActieGereed: newDate };
-        console.log('Sending PATCH data for completion to:', `https://localhost:44361/api/memos/${formData.fldMid}`, 'with data:', updatedData);
+        console.log('Sending PATCH data for completion to:', `https://localhost:44361/api/acties/${formData.fldMid}`, 'with data:', updatedData);
 
         try {
-            const response = await axios.patch(`https://localhost:44361/api/memos/${formData.fldMid}`, updatedData, {
+            const response = await axios.patch(`https://localhost:44361/api/acties/${formData.fldMid}`, updatedData, {
                 headers: { 'Content-Type': 'application/json', 'accept': 'application/json' },
             });
             console.log('PATCH response:', response.status, response.data);
