@@ -1,0 +1,69 @@
+@page "/tbl-memos"
+
+@attribute [Authorize]
+
+@inject Microsoft.Extensions.Localization.IStringLocalizer<TblMemos> L
+<PageTitle>TblMemos</PageTitle>
+<RadzenStack>
+    <RadzenRow AlignItems="AlignItems.Center">
+        <RadzenColumn Size="12" SizeMD="6">
+            <RadzenText Text="Acties" TextStyle="TextStyle.H3" TagName="TagName.H1" style="margin: 0" />
+        </RadzenColumn>
+        <RadzenColumn Size="12" SizeMD="6">
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.End" Gap="0.5rem">
+                <RadzenButton Icon="add_circle_outline" Text="Add" Click="@AddButtonClick" Variant="Variant.Flat" />
+            </RadzenStack>
+        </RadzenColumn>
+    </RadzenRow>
+    <RadzenRow>
+      <RadzenColumn SizeMD=12>
+        <RadzenDataGrid @ref="grid0" ColumnWidth="200px"   AllowFiltering="true" FilterMode="FilterMode.Advanced" AllowPaging="true" AllowSorting="true" ShowPagingSummary="true" PageSizeOptions=@(new int[]{5, 10, 20, 30})
+            Data="@(tblMemos)" TItem="KlantBaseWebDemo.Models.KlantBase.TblMemo" RowSelect="@EditRow">
+            <Columns>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblMemo" Property="FldMid" Title="Fld Mid">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblMemo" Property="FldMdatum" Title="Fld Mdatum">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblMemo" Property="WerknId" Title="Werkn Id">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblMemo" Property="FldMklantId" Title="Fld Mklant Id">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblMemo" Property="FldMcontactPers" Title="Fld Mcontact Pers">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblMemo" Property="FldMofferteId" Title="Fld Mofferte Id">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblMemo" Property="FldMprojectId" Title="Fld Mproject Id">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblMemo" Property="FldOpdrachtId" Title="Fld Opdracht Id">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblMemo" Property="FldOmschrijving" Title="Fld Omschrijving">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblMemo" Property="FldMafspraak" Title="Fld Mafspraak">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblMemo" Property="FldMactieDatum" Title="Fld Mactie Datum">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblMemo" Property="FldMactieVoor" Title="Fld Mactie Voor">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblMemo" Property="FldMactieVoor2" Title="Fld Mactie Voor2">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblMemo" Property="FldMactieGereed" Title="Fld Mactie Gereed">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblMemo" Property="FldMactieSoort" Title="Fld Mactie Soort">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblMemo" Property="FldMprioriteit" Title="Fld Mprioriteit">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblMemo" Filterable="false" Sortable="false" Width="70px" TextAlign="TextAlign.Center">
+                    <Template Context="tblMemo">
+
+                        <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Size="ButtonSize.Medium"
+                            Shade="Shade.Lighter" Variant="Variant.Flat"
+                            Click=@(args => GridDeleteButtonClick(args, tblMemo)) @onclick:stopPropagation="true" />
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+
+        </RadzenDataGrid>
+
+    </RadzenColumn>
+  </RadzenRow>
+</RadzenStack>

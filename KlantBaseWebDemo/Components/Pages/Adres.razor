@@ -1,0 +1,73 @@
+@page "/adres"
+@attribute [Authorize]
+@inject Microsoft.Extensions.Localization.IStringLocalizer<Adres> L
+
+<PageTitle>Adres</PageTitle>
+<RadzenStack>
+    <RadzenRow AlignItems="AlignItems.Center">
+        <RadzenColumn Size="12" SizeMD="6">
+            <RadzenText Text="Adres" TextStyle="TextStyle.H3" TagName="TagName.H1" style="margin: 0" />
+        </RadzenColumn>
+        <RadzenColumn Size="12" SizeMD="6">
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.End" Gap="0.5rem">
+                <RadzenButton Icon="add_circle_outline" Text="Add" Click="@AddButtonClick" Variant="Variant.Flat" />
+            </RadzenStack>
+        </RadzenColumn>
+    </RadzenRow>
+    <RadzenRow>
+        <RadzenColumn SizeMD="12">
+            <RadzenLabel Text="Zoek een adres" />
+            <RadzenTextBox @bind-Value="searchText"
+                           Input="@((ChangeEventArgs args) => OnTextInput(args))"
+                           Placeholder="Typ om te zoeken (min. 2 tekens)..."
+                           style="width: 100%; margin-bottom: 20px;" />
+        </RadzenColumn>
+    </RadzenRow>
+    <RadzenRow>
+        <RadzenColumn SizeMD="12">
+            <RadzenDataGrid @ref="grid0" 
+                            ColumnWidth="200px" 
+                            AllowFiltering="true" 
+                            FilterMode="FilterMode.Advanced" 
+                            AllowPaging="true" 
+                            AllowSorting="true" 
+                            ShowPagingSummary="true" 
+                            PageSizeOptions="@(new int[]{5, 10, 20, 30})"
+                            Data="@adres" 
+                            TItem="KlantBaseWebDemo.Models.KlantBase.Adre" 
+                            RowSelect="@EditRow">
+                <Columns>
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Adre" Property="Zoekcode" Title="Zoekcode" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Adre" Property="Bedrijf" Title="Bedrijf" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Adre" Property="Tav" Title="Tav" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Adre" Property="Geachte" Title="Geachte" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Adre" Property="VestigAdr" Title="Vestig Adr" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Adre" Property="VestigPc" Title="Vestig Pc" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Adre" Property="VestigPlaats" Title="Vestig Plaats" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Adre" Property="Postadres" Title="Postadres" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Adre" Property="Pc" Title="Pc" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Adre" Property="Wpl" Title="Wpl" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Adre" Property="Land" Title="Land" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Adre" Property="Tel" Title="Tel" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Adre" Property="TelPrive" Title="Tel Prive" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Adre" Property="Fax" Title="Fax" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Adre" Property="MobelTel" Title="Mobiel Tel" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Adre" Property="Debiteurnummer" Title="Debiteurnummer" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Adre" Property="FldWebSite" Title="Website" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Adre" Property="FirstContactId" Title="First Contact Id" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Adre" Property="EmailFactuur" Title="Email Factuur" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Adre" Property="EmailAanmaning" Title="Email Aanmaning" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Adre" Property="KiwaContactId" Title="Kiwa Contact Id" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Adre" Property="MeldSoort" Title="Meld Soort" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Adre" Filterable="false" Sortable="false" Width="70px" TextAlign="TextAlign.Center">
+                        <Template Context="adre">
+                            <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Size="ButtonSize.Medium"
+                                          Shade="Shade.Lighter" Variant="Variant.Flat"
+                                          Click="@(args => GridDeleteButtonClick(args, adre))" @onclick:stopPropagation="true" />
+                        </Template>
+                    </RadzenDataGridColumn>
+                </Columns>
+            </RadzenDataGrid>
+        </RadzenColumn>
+    </RadzenRow>
+</RadzenStack>

@@ -1,0 +1,105 @@
+@page "/tbl-faktuurs"
+
+@attribute [Authorize]
+
+@inject Microsoft.Extensions.Localization.IStringLocalizer<TblFaktuurs> L
+<PageTitle>TblFaktuurs</PageTitle>
+<RadzenStack>
+    <RadzenRow AlignItems="AlignItems.Center">
+        <RadzenColumn Size="12" SizeMD="6">
+            <RadzenText Text="Fakturen" TextStyle="TextStyle.H3" TagName="TagName.H1" style="margin: 0" />
+        </RadzenColumn>
+        <RadzenColumn Size="12" SizeMD="6">
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.End" Gap="0.5rem">
+                <RadzenButton Icon="add_circle_outline" Text="Add" Click="@AddButtonClick" Variant="Variant.Flat" />
+            </RadzenStack>
+        </RadzenColumn>
+    </RadzenRow>
+    <RadzenRow>
+      <RadzenColumn SizeMD=12>
+        <RadzenDataGrid @ref="grid0" ColumnWidth="200px"   AllowFiltering="true" FilterMode="FilterMode.Advanced" AllowPaging="true" AllowSorting="true" ShowPagingSummary="true" PageSizeOptions=@(new int[]{5, 10, 20, 30})
+            Data="@(tblFaktuurs)" TItem="KlantBaseWebDemo.Models.KlantBase.TblFaktuur" RowSelect="@EditRow">
+            <Columns>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblFaktuur" Property="Id" Title="Id">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblFaktuur" Property="Klntnr" Title="Klntnr">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblFaktuur" Property="FacturerenAan" Title="Factureren Aan">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblFaktuur" Property="FactContPers" Title="Fact Cont Pers">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblFaktuur" Property="FactBedrijf" Title="Fact Bedrijf">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblFaktuur" Property="FactNaam" Title="Fact Naam">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblFaktuur" Property="FactAdres" Title="Fact Adres">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblFaktuur" Property="FactPc" Title="Fact Pc">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblFaktuur" Property="FactPlaats" Title="Fact Plaats">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblFaktuur" Property="FactDebNr" Title="Fact Deb Nr">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblFaktuur" Property="Faktnr" Title="Faktnr">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblFaktuur" Property="Faktuur" Title="Faktuur">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblFaktuur" Property="FaktuurEur" Title="Faktuur Eur">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblFaktuur" Property="Opdracht" Title="Opdracht">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblFaktuur" Property="Project" Title="Project">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblFaktuur" Property="Datum2" Title="Datum2">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblFaktuur" Property="Btw" Title="Btw">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblFaktuur" Property="Btweur" Title="Btweur">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblFaktuur" Property="Betaald" Title="Betaald">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblFaktuur" Property="Termijn" Title="Termijn">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblFaktuur" Property="Tarief" Title="Tarief">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblFaktuur" Property="Totaal" Title="Totaal">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblFaktuur" Property="TotaalEur" Title="Totaal Eur">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblFaktuur" Property="Werk" Title="Werk">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblFaktuur" Property="Omschr" Title="Omschr">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblFaktuur" Property="Omschr2" Title="Omschr2">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblFaktuur" Property="Omschr22" Title="Omschr22">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblFaktuur" Property="Omschr222" Title="Omschr222">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblFaktuur" Property="Datum1eHerrin" Title="Datum1e Herrin">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblFaktuur" Property="Datum2eHerrin" Title="Datum2e Herrin">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblFaktuur" Property="DatumLaanman" Title="Datum Laanman">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblFaktuur" Property="Kortingomschrijving" Title="Kortingomschrijving">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblFaktuur" Property="Kortingbedrag" Title="Kortingbedrag">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblFaktuur" Property="Kortingspercentage" Title="Kortingspercentage">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblFaktuur" Filterable="false" Sortable="false" Width="70px" TextAlign="TextAlign.Center">
+                    <Template Context="tblFaktuur">
+
+                        <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Size="ButtonSize.Medium"
+                            Shade="Shade.Lighter" Variant="Variant.Flat"
+                            Click=@(args => GridDeleteButtonClick(args, tblFaktuur)) @onclick:stopPropagation="true" />
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+
+        </RadzenDataGrid>
+
+    </RadzenColumn>
+  </RadzenRow>
+</RadzenStack>

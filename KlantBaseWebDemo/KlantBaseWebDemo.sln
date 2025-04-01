@@ -1,0 +1,25 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.0.0
+MinimumVisualStudioVersion = 17.0.0.0
+
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KlantBaseWebDemo", "KlantBaseWebDemo.csproj", "{EAE2D420-897E-4E47-ACE8-2F74ABBB4EAF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EAE2D420-897E-4E47-ACE8-2F74ABBB4EAF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EAE2D420-897E-4E47-ACE8-2F74ABBB4EAF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EAE2D420-897E-4E47-ACE8-2F74ABBB4EAF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EAE2D420-897E-4E47-ACE8-2F74ABBB4EAF}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {29A7549F-10D5-4579-8488-CDB1BFBCD273}
+	EndGlobalSection
+EndGlobal

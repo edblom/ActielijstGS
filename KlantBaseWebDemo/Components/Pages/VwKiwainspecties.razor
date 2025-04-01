@@ -1,0 +1,104 @@
+@page "/vw-kiwainspecties"
+
+@attribute [Authorize]
+
+@inject Microsoft.Extensions.Localization.IStringLocalizer<VwKiwainspecties> L
+<PageTitle>VwKiwainspecties</PageTitle>
+<RadzenStack>
+    <RadzenRow AlignItems="AlignItems.Center">
+        <RadzenColumn Size="12" SizeMD="6">
+            <RadzenText Text="Kiwa inspecties" TextStyle="TextStyle.H3" TagName="TagName.H1" style="margin: 0" />
+        </RadzenColumn>
+        <RadzenColumn Size="12" SizeMD="6">
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.End" Gap="0.5rem">
+            </RadzenStack>
+        </RadzenColumn>
+    </RadzenRow>
+    <RadzenRow>
+      <RadzenColumn SizeMD=12>
+        <RadzenDataGrid @ref="grid0" ColumnWidth="200px"   AllowFiltering="true" FilterMode="FilterMode.Advanced" AllowPaging="true" AllowSorting="true" ShowPagingSummary="true" PageSizeOptions=@(new int[]{5, 10, 20, 30})
+            Data="@(vwKiwainspecties)" TItem="KlantBaseWebDemo.Models.KlantBase.VwKiwainspecty">
+            <Columns>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.VwKiwainspecty" Property="CategorieId" Title="Categorie Id">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.VwKiwainspecty" Property="Categorie" Title="Categorie">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.VwKiwainspecty" Property="FldProjectId" Title="Fld Project Id">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.VwKiwainspecty" Property="FldProjectNaam" Title="Fld Project Naam">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.VwKiwainspecty" Property="FldCertKeuring" Title="Fld Cert Keuring">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.VwKiwainspecty" Property="FldMaandBedrag" Title="Fld Maand Bedrag">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.VwKiwainspecty" Property="FldSoort" Title="Fld Soort">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.VwKiwainspecty" Property="FldPlanDatum" Title="Fld Plan Datum">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.VwKiwainspecty" Property="PlanJaar" Title="Plan Jaar">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.VwKiwainspecty" Property="Omschrijving" Title="Omschrijving">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.VwKiwainspecty" Property="FldProjectNummer" Title="Fld Project Nummer">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.VwKiwainspecty" Property="FldKiwaCert" Title="Fld Kiwa Cert">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.VwKiwainspecty" Property="FldVerwerkendBedrijf" Title="Fld Verwerkend Bedrijf">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.VwKiwainspecty" Property="FldExternNummer" Title="Fld Extern Nummer">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.VwKiwainspecty" Property="FldPlaats" Title="Fld Plaats">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.VwKiwainspecty" Property="FldKiwaKeuringsNr" Title="Fld Kiwa Keurings Nr">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.VwKiwainspecty" Property="PlanDatum" Title="Plan Datum">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.VwKiwainspecty" Property="FldStatus" Title="Fld Status">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.VwKiwainspecty" Property="Status" Title="Status">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.VwKiwainspecty" Property="BelNotitie" Title="Bel Notitie">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.VwKiwainspecty" Property="FldProjectLeider" Title="Fld Project Leider">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.VwKiwainspecty" Property="ExtraMedewerker" Title="Extra Medewerker">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.VwKiwainspecty" Property="FldOpdrachtStr" Title="Fld Opdracht Str">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.VwKiwainspecty" Property="FldGereedVoor" Title="Fld Gereed Voor">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.VwKiwainspecty" Property="FldDatumGereed" Title="Fld Datum Gereed">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.VwKiwainspecty" Property="Applicateur" Title="Applicateur">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.VwKiwainspecty" Property="FldOpdrachtId" Title="Fld Opdracht Id">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.VwKiwainspecty" Property="OpdrachtId" Title="Opdracht Id">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.VwKiwainspecty" Property="KiwaNummer" Title="Kiwa Nummer">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.VwKiwainspecty" Property="Toegewezen" Title="Toegewezen">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.VwKiwainspecty" Property="Fldjaar" Title="Fldjaar">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.VwKiwainspecty" Property="FldAantalM2" Title="Fld Aantal M2">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.VwKiwainspecty" Property="OpdrachtAdres" Title="Opdracht Adres">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.VwKiwainspecty" Property="OpdrachtHuisnr" Title="Opdracht Huisnr">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.VwKiwainspecty" Property="OpdrachtPc" Title="Opdracht Pc">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.VwKiwainspecty" Property="OpdrachtPlaats" Title="Opdracht Plaats">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.VwKiwainspecty" Property="FldSgg" Title="Fld Sgg">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.VwKiwainspecty" Property="FldBedrag" Title="Fld Bedrag">
+                </RadzenDataGridColumn>
+            </Columns>
+
+        </RadzenDataGrid>
+
+    </RadzenColumn>
+  </RadzenRow>
+</RadzenStack>

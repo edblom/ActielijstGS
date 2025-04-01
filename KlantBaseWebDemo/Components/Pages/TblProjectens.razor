@@ -1,0 +1,63 @@
+@page "/tbl-projectens"
+
+@attribute [Authorize]
+
+@inject Microsoft.Extensions.Localization.IStringLocalizer<TblProjectens> L
+<PageTitle>TblProjectens</PageTitle>
+<RadzenStack>
+    <RadzenRow AlignItems="AlignItems.Center">
+        <RadzenColumn Size="12" SizeMD="3">
+            <RadzenText Text="Projecten" TextStyle="TextStyle.H3" TagName="TagName.H1" style="margin: 0" />
+        </RadzenColumn>
+        <RadzenColumn Size="12" SizeMD="3">
+            <RadzenTextBox Change="@TextBox0Change" Placeholder="Zoek in projecten" Name="searchText" ValueChanged="@SearchValueChanged"></RadzenTextBox>
+        </RadzenColumn>
+        <RadzenColumn Size="12" SizeMD="3">
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.End" Gap="0.5rem">
+                <RadzenButton Icon="add_circle_outline" Text="Add" Click="@AddButtonClick" Variant="Variant.Flat" />
+            </RadzenStack>
+        </RadzenColumn>
+    </RadzenRow>
+    <RadzenRow>
+      <RadzenColumn SizeMD=12>
+            <RadzenDataGrid @ref="grid0" ColumnWidth="200px"   AllowFiltering="true" FilterMode="FilterMode.Advanced" AllowPaging="true" AllowSorting="true" ShowPagingSummary="true" PageSizeOptions=@(new int[]{5, 10, 20, 30})
+            Data="@filteredProjectens" TItem="Models.KlantBase.TblProjecten" RowSelect="@EditRow">
+            <Columns>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblProjecten" Property="FldExternNummer" Title="Projectnummer" Width="140px">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblProjecten" Property="FldSgg" Title="SGG" Width="120px">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblProjecten" Property="FldEpa" Title="EPA"  Width="120px">
+                </RadzenDataGridColumn>                
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblProjecten" Property="FldProjectNaam" Title="Omschrijving" Width="200px">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblProjecten" Property="FldAdres" Title="Adres" Width="200px">
+                </RadzenDataGridColumn>                
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblProjecten" Property="FldPlaats" Title="Plaats" Width="150px">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblProjecten" Property="FldOpdrachtgever" Title="Opdrachtgever" Width="150px">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblProjecten" Property="FldArchiefMap" Title="In archief" Width="80px" Frozen="false">
+                <Template Context="data">
+                    <RadzenCheckBox Value="@data.FldArchiefMap" CssClass="readonly-checkbox" />
+                </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblProjecten" Property="FldArchiefMap" Title="Archief" Width="50px">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblProjecten" Property="FldKiWa" Title="KiWa"  Width="80px">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblProjecten" Filterable="false" Sortable="false" Width="70px" TextAlign="TextAlign.Center">
+                    <Template Context="tblProjecten">
+                        <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Size="ButtonSize.Medium"
+                            Shade="Shade.Lighter" Variant="Variant.Flat"
+                            Click=@(args => GridDeleteButtonClick(args, tblProjecten)) @onclick:stopPropagation="true" />
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+
+        </RadzenDataGrid>
+
+    </RadzenColumn>
+  </RadzenRow>
+    <RadzenRow></RadzenRow>
+</RadzenStack>

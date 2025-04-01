@@ -1,0 +1,320 @@
+@page "/projectdetail/{Id:int?}"
+@inject KlantBaseWebDemo.KlantBaseService KlantBaseService
+@attribute [Authorize]
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
+@inject DialogService DialogService
+@inject ContextMenuService ContextMenuService
+@inject TooltipService TooltipService
+@inject NotificationService NotificationService
+@using System.Text.Json
+@using System.Text.Json.Serialization
+
+<PageTitle>Project</PageTitle>
+
+<RadzenRow JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center">
+    <RadzenColumn Size="6" Style="display: flex; align-items: center;">
+        <RadzenText TextStyle="TextStyle.H3" Text="Project" />
+    </RadzenColumn>
+    <RadzenColumn Size="6" Style="display: flex; justify-content: flex-end; align-items: center;">
+        <RadzenButton Text="Terug" Click="@(() => NavigationManager.NavigateTo("/tbl-projectens"))" Size="ButtonSize.Small" />
+    </RadzenColumn>
+</RadzenRow>
+
+@if (project != null)
+{
+    <RadzenCard>
+        <RadzenRow JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center">
+            <RadzenColumn Size="6">
+                <RadzenText TextStyle="TextStyle.Subtitle1" Text="Projectinformatie" />
+            </RadzenColumn>
+            <RadzenColumn Size="6" Style="display: flex; justify-content: flex-end; gap: 10px;">
+                @if (!editMode)
+                {
+                    <RadzenButton Text="Wijzig" Click="@(() => editMode = true)" Size="ButtonSize.Small" />
+                }
+                else
+                {
+                    <RadzenButton Text="Opslaan" Click="@SaveChanges" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" />
+                    <RadzenButton Text="Annuleer" Click="@CancelEdit" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Secondary" />
+                }
+            </RadzenColumn>
+        </RadzenRow>
+
+        <RadzenRow>
+            <!-- Linker kolom -->
+            <RadzenColumn Size="6">
+                <RadzenFormField Text="Projectnummer" Variant="Variant.Outlined" Style="margin-bottom: 15px;">
+                    <RadzenTextBox @bind-Value="@project.FldExternNummer" Disabled="@(!editMode)" 
+                                Style="@(editMode ? "width: 150px;" : (!string.IsNullOrEmpty(project.FldExternNummer2) ? "width: 150px; color: black;" : "width: 150px; color: gray;"))" />
+                </RadzenFormField>
+                <RadzenFormField Text="SGG" Variant="Variant.Outlined" Style="margin-bottom: 15px;">
+                    <RadzenTextBox @bind-Value="@project.FldSgg" Disabled="@(!editMode)" 
+                                Style="@(editMode ? "width: 150px;" : (!string.IsNullOrEmpty(project.FldSgg) ? "width: 150px; color: black;" : "width: 150px; color: grayscale;"))" />
+                </RadzenFormField>
+                <RadzenFormField Text="EPA" Variant="Variant.Outlined" Style="margin-bottom: 15px;">
+                    <RadzenTextBox @bind-Value="@project.FldEpa" Disabled="@(!editMode)" 
+                                Style="@(editMode ? "width: 150px;" : (!string.IsNullOrEmpty(project.FldEpa) ? "width: 150px; color: black;" : "width: 150px; color: gray;"))" />
+                </RadzenFormField>
+                <RadzenFormField Text="Afdeling" Variant="Variant.Outlined" Style="margin-bottom: 15px;">
+                    <RadzenTextBox @bind-Value="@project.FldAfdeling" Disabled="@(!editMode)" 
+                                Style="@(editMode ? "width: 100%;" : (!string.IsNullOrEmpty(project.FldAfdeling) ? "width: 100%; color: black;" : "width: 100%; color: gray;"))" />
+                </RadzenFormField>
+                <RadzenFormField Text="Jaar" Variant="Variant.Outlined" Style="margin-bottom: 15px;">
+                    <RadzenTextBox @bind-Value="@project.Fldjaar" Disabled="@(!editMode)" 
+                                Style="@(editMode ? "width: 100px;" : (!string.IsNullOrEmpty(project.Fldjaar) ? "width: 100px; color: black;" : "width: 100px; color: gray;"))" />
+                </RadzenFormField>
+                <RadzenFormField Text="Datum" Variant="Variant.Outlined" Style="margin-bottom: 15px;">
+                    <RadzenDatePicker @bind-Value="@project.FldDatum" Disabled="@(!editMode)" DateFormat="dd-MM-yyyy" 
+                                    Class="@(project.FldDatum.HasValue ? "filled-datepicker" : "empty-datepicker")" 
+                                    Style="width: 150px;" />
+                </RadzenFormField>
+                <RadzenFormField Text="Soort" Variant="Variant.Outlined" Style="margin-bottom: 15px;">
+                    <RadzenTextBox @bind-Value="@project.FldSoort" Disabled="@(!editMode)" 
+                                Style="@(editMode ? "width: 150px;" : (!string.IsNullOrEmpty(project.FldSoort) ? "width: 150px; color: black;" : "width: 150px; color: gray;"))" />
+                </RadzenFormField>
+                <RadzenFormField Text="Actie" Variant="Variant.Outlined" Style="margin-bottom: 15px;">
+                    <RadzenTextBox @bind-Value="@project.FldActie" Disabled="@(!editMode)" 
+                                Style="@(editMode ? "width: 100%;" : (!string.IsNullOrEmpty(project.FldActie) ? "width: 100%; color: black;" : "width: 100%; color: gray;"))" />
+                </RadzenFormField>
+                <RadzenFormField Text="Intrac Nummer" Variant="Variant.Outlined" Style="margin-bottom: 15px;">
+                    <RadzenTextBox @bind-Value="@project.FldIntracNr" Disabled="@(!editMode)" 
+                                Style="@(editMode ? "width: 150px;" : (!string.IsNullOrEmpty(project.FldIntracNr) ? "width: 150px; color: black;" : "width: 150px; color: gray;"))" />
+                </RadzenFormField>
+            </RadzenColumn>
+
+            <!-- Rechter kolom -->
+            <RadzenColumn Size="6">
+                <RadzenFormField Text="Projectnaam" Variant="Variant.Outlined" Style="margin-bottom: 15px;">
+                    <RadzenTextBox @bind-Value="@project.FldProjectNaam" Disabled="@(!editMode)" 
+                                Style="@(editMode ? "width: 100%;" : (!string.IsNullOrEmpty(project.FldProjectNaam) ? "width: 100%; color: black;" : "width: 100%; color: gray;"))" />
+                </RadzenFormField>
+                <RadzenFormField Text="Adres" Variant="Variant.Outlined" Style="margin-bottom: 15px;">
+                    <RadzenTextBox @bind-Value="@project.FldAdres" Disabled="@(!editMode)" 
+                                Style="@(editMode ? "width: 100%;" : (!string.IsNullOrEmpty(project.FldAdres) ? "width: 100%; color: black;" : "width: 100%; color: gray;"))" />
+                </RadzenFormField>
+                <RadzenFormField Text="Postcode en Plaats" Variant="Variant.Outlined" Style="margin-bottom: 15px;">
+                    <RadzenRow>
+                        <RadzenColumn Size="4">
+                            <RadzenTextBox @bind-Value="@project.FldPc" Disabled="@(!editMode)" Placeholder="Postcode" 
+                                        Style="@(editMode ? "width: 100%;" : (!string.IsNullOrEmpty(project.FldPc) ? "width: 100%; color: black;" : "width: 100%; color: gray;"))" />
+                        </RadzenColumn>
+                        <RadzenColumn Size="8">
+                            <RadzenTextBox @bind-Value="@project.FldPlaats" Disabled="@(!editMode)" Placeholder="Plaats" 
+                                        Style="@(editMode ? "width: 100%;" : (!string.IsNullOrEmpty(project.FldPlaats) ? "width: 100%; color: black;" : "width: 100%; color: gray;"))" />
+                        </RadzenColumn>
+                    </RadzenRow>
+                </RadzenFormField>
+                <RadzenFormField Text="Opdrachtgever" Variant="Variant.Outlined" Style="margin-bottom: 15px;">
+                    <RadzenTextBox @bind-Value="@project.FldOpdrachtgever" Disabled="@(!editMode)" 
+                                Style="@(editMode ? "width: 100%;" : (!string.IsNullOrEmpty(project.FldOpdrachtgever) ? "width: 100%; color: black;" : "width: 100%; color: gray;"))" />
+                </RadzenFormField>
+                <RadzenFormField Text="Projectmap" Variant="Variant.Outlined" Style="margin-bottom: 15px;">
+                    <RadzenTextBox @bind-Value="@project.FldFolder" Disabled="@(!editMode)" 
+                                Style="@(editMode ? "width: 100%;" : (!string.IsNullOrEmpty(project.FldFolder) ? "width: 100%; color: black;" : "width: 100%; color: gray;"))" />
+                </RadzenFormField>
+                <RadzenFormField Text="Verwerkend Bedrijf" Variant="Variant.Outlined" Style="margin-bottom: 15px; vertical-align: middle">
+                    @if (editMode)
+                    {
+                        <RadzenDropDown @bind-Value="@project.FldVerwerkendBedrijf" Data="@adressen" 
+                                        TextProperty="BedrijfEnVestigPlaats" ValueProperty="Id" 
+                                        Style="width: 100%;" AllowClear="true" Placeholder="Selecteer een bedrijf..." />
+                    }
+                    else
+                    {
+                        <RadzenText Text="@(verwerkendBedrijfAdres != null ? $"{verwerkendBedrijfAdres.Bedrijf} - {verwerkendBedrijfAdres.VestigPlaats}" : "Niet ingesteld")" 
+                                    Style="@(verwerkendBedrijfAdres != null ? "width: 100%; color: black; line-height: 40px; ": "color: gray; vertical-align: middle; min-height: 40px")" />
+                    }
+                </RadzenFormField>
+                <RadzenFormField Text="Fabrikant" Variant="Variant.Outlined" Style="margin-bottom: 15px;">
+                    <RadzenTextBox @bind-Value="@project.FldFabrikant" Disabled="@(!editMode)" 
+                                Style="@(editMode ? "width: 100%;" : (!string.IsNullOrEmpty(project.FldFabrikant) ? "width: 100%; color: black;" : "width: 100%; color: gray;"))" />
+                </RadzenFormField>
+                <RadzenFormField Text="Systeem" Variant="Variant.Outlined" Style="margin-bottom: 15px;">
+                    <RadzenTextBox @bind-Value="@project.FldSysteem" Disabled="@(!editMode)" 
+                                Style="@(editMode ? "width: 100%;" : (!string.IsNullOrEmpty(project.FldSysteem) ? "width: 100%; color: black;" : "width: 100%; color: gray;"))" />
+                </RadzenFormField>
+                <RadzenFormField Text="Aantal m²" Variant="Variant.Outlined" Style="margin-bottom: 15px;">
+                    <RadzenNumeric @bind-Value="@project.FldAantalM2" Disabled="@(!editMode)" 
+                                Style="@(editMode ? "width: 150px;" : (project.FldAantalM2.HasValue && project.FldAantalM2 != 0 ? "width: 150px; color: black;" : "width: 150px; color: gray;"))" />
+                </RadzenFormField>
+                <RadzenFormField Text="KiWa" Variant="Variant.Outlined" Style="margin-bottom: 15px;">
+                    <RadzenTextBox @bind-Value="@project.FldKiWa" Disabled="@(!editMode)" 
+                                Style="@(editMode ? "width: 150px;" : (!string.IsNullOrEmpty(project.FldKiWa) ? "width: 150px; color: black;" : "width: 150px; color: gray;"))" />
+                </RadzenFormField>
+                <RadzenFormField Text="Kiwa Certificaat" Variant="Variant.Outlined" Style="margin-bottom: 15px;">
+                    <RadzenCheckBox @bind-Value="@project.FldKiwaCert" Disabled="@(!editMode)" 
+                                    Style="@(editMode ? "" : (project.FldKiwaCert.HasValue && project.FldKiwaCert.Value ? "color: black;" : "color: gray;"))" />
+                </RadzenFormField>
+                <RadzenFormField Text="Afwerking" Variant="Variant.Outlined" Style="margin-bottom: 15px;">
+                    <RadzenTextBox @bind-Value="@project.FldAfwerking" Disabled="@(!editMode)" 
+                                Style="@(editMode ? "width: 100%;" : (!string.IsNullOrEmpty(project.FldAfwerking) ? "width: 100%; color: black;" : "width: 100%; color: gray;"))" />
+                </RadzenFormField>
+                <RadzenFormField Text="Vorig Project ID" Variant="Variant.Outlined" Style="margin-bottom: 15px;">
+                    <RadzenNumeric @bind-Value="@project.FldPrevProjectId" Disabled="@(!editMode)" 
+                                Style="@(editMode ? "width: 150px;" : (project.FldPrevProjectId.HasValue && project.FldPrevProjectId != 0 ? "width: 150px; color: black;" : "width: 150px; color: gray;"))" />
+                </RadzenFormField>
+            </RadzenColumn>
+      </RadzenRow>
+
+        <!-- Tabbladen voor gekoppelde gegevens -->
+        <RadzenTabs Style="margin-top: 20px;">
+            <Tabs>
+                <RadzenTabsItem Text="Opdrachten">
+                    @if (opdrachten != null)
+                    {
+                        <RadzenDataGrid Data="@opdrachten" TItem="KlantBaseWebDemo.Models.KlantBase.TblProjectOnderdelen"
+                                        AllowFiltering="true" AllowPaging="true" PageSize="5" AllowSorting="true">
+                            <Columns>
+                                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblProjectOnderdelen" Property="Id" Title="ID" Width="80px" />
+                                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblProjectOnderdelen" Property="FldOpdrachtNr" Title="Opdracht Nummer" Width="120px" />
+                                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblProjectOnderdelen" Property="FldOmschrijving" Title="Omschrijving" Width="200px" />
+                                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblProjectOnderdelen" Property="FldPlanDatum" Title="Plan Datum" FormatString="{0:dd-MM-yyyy}" Width="120px" />
+                                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblProjectOnderdelen" Property="FldBedrag" Title="Bedrag" FormatString="{0:C}" Width="100px" />
+                                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblProjectOnderdelen" Property="FldStatus" Title="Status" Width="80px" />
+                                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblProjectOnderdelen" Property="FldProjectLeider" Title="Projectleider" Width="150px" />
+                                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblProjectOnderdelen" Property="FldGefactureerd" Title="Gefactureerd" FormatString="{0:dd-MM-yyyy}" Width="120px" />
+                                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblProjectOnderdelen" Property="FldAantalKms" Title="Aantal KM" Width="100px" />
+                                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblProjectOnderdelen" Property="FldKmvergoeding" Title="KM Vergoeding" FormatString="{0:C}" Width="120px" />
+                            </Columns>
+                        </RadzenDataGrid>
+                    }
+                    else
+                    {
+                        <p>Opdrachten worden geladen...</p>
+                    }
+                </RadzenTabsItem>
+                <RadzenTabsItem Text="Onderhoudscontracten">
+                    @if (onderhoudscontracten != null)
+                    {
+                        <RadzenDataGrid Data="@onderhoudscontracten" TItem="KlantBaseWebDemo.Models.KlantBase.TblProjectOnderdelen"
+                                        AllowFiltering="true" AllowPaging="true" PageSize="5" AllowSorting="true">
+                            <Columns>
+                                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblProjectOnderdelen" Property="Id" Title="ID" Width="80px" />
+                                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblProjectOnderdelen" Property="FldOpdrachtNr" Title="Opdracht Nummer" Width="120px" />
+                                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblProjectOnderdelen" Property="FldOmschrijving" Title="Omschrijving" Width="200px" />
+                                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblProjectOnderdelen" Property="FldPlanDatum" Title="Plan Datum" FormatString="{0:dd-MM-yyyy}" Width="120px" />
+                                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblProjectOnderdelen" Property="FldBedrag" Title="Bedrag" FormatString="{0:C}" Width="100px" />
+                                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblProjectOnderdelen" Property="FldStatus" Title="Status" Width="80px" />
+                                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblProjectOnderdelen" Property="FldProjectLeider" Title="Projectleider" Width="150px" />
+                                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblProjectOnderdelen" Property="FldGefactureerd" Title="Gefactureerd" FormatString="{0:dd-MM-yyyy}" Width="120px" />
+                                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblProjectOnderdelen" Property="FldAantalKms" Title="Aantal KM" Width="100px" />
+                                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblProjectOnderdelen" Property="FldKmvergoeding" Title="KM Vergoeding" FormatString="{0:C}" Width="120px" />
+                            </Columns>
+                        </RadzenDataGrid>
+                    }
+                    else
+                    {
+                        <p>Onderhoudscontracten worden geladen...</p>
+                    }
+                </RadzenTabsItem>
+                <RadzenTabsItem Text="OH-inspecties">
+                    @if (ohInspecties != null)
+                    {
+                        <RadzenDataGrid Data="@ohInspecties" TItem="KlantBaseWebDemo.Models.KlantBase.TblProjectOnderdelen"
+                                        AllowFiltering="true" AllowPaging="true" PageSize="5" AllowSorting="true">
+                            <Columns>
+                                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblProjectOnderdelen" Property="Id" Title="ID" Width="80px" />
+                                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblProjectOnderdelen" Property="FldOpdrachtNr" Title="Opdracht Nummer" Width="120px" />
+                                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblProjectOnderdelen" Property="FldOmschrijving" Title="Omschrijving" Width="200px" />
+                                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblProjectOnderdelen" Property="FldPlanDatum" Title="Plan Datum" FormatString="{0:dd-MM-yyyy}" Width="120px" />
+                                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblProjectOnderdelen" Property="FldBedrag" Title="Bedrag" FormatString="{0:C}" Width="100px" />
+                                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblProjectOnderdelen" Property="FldStatus" Title="Status" Width="80px" />
+                                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblProjectOnderdelen" Property="FldProjectLeider" Title="Projectleider" Width="150px" />
+                                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblProjectOnderdelen" Property="FldGefactureerd" Title="Gefactureerd" FormatString="{0:dd-MM-yyyy}" Width="120px" />
+                                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblProjectOnderdelen" Property="FldAantalKms" Title="Aantal KM" Width="100px" />
+                                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblProjectOnderdelen" Property="FldKmvergoeding" Title="KM Vergoeding" FormatString="{0:C}" Width="120px" />
+                            </Columns>
+                        </RadzenDataGrid>
+                    }
+                    else
+                    {
+                        <p>OH-inspecties worden geladen...</p>
+                    }
+                </RadzenTabsItem>
+                <RadzenTabsItem Text="Andere Tabel">
+                    <RadzenText Text="Gegevens van een andere gekoppelde tabel komen hier." />
+                </RadzenTabsItem>
+            </Tabs>
+        </RadzenTabs>
+    </RadzenCard>
+}
+else
+{
+    <p>Project wordt geladen...</p>
+}
+
+@code {
+    [Parameter]
+    public int? Id { get; set; } // Verander int naar int?
+
+    private KlantBaseWebDemo.Models.KlantBase.TblProjecten project;
+    private KlantBaseWebDemo.Models.KlantBase.TblProjecten originalProject;
+    private KlantBaseWebDemo.Models.KlantBase.Adre verwerkendBedrijfAdres; // Adres-object
+    private IEnumerable<KlantBaseWebDemo.Models.KlantBase.Adre> adressen; // Voor dropdown
+    private IEnumerable<KlantBaseWebDemo.Models.KlantBase.TblProjectOnderdelen> opdrachten;
+    private IEnumerable<KlantBaseWebDemo.Models.KlantBase.TblProjectOnderdelen> onderhoudscontracten;
+    private IEnumerable<KlantBaseWebDemo.Models.KlantBase.TblProjectOnderdelen> ohInspecties;
+    private bool editMode = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id.HasValue && Id.Value > 0)
+        {
+            project = await KlantBaseService.GetTblProjectenById(Id.Value, includeOnderdelen: false);
+            originalProject = project != null ? JsonSerializer.Deserialize<KlantBaseWebDemo.Models.KlantBase.TblProjecten>(
+                JsonSerializer.Serialize(project)) : null;
+
+            if (project.FldVerwerkendBedrijf.HasValue)
+            {
+                verwerkendBedrijfAdres = await KlantBaseService.GetAdreById(project.FldVerwerkendBedrijf.Value);
+            }
+
+            adressen = await KlantBaseService.GetAdressen(); // Alle adressen ophalen
+
+            var allOnderdelen = await KlantBaseService.GetTblProjectOnderdelensByProjectId(Id.Value);
+            opdrachten = allOnderdelen.Where(o => o.FldSoort != 11 && o.FldSoort != 18);
+            onderhoudscontracten = allOnderdelen.Where(o => o.FldSoort == 11);
+            ohInspecties = allOnderdelen.Where(o => o.FldSoort == 18);
+        }
+        else{
+            // Nieuw project, start in edit-modus
+            project = new KlantBaseWebDemo.Models.KlantBase.TblProjecten();
+            editMode = true;
+        }
+    }
+    private async Task SaveChanges()
+    {
+        if (Id.HasValue && Id.Value > 0)    
+        {
+        try
+            {
+                await KlantBaseService.UpdateTblProjecten(project.Id, project);
+                editMode = false;
+                NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Opgeslagen", Detail = "Project is succesvol bijgewerkt." });
+            }
+            catch (Exception ex)
+            {
+                NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Fout bij opslaan", Detail = ex.Message });
+            }
+        }
+        else
+        {
+            NavigationManager.NavigateTo("/projects");
+        }
+    }
+
+    private void CancelEdit()
+    {
+        if (Id.HasValue && Id.Value > 0)
+        {
+            project = JsonSerializer.Deserialize<KlantBaseWebDemo.Models.KlantBase.TblProjecten>(
+            JsonSerializer.Serialize(originalProject));
+            editMode = false;
+        }
+        else
+        {
+            NavigationManager.NavigateTo("/projects");
+        }
+    }
+}

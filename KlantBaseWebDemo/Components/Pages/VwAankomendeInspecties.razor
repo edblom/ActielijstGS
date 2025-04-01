@@ -1,0 +1,76 @@
+@page "/vw-aankomende-inspecties"
+@attribute [Authorize]
+@inject Microsoft.Extensions.Localization.IStringLocalizer<VwAankomendeInspecties> L
+
+<PageTitle>VwAankomendeInspecties</PageTitle>
+<RadzenStack>
+    <RadzenRow AlignItems="AlignItems.Center">
+        <RadzenColumn Size="12" SizeMD="6">
+            <RadzenText Text="Aankomende inspecties" TextStyle="TextStyle.H3" TagName="TagName.H1" style="margin: 0" />
+        </RadzenColumn>
+        <RadzenColumn Size="12" SizeMD="6">
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.End" Gap="0.5rem">
+                <RadzenDropDown TValue="int"
+                                Data="@werknemers"
+                                TextProperty="DisplayName"
+                                ValueProperty="WerknId"
+                                @bind-Value="@selectedWerknemerId"
+                                AllowFiltering="true"
+                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                Placeholder="Alle werknemers"
+                                Change="@OnWerknemerSelected" />
+            </RadzenStack>
+        </RadzenColumn>
+    </RadzenRow>
+    <RadzenRow>
+        <RadzenColumn SizeMD="12">
+            <RadzenDataGrid TItem="KlantBaseWebDemo.Models.KlantBase.VwAankomendeInspecty"
+                            Data="@vwAankomendeInspecties"
+                            ColumnWidth="200px"
+                            AllowSorting="true"
+                            AllowPaging="true"
+                            AllowFiltering="true"
+                            @ref="grid0"
+                            FilterMode="FilterMode.Advanced"
+                            ShowPagingSummary="true"
+                            PageSizeOptions="@(new int[]{5, 10, 20, 30})">
+                <Columns>
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.VwAankomendeInspecty" Property="Adres" Title="Adres" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.VwAankomendeInspecty" Property="Applicateur" Title="Applicateur" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.VwAankomendeInspecty" Property="AppointmentDateTime" Title="AppointmentDateTime" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.VwAankomendeInspecty" Property="DatumGereed" Title="DatumGereed" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.VwAankomendeInspecty" Property="ExtraMedewerker" Title="ExtraMedewerker" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.VwAankomendeInspecty" Property="FldBedrag" Title="FldBedrag" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.VwAankomendeInspecty" Property="FldSgg" Title="FldSgg" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.VwAankomendeInspecty" Property="InspecteurId" Title="InspecteurId" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.VwAankomendeInspecty" Property="Omschrijving" Title="Omschrijving" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.VwAankomendeInspecty" Property="Opdracht" Title="Opdracht" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.VwAankomendeInspecty" Property="Project" Title="Project" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.VwAankomendeInspecty" Property="ProjectNr" Title="ProjectNr" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.VwAankomendeInspecty" Property="Psid" Title="Psid" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.VwAankomendeInspecty" Property="Soort" Title="Soort" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.VwAankomendeInspecty" Property="SoortId" Title="SoortId" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.VwAankomendeInspecty" Property="Status" Title="Status" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.VwAankomendeInspecty" Property="StatusId" Title="StatusId" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.VwAankomendeInspecty" Property="Toegekend" Title="Toegekend" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.VwAankomendeInspecty" Property="Toegewezen" Title="Toegewezen" />
+                </Columns>
+            </RadzenDataGrid>
+        </RadzenColumn>
+    </RadzenRow>
+    <RadzenRow>
+        <RadzenColumn SizeMD="12">
+            <RadzenScheduler TItem="KlantBaseWebDemo.Models.KlantBase.VwAankomendeInspecty"
+                             Data="@vwAankomendeInspecties"
+                             StartProperty="DatumGereed"
+                             TextProperty="Omschrijving"
+                             EndProperty="DatumGereed"
+                             SelectedIndex="2"
+                             style="height: 600px;">
+                <RadzenDayView />
+                <RadzenWeekView />
+                <RadzenMonthView />
+            </RadzenScheduler>
+        </RadzenColumn>
+    </RadzenRow>
+</RadzenStack>
