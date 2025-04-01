@@ -17,6 +17,7 @@ namespace KlantBaseWebDemo.Components.Pages
         [Inject] protected IHttpClientFactory HttpClientFactory { get; set; }
         [Inject] protected NavigationManager Navigation { get; set; }
         [Inject] protected NotificationService NotificationService { get; set; }
+        [Inject] protected DialogService DialogService { get; set; } // Toegevoegd voor dialoog
 
         protected RadzenDataGrid<TblMemo> grid0;
         protected IEnumerable<TblMemo> tblMemos;
@@ -53,9 +54,16 @@ namespace KlantBaseWebDemo.Components.Pages
             }
         }
 
-        protected void EditRow(TblMemo item)
+        protected async Task EditRow(TblMemo item)
         {
-            Navigation.NavigateTo($"/tbl-memos-api/edit/{item.FldMid}");
+            // Open een dialoogvenster met EditTblMemoApi
+            await DialogService.OpenAsync<EditTblMemoApi>("Actie Bewerken",
+                new Dictionary<string, object> { { "FldMid", item.FldMid } },
+                new DialogOptions { Width = "700px", Height = "512px", Resizable = true, Draggable = true });
+
+            // Herlaad de lijst na het sluiten van de dialoog
+            await LoadData();
+            await grid0.Reload();
         }
 
         protected async Task AddButtonClick(MouseEventArgs args)
