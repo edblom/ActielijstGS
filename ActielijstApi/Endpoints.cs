@@ -50,6 +50,26 @@ namespace ActielijstApi
             .WithName("GetWerknemers")
             .WithOpenApi();
 
+            app.MapGet("/api/werknemers/actueel", async (ApplicationDbContext context) =>
+            {
+                try
+                {
+                    var currentDate = new DateTime(2025, 4, 7); // Huidige datum (7 april 2025)
+                    var actueleWerknemers = await context.Werknemers
+                        .Where(w => w.FldDatumUitDienst == null || w.FldDatumUitDienst > currentDate)
+                        .OrderBy(w => w.Voornaam)
+                        .ToListAsync();
+
+                    return Results.Ok(actueleWerknemers);
+                }
+                catch (Exception ex)
+                {
+                    return Results.Problem(ex.Message);
+                }
+            })
+            .WithName("GetActueleWerknemers")
+            .WithOpenApi();
+
             app.MapGet("/api/actiesoorten/all", async (ApplicationDbContext context) =>
             {
                 try
@@ -69,7 +89,7 @@ namespace ActielijstApi
             {
                 try
                 {
-                    var priorities = await context.Priorities.ToListAsync(); // Pas aan naar juiste tabelnaam
+                    var priorities = await context.Priorities.ToListAsync();
                     return Results.Ok(priorities);
                 }
                 catch (Exception ex)
@@ -98,7 +118,6 @@ namespace ActielijstApi
 
             app.MapGet("/api/upcominginspections", async (ApplicationDbContext context, string inspecteurId, bool? includeMetadata) =>
             {
-                // Bestaande logica behouden
                 try
                 {
                     var stopwatch = System.Diagnostics.Stopwatch.StartNew();
@@ -109,7 +128,7 @@ namespace ActielijstApi
                     }
 
                     var queryStart = stopwatch.ElapsedMilliseconds;
-                    var inspecties = await context.AankomendeInspecties // Pas aan naar juiste tabelnaam
+                    var inspecties = await context.AankomendeInspecties
                         .Where(i =>
                             (i.InspecteurId == inspecteurId || (i.ExtraMedewerker != null && i.ExtraMedewerker == inspecteurId))
                             && i.Toegewezen == true)

@@ -1,9 +1,11 @@
-@page "/inspection-list/{InspecteurId}"
+@page "/inspection-list/{InspecteurId?}"
+<PageTitle>Inspecties voor @(InspecteurId ?? "Onbekend") - KlantBaseWebDemo</PageTitle>
 @using Radzen.Blazor
 @using Blazored.LocalStorage
 @using Microsoft.AspNetCore.Components
 @using System.Linq.Dynamic.Core
 @using System.Text.Json
+@using ActielijstApi.Models
 @inject HttpClient Http
 @inject ILocalStorageService LocalStorage
 
@@ -11,6 +13,11 @@
 
 <div style="display: flex; flex-direction: column; height: 100%; overflow: hidden;">
     <div style="padding: 16px; display: flex; align-items: center; flex-shrink: 0; background-color: #f5f5f5;">
+        <RadzenDropDown @bind-Value="InspecteurId" Data="@werknemers" ValueProperty="Initialen" Change="@(args => OnInspecteurChanged(args))" Style="margin-right: 16px; width: 200px;">
+            <Template>
+                @(context.Initialen) - @(context.Voornaam)
+            </Template>
+        </RadzenDropDown>
         <span style="margin-right: 16px;">Inspecties (@filteredRows.Count())</span>
         <RadzenTextBox @bind-Value="searchTerm" Placeholder="Zoek naar" Change="@(args => StateHasChanged())" Style="margin-right: 8px;" />
         <RadzenButton Variant=Variant.Filled Click="@HandleShowAll" Style="margin-right: 8px;">Alles tonen</RadzenButton>
@@ -57,6 +64,7 @@
 @code {
     private RadzenDataGrid<Inspection> grid;
     private List<Inspection> rows = new List<Inspection>();
+    private List<Werknemer> werknemers = new List<Werknemer>();
     private bool loading = true;
     private string searchTerm = "";
     private string filterType = "all";
@@ -76,10 +84,13 @@
 
     protected override async Task OnInitializedAsync()
     {
-        if (string.IsNullOrEmpty(InspecteurId))
+        // Haal de lijst met inspecteurs op
+        await LoadWerknemers();
+
+        // Als er geen InspecteurId is opgegeven in de URL, selecteer de eerste inspecteur
+        if (string.IsNullOrEmpty(InspecteurId) && werknemers.Any())
         {
-            Console.WriteLine("InspecteurId is leeg of null.");
-            return;
+            InspecteurId = werknemers.First().Initialen;
         }
 
         Console.WriteLine($"InspecteurId: {InspecteurId}");
@@ -109,30 +120,72 @@
         }
     }
 
+    private async Task LoadWerknemers()
+    {
+        try
+        {
+            var response = await Http.GetAsync("https://localhost:44361/api/werknemers/actueel");
+            response.EnsureSuccessStatusCode();
+            var jsonString = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"Ruwe JSON-response (werknemers): {jsonString}");
+
+            var loadedWerknemers = System.Text.Json.JsonSerializer.Deserialize<List<Werknemer>>(jsonString, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+            werknemers = loadedWerknemers ?? new List<Werknemer>();
+            Console.WriteLine($"Aantal inspecteurs geladen: {werknemers.Count}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Fout bij ophalen inspecteurs: {ex.Message}");
+            Console.WriteLine($"Stacktrace: {ex.StackTrace}");
+        }
+    }
+
     private async Task LoadInspections()
     {
+        if (string.IsNullOrEmpty(InspecteurId))
+        {
+            rows = new List<Inspection>();
+            loading = false;
+            StateHasChanged();
+            return;
+        }
+
         loading = true;
         try
         {
             var apiUrl = $"https://localhost:44361/api/upcominginspections?inspecteurId={InspecteurId}";
             Console.WriteLine($"API-aanroep naar: {apiUrl}");
 
-            // Haal de ruwe JSON op
             var response = await Http.GetAsync(apiUrl);
             response.EnsureSuccessStatusCode();
             var jsonString = await response.Content.ReadAsStringAsync();
             Console.WriteLine($"Ruwe JSON-response: {jsonString}");
 
-            // Deserialiseer de JSON
             var inspections = System.Text.Json.JsonSerializer.Deserialize<List<Inspection>>(jsonString, new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true
                 });
-            rows = inspections ?? new List<Inspection>();
-            Console.WriteLine($"API-aanroep succesvol. Aantal inspecties: {rows.Count}");
+
+            // Als er geen inspecties zijn (null of lege lijst), maak de lijst leeg
+            if (inspections == null || !inspections.Any())
+            {
+                rows = new List<Inspection>();
+                Console.WriteLine("Geen inspecties gevonden voor deze inspecteur.");
+            }
+            else
+            {
+                rows = inspections;
+                Console.WriteLine($"API-aanroep succesvol. Aantal inspecties: {rows.Count}");
+            }
         }
         catch (Exception ex)
         {
+            // Bij een fout (bijv. HTTP-fout of deserialisatiefout), maak de lijst leeg
+            rows = new List<Inspection>();
             Console.WriteLine($"Fout bij ophalen inspecties: {ex.Message}");
             Console.WriteLine($"Stacktrace: {ex.StackTrace}");
         }
@@ -142,6 +195,15 @@
             Console.WriteLine("Loading status: " + (loading ? "true" : "false"));
             StateHasChanged();
         }
+    }
+
+    private async Task OnInspecteurChanged(object value)
+    {
+        InspecteurId = value?.ToString();
+        Console.WriteLine($"Inspecteur gewijzigd naar: {InspecteurId}");
+
+        // Haal de inspecties opnieuw op voor de geselecteerde inspecteur
+        await LoadInspections();
     }
 
     private void HandleShowAll()

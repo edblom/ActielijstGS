@@ -15,5 +15,6 @@
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.*-*" />
     <PackageReference Include="Microsoft.AspNetCore.HeaderPropagation" Version="9.*-*" />
     <PackageReference Include="Microsoft.AspNetCore.OData" Version="9.*-*" />
+    <ProjectReference Include="..\ActielijstApi\ActielijstApi.csproj" />
   </ItemGroup>
 </Project>
