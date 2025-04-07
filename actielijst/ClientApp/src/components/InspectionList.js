@@ -1,5 +1,4 @@
-﻿// ClientApp/src/components/InspectionList.js
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { DataGrid } from '@mui/x-data-grid';
 import { TextField, Button, Box } from '@mui/material';
 import axios from 'axios';
@@ -9,7 +8,6 @@ function InspectionList({ inspecteurId }) {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [filterType, setFilterType] = useState('all');
-
     const [columnVisibilityModel, setColumnVisibilityModel] = useState({});
     const [columnWidths, setColumnWidths] = useState({});
 
@@ -19,7 +17,18 @@ function InspectionList({ inspecteurId }) {
         { field: 'adres', headerName: 'Adres', width: 200 },
         { field: 'applicateur', headerName: 'Applicateur', width: 120 },
         { field: 'soort', headerName: 'Soort', width: 120 },
-        { field: 'omschrijving', headerName: 'Omschrijving', width: 200 },
+        {
+            field: 'omschrijving',
+            headerName: 'Omschrijving',
+            width: 200,
+            cellClassName: (params) => {
+                const value = (params.value || '').toLowerCase();
+                if (value.includes('eindcheck')) return 'cell-eindcheck';
+                if (value.includes('voorinspectie')) return 'cell-voorinspectie';
+                if (value.includes('tusseninspectie')) return 'cell-tusseninspectie';
+                return '';
+            },
+        },
         { field: 'toegewezen', headerName: 'Toegewezen', width: 100, type: 'boolean' },
         {
             field: 'datumGereed',
@@ -35,6 +44,23 @@ function InspectionList({ inspecteurId }) {
             width: 150,
             valueGetter: (params) => (params ? new Date(params) : null),
             valueFormatter: (params) => (params ? params.toLocaleString('nl-NL') : ''),
+        },
+        // Nieuwe kolom voor fldBedrag
+        {
+            field: 'fldBedrag',
+            headerName: 'Bedrag',
+            width: 120,
+            align: 'right',
+            headerAlign: 'right',
+            type: 'number',
+            valueFormatter: (params) => {
+                const value = params; 
+                if (value == null || isNaN(Number(value))) return '';
+                return new Intl.NumberFormat('nl-NL', {
+                    style: 'currency',
+                    currency: 'EUR',
+                }).format(Number(value));
+            },
         },
     ];
 
@@ -104,34 +130,17 @@ function InspectionList({ inspecteurId }) {
             widths: widths,
         };
         localStorage.setItem(`gridSettings_${inspecteurId}`, JSON.stringify(settings));
-        console.log(`Settings saved for ${inspecteurId}:`, settings);
     };
 
     const handleResetSettings = () => {
         setColumnVisibilityModel({});
         setColumnWidths({});
         localStorage.removeItem(`gridSettings_${inspecteurId}`);
-        console.log(`Settings reset to default for ${inspecteurId}`);
     };
 
     return (
-        <Box
-            sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                height: '100%',
-                overflow: 'hidden',
-            }}
-        >
-            <Box
-                sx={{
-                    p: 2,
-                    display: 'flex',
-                    alignItems: 'center',
-                    flexShrink: 0,
-                    backgroundColor: '#f5f5f5',
-                }}
-            >
+        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+            <Box sx={{ p: 2, display: 'flex', alignItems: 'center', flexShrink: 0, backgroundColor: '#f5f5f5' }}>
                 <TextField
                     label="Zoek naar"
                     variant="outlined"
@@ -139,27 +148,14 @@ function InspectionList({ inspecteurId }) {
                     onChange={(e) => setSearchTerm(e.target.value)}
                     sx={{ mr: 1 }}
                 />
-                <Button
-                    variant="contained"
-                    onClick={handleShowAll}
-                    sx={{ mr: 1 }}
-                >
+                <Button variant="contained" onClick={handleShowAll} sx={{ mr: 1 }}>
                     Alles tonen
                 </Button>
-                <Button
-                    variant="outlined"
-                    onClick={handleResetSettings}
-                    color="secondary"
-                >
+                <Button variant="outlined" onClick={handleResetSettings} color="secondary">
                     Herstel
                 </Button>
             </Box>
-            <Box
-                sx={{
-                    flex: 1,
-                    overflow: 'hidden',
-                }}
-            >
+            <Box sx={{ flex: 1, overflow: 'hidden' }}>
                 <DataGrid
                     rows={filteredRows}
                     columns={columns}
@@ -171,16 +167,15 @@ function InspectionList({ inspecteurId }) {
                     onColumnVisibilityModelChange={handleColumnVisibilityChange}
                     onColumnWidthChange={handleColumnWidthChange}
                     sx={{
-                        '& .MuiDataGrid-root': {
-                            border: 'none',
-                        },
+                        '& .MuiDataGrid-root': { border: 'none' },
                         '& .MuiDataGrid-virtualScroller': {
                             overflowY: 'auto',
                             maxHeight: 'calc(100vh - 200px)',
                         },
-                        '& .MuiDataGrid-footerContainer': {
-                            display: 'none',
-                        },
+                        '& .MuiDataGrid-footerContainer': { display: 'none' },
+                        '& .cell-eindcheck': { backgroundColor: '#FFC1CC' },
+                        '& .cell-voorinspectie': { backgroundColor: '#FFFF99' },
+                        '& .cell-tusseninspectie': { backgroundColor: '#CCFFCC' },
                     }}
                 />
             </Box>

@@ -105,15 +105,21 @@ function ActieLijst({ userId, refreshTrigger, onEditAction, filterType, searchTe
         return worker ? worker.voornaam : 'Onbekend';
     };
 
-    const filteredActions = actions.filter(action => {
-        const matchesSearch = (action.fldOmschrijving || '').toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesStatus = statusFilter === 'all' ||
-            (statusFilter === 'open' && !action.fldMActieGereed) ||
-            (statusFilter === 'gereed' && action.fldMActieGereed);
-        const matchesPriority = priorityFilter === 'all' ||
-            action.fldMPrioriteit === parseInt(priorityFilter);
-        return matchesSearch && matchesStatus && matchesPriority;
-    });
+    const filteredActions = actions
+        .filter(action => {
+            const matchesSearch = (action.fldOmschrijving || '').toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesStatus = statusFilter === 'all' ||
+                (statusFilter === 'open' && !action.fldMActieGereed) ||
+                (statusFilter === 'gereed' && action.fldMActieGereed);
+            const matchesPriority = priorityFilter === 'all' ||
+                action.fldMPrioriteit === parseInt(priorityFilter);
+            return matchesSearch && matchesStatus && matchesPriority;
+        })
+        .sort((a, b) => {
+            const dateA = new Date(a.fldMActieDatum || '9999-12-31'); // Default voor geen datum
+            const dateB = new Date(b.fldMActieDatum || '9999-12-31');
+            return dateA - dateB; // Aflopend: nieuwste datum eerst
+        });
 
     if (loading) {
         return <div>Laden...</div>;

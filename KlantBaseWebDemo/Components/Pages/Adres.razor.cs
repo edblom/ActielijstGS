@@ -79,7 +79,8 @@ namespace KlantBaseWebDemo.Components.Pages
             searchText = args.Value?.ToString();
             Console.WriteLine($"OnTextInput aangeroepen met waarde: '{searchText}'"); // Debug-logging
             FilterAdres();
-            StateHasChanged(); // Update de grid direct
+            //StateHasChanged(); // Update de grid direct
+            grid0?.Reload(); // Vernieuw de grid expliciet
         }
 
         private void FilterAdres()
