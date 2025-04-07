@@ -1,4 +1,5 @@
 using Radzen;
+using Blazored.LocalStorage;
 using KlantBaseWebDemo.Components;
 using Microsoft.EntityFrameworkCore;
 using KlantBaseWebDemo.Data;
@@ -16,6 +17,7 @@ builder.Services.AddRazorComponents()
     .AddHubOptions(options => options.MaximumReceiveMessageSize = 10 * 1024 * 1024);
 
 builder.Services.AddControllers();
+builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddRadzenComponents();
 builder.Services.AddRadzenCookieThemeService(options =>
 {

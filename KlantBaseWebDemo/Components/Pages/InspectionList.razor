@@ -1,0 +1,216 @@
+@page "/inspection-list/{InspecteurId}"
+@using Radzen.Blazor
+@using Blazored.LocalStorage
+@using Microsoft.AspNetCore.Components
+@using System.Linq.Dynamic.Core
+@using System.Text.Json
+@inject HttpClient Http
+@inject ILocalStorageService LocalStorage
+
+<h3>Inspecties voor @(InspecteurId ?? "Onbekend")</h3>
+
+<div style="display: flex; flex-direction: column; height: 100%; overflow: hidden;">
+    <div style="padding: 16px; display: flex; align-items: center; flex-shrink: 0; background-color: #f5f5f5;">
+        <span style="margin-right: 16px;">Inspecties (@filteredRows.Count())</span>
+        <RadzenTextBox @bind-Value="searchTerm" Placeholder="Zoek naar" Change="@(args => StateHasChanged())" Style="margin-right: 8px;" />
+        <RadzenButton Variant=Variant.Filled Click="@HandleShowAll" Style="margin-right: 8px;">Alles tonen</RadzenButton>
+        <RadzenButton Variant=Variant.Outlined Click="@HandleResetSettings" ButtonStyle=ButtonStyle.Secondary>Herstel</RadzenButton>
+    </div>
+    <div style="flex: 1; overflow: hidden;">
+        <RadzenDataGrid @ref="grid"
+                        Data="@filteredRows"
+                        TItem="Inspection"
+                        AllowColumnResizing="true"
+                        AllowSorting="true"
+                        AllowFiltering="false"
+                        RowRender="@(args => args.Attributes["style"] = GetRowStyle(args.Data))"
+                        Style="border: none;">
+            <Columns>
+                <RadzenDataGridColumn TItem="Inspection" Property="Project" Title="Project" Width="@(GetColumnWidth("Project", 150))" />
+                <RadzenDataGridColumn TItem="Inspection" Property="Opdracht" Title="Opdracht Nr" Width="@(GetColumnWidth("Opdracht", 120))" />
+                <RadzenDataGridColumn TItem="Inspection" Property="Adres" Title="Adres" Width="@(GetColumnWidth("Adres", 200))" />
+                <RadzenDataGridColumn TItem="Inspection" Property="Applicateur" Title="Applicateur" Width="@(GetColumnWidth("Applicateur", 120))" />
+                <RadzenDataGridColumn TItem="Inspection" Property="Soort" Title="Soort" Width="@(GetColumnWidth("Soort", 120))" />
+                <RadzenDataGridColumn TItem="Inspection" Property="Omschrijving" Title="Omschrijving" Width="@(GetColumnWidth("Omschrijving", 200))" />
+                <RadzenDataGridColumn TItem="Inspection" Property="Toegewezen" Title="Toegewezen" Width="@(GetColumnWidth("Toegewezen", 100))" />
+                <RadzenDataGridColumn TItem="Inspection" Property="DatumGereed" Title="Datum Gereed" Width="@(GetColumnWidth("DatumGereed", 150))">
+                    <Template Context="data">
+                        @(data.DatumGereed != null ? data.DatumGereed.Value.ToString("d-M-yyyy") : "")
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="Inspection" Property="Status" Title="Status" Width="@(GetColumnWidth("Status", 120))" />
+                <RadzenDataGridColumn TItem="Inspection" Property="AppointmentDateTime" Title="Afspraak" Width="@(GetColumnWidth("AppointmentDateTime", 150))">
+                    <Template Context="data">
+                        @(data.AppointmentDateTime != null ? data.AppointmentDateTime.Value.ToString("d-M-yyyy HH:mm") : "")
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="Inspection" Property="FldBedrag" Title="Bedrag" Width="@(GetColumnWidth("FldBedrag", 120))" TextAlign="TextAlign.Right">
+                    <Template Context="data">
+                        @(data.FldBedrag != null ? data.FldBedrag.Value.ToString("C", new System.Globalization.CultureInfo("nl-NL")) : "")
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+        </RadzenDataGrid>
+    </div>
+</div>
+
+@code {
+    private RadzenDataGrid<Inspection> grid;
+    private List<Inspection> rows = new List<Inspection>();
+    private bool loading = true;
+    private string searchTerm = "";
+    private string filterType = "all";
+    private Dictionary<string, int> columnWidths = new Dictionary<string, int>();
+    private bool isLocalStorageLoaded = false;
+
+    private IEnumerable<Inspection> filteredRows => rows.Where(row =>
+        row != null &&
+        (string.Join(" ", row.GetType().GetProperties().Select(p => p.GetValue(row)?.ToString() ?? ""))
+            .ToLower()
+            .Contains(searchTerm.ToLower())) &&
+        (filterType == "all" || row.Status == filterType)
+    );
+
+    [Parameter]
+    public string InspecteurId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (string.IsNullOrEmpty(InspecteurId))
+        {
+            Console.WriteLine("InspecteurId is leeg of null.");
+            return;
+        }
+
+        Console.WriteLine($"InspecteurId: {InspecteurId}");
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !isLocalStorageLoaded)
+        {
+            // Laad opgeslagen instellingen
+            var savedSettings = await LocalStorage.GetItemAsync<string>($"gridSettings_{InspecteurId}");
+            if (!string.IsNullOrEmpty(savedSettings))
+            {
+                var settings = System.Text.Json.JsonSerializer.Deserialize<GridSettings>(savedSettings);
+                columnWidths = settings?.Widths ?? new Dictionary<string, int>();
+                Console.WriteLine("Opgeslagen instellingen geladen.");
+            }
+            else
+            {
+                Console.WriteLine("Geen opgeslagen instellingen gevonden.");
+            }
+
+            isLocalStorageLoaded = true;
+
+            // Haal inspecties op
+            await LoadInspections();
+        }
+    }
+
+    private async Task LoadInspections()
+    {
+        loading = true;
+        try
+        {
+            var apiUrl = $"https://localhost:44361/api/upcominginspections?inspecteurId={InspecteurId}";
+            Console.WriteLine($"API-aanroep naar: {apiUrl}");
+
+            // Haal de ruwe JSON op
+            var response = await Http.GetAsync(apiUrl);
+            response.EnsureSuccessStatusCode();
+            var jsonString = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"Ruwe JSON-response: {jsonString}");
+
+            // Deserialiseer de JSON
+            var inspections = System.Text.Json.JsonSerializer.Deserialize<List<Inspection>>(jsonString, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+            rows = inspections ?? new List<Inspection>();
+            Console.WriteLine($"API-aanroep succesvol. Aantal inspecties: {rows.Count}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Fout bij ophalen inspecties: {ex.Message}");
+            Console.WriteLine($"Stacktrace: {ex.StackTrace}");
+        }
+        finally
+        {
+            loading = false;
+            Console.WriteLine("Loading status: " + (loading ? "true" : "false"));
+            StateHasChanged();
+        }
+    }
+
+    private void HandleShowAll()
+    {
+        filterType = "all";
+        searchTerm = "";
+        StateHasChanged();
+    }
+
+    private async Task HandleResetSettings()
+    {
+        columnWidths = new Dictionary<string, int>();
+        await LocalStorage.RemoveItemAsync($"gridSettings_{InspecteurId}");
+        StateHasChanged();
+    }
+
+    private string GetRowStyle(Inspection data)
+    {
+        var description = data.Omschrijving?.ToLower() ?? "";
+        if (description.Contains("eindcheck"))
+            return "background-color: #FFC1CC;";
+        if (description.Contains("voorinspectie"))
+            return "background-color: #FFFF99;";
+        if (description.Contains("tusseninspectie"))
+            return "background-color: #CCFFCC;";
+        return "";
+    }
+
+    private string GetColumnWidth(string field, int defaultWidth)
+    {
+        return columnWidths.ContainsKey(field) ? $"{columnWidths[field]}px" : $"{defaultWidth}px";
+    }
+
+    private async Task SaveSettings()
+    {
+        var settings = new GridSettings
+            {
+                Widths = columnWidths
+            };
+        await LocalStorage.SetItemAsync($"gridSettings_{InspecteurId}", System.Text.Json.JsonSerializer.Serialize(settings));
+    }
+
+    public class Inspection
+    {
+        public int Psid { get; set; }
+        public string Project { get; set; }
+        public string ProjectNr { get; set; }
+        public string Adres { get; set; }
+        public string Applicateur { get; set; }
+        public string FldSGG { get; set; }
+        public string Omschrijving { get; set; }
+        public string InspecteurId { get; set; }
+        public decimal? FldBedrag { get; set; }
+        public string ExtraMedewerker { get; set; }
+        public DateTime? DatumGereed { get; set; }
+        public int StatusId { get; set; }
+        public string Status { get; set; }
+        public string Opdracht { get; set; }
+        public int SoortId { get; set; }
+        public string Soort { get; set; }
+        public DateTime? Toegekend { get; set; }
+        public bool Toegewezen { get; set; }
+        public DateTime? AppointmentDateTime { get; set; }
+        public int FldOpdrachtgeverId { get; set; }
+        public int FldContactpersoonId { get; set; }
+    }
+
+    public class GridSettings
+    {
+        public Dictionary<string, int> Widths { get; set; }
+    }
+}
