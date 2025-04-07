@@ -1,6 +1,6 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { DataGrid } from '@mui/x-data-grid';
-import { TextField, Button, Box } from '@mui/material';
+import { TextField, Button, Box, Typography } from '@mui/material';
 import axios from 'axios';
 
 function InspectionList({ inspecteurId }) {
@@ -45,7 +45,6 @@ function InspectionList({ inspecteurId }) {
             valueGetter: (params) => (params ? new Date(params) : null),
             valueFormatter: (params) => (params ? params.toLocaleString('nl-NL') : ''),
         },
-        // Nieuwe kolom voor fldBedrag
         {
             field: 'fldBedrag',
             headerName: 'Bedrag',
@@ -54,7 +53,7 @@ function InspectionList({ inspecteurId }) {
             headerAlign: 'right',
             type: 'number',
             valueFormatter: (params) => {
-                const value = params; 
+                const value = params;
                 if (value == null || isNaN(Number(value))) return '';
                 return new Intl.NumberFormat('nl-NL', {
                     style: 'currency',
@@ -141,6 +140,9 @@ function InspectionList({ inspecteurId }) {
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
             <Box sx={{ p: 2, display: 'flex', alignItems: 'center', flexShrink: 0, backgroundColor: '#f5f5f5' }}>
+                <Typography variant="body1" sx={{ mr: 2 }}>
+                    Inspecties ({filteredRows.length})
+                </Typography>
                 <TextField
                     label="Zoek naar"
                     variant="outlined"
