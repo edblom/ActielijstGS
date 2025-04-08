@@ -42,34 +42,6 @@ namespace ActielijstApi
             .WithName("Login")
             .WithOpenApi();
 
-            app.MapGet("/api/werknemers", async (ApplicationDbContext context) =>
-            {
-                var workers = await context.Werknemers.ToListAsync();
-                return Results.Ok(workers);
-            })
-            .WithName("GetWerknemers")
-            .WithOpenApi();
-
-            app.MapGet("/api/werknemers/actueel", async (ApplicationDbContext context) =>
-            {
-                try
-                {
-                    var currentDate = new DateTime(2025, 4, 7); // Huidige datum (7 april 2025)
-                    var actueleWerknemers = await context.Werknemers
-                        .Where(w => w.FldDatumUitDienst == null || w.FldDatumUitDienst > currentDate)
-                        .OrderBy(w => w.Voornaam)
-                        .ToListAsync();
-
-                    return Results.Ok(actueleWerknemers);
-                }
-                catch (Exception ex)
-                {
-                    return Results.Problem(ex.Message);
-                }
-            })
-            .WithName("GetActueleWerknemers")
-            .WithOpenApi();
-
             app.MapGet("/api/actiesoorten/all", async (ApplicationDbContext context) =>
             {
                 try
@@ -176,7 +148,7 @@ namespace ActielijstApi
                 }
                 catch (Exception ex)
                 {
-                    return Results.Problem(ex.ToString());
+                    return Results.Problem(ex.ToString() ?? "Er is een onbekende fout opgetreden.");
                 }
             })
             .WithName("GetUpcomingInspections")
@@ -188,6 +160,157 @@ namespace ActielijstApi
                 // ...
             })
             .WithName("GenerateDocument")
+            .WithOpenApi();
+
+            // Nieuwe endpoint voor projectAssignments
+            app.MapGet("/api/projectAssignments", async (ApplicationDbContext context, ILogger<Program> logger,
+                int? projectId = null, int? categoryId = null, int? assignmentType = null, string? department = null,
+                int pageNumber = 1, int pageSize = 50, string? searchTerm = null, string? sortBy = null) =>
+            {
+                try
+                {
+                    var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+
+                    var queryStart = stopwatch.ElapsedMilliseconds;
+                    var query = from po in context.ProjectAssignments
+                                join sp in context.ProjectTypes on po.FldSoort equals sp.Id into spJoin
+                                from sp in spJoin.DefaultIfEmpty()
+                                join oc in context.AssignmentCategories on sp.CategorieId equals oc.Id into ocJoin
+                                from oc in ocJoin.DefaultIfEmpty()
+                                join p in context.Projecten on po.FldProjectId equals p.Id into pJoin
+                                from p in pJoin.DefaultIfEmpty()
+                                join s in context.Statuses on po.FldStatus equals s.Id into sJoin
+                                from s in sJoin.DefaultIfEmpty()
+                                join a in context.Adressen on po.FldOpdrachtgeverId equals a.Id into aJoin
+                                from a in aJoin.DefaultIfEmpty()
+                                select new ProjectAssignmentDto
+                                {
+                                    Id = po.Id,
+                                    FldProjectId = po.FldProjectId,
+                                    FldSoort = po.FldSoort,
+                                    CategoryId = sp != null ? sp.CategorieId : (int?)null,
+                                    CategoryName = oc != null ? oc.Categorie : null,
+                                    AssignmentTypeName = sp != null ? sp.Omschrijving : null,
+                                    Department = p != null ? p.FldAfdeling : null,
+                                    FldOmschrijving = po.FldOmschrijving,
+                                    FldOpdrachtStr = po.FldOpdrachtStr,
+                                    FldStatus = po.FldStatus,
+                                    StatusName = s != null ? s.StatusName : null,
+                                    FldPlanDatum = po.FldPlanDatum,
+                                    FldBedrag = po.FldBedrag,
+                                    FldKiwabedrag = po.FldKiwabedrag,
+                                    FldMaandBedrag = po.FldMaandBedrag,
+                                    FldProjectLeider = po.FldProjectLeider,
+                                    ExtraMedewerker = po.ExtraMedewerker,
+                                    FldDatumGereed = po.FldDatumGereed,
+                                    FldOpdrachtgeverId = po.FldOpdrachtgeverId,
+                                    FldContactpersoonId = po.FldContactpersoonId,
+                                    FldAantalKms = po.FldAantalKms,
+                                    FldKmvergoeding = po.FldKmvergoeding,
+                                    Fabrikant = po.Fabrikant,
+                                    Systeem = po.Systeem,
+                                    AantalM2 = p != null && p.FldAantalM2.HasValue ? p.FldAantalM2.Value.ToString() : null,
+                                    Gnummer = po.Gnummer,
+                                    Datum1eInspectie1 = po.Datum1eInspectie1,
+                                    Contractnr = po.Contractnr,
+                                    Looptijd = po.Looptijd,
+                                    EindDatumContract = po.EindDatumContract,
+                                    Factuurmaand = po.Factuurmaand,
+                                    FldCertKeuring = po.FldCertKeuring,
+                                    FldKiwaKeuringsNr = po.FldKiwaKeuringsNr,
+                                    Kortingbedrag = po.Kortingbedrag,
+                                    Kortingspercentage = po.Kortingspercentage,
+                                    AppointmentDateTime = po.AppointmentDateTime,
+                                    OpdrachtAdres = po.OpdrachtAdres,
+                                    OpdrachtHuisnr = po.OpdrachtHuisnr,
+                                    OpdrachtPC = po.OpdrachtPC,
+                                    OpdrachtPlaats = po.OpdrachtPlaats,
+                                    OpdrachtLocatie = $"{po.OpdrachtAdres ?? ""} {(po.OpdrachtHuisnr ?? "")} {(po.OpdrachtPlaats != null ? $"({po.OpdrachtPlaats})" : "")}".Trim(),
+                                    ContractBedrag = po.ContractBedrag,
+                                    ContractIndexering = po.ContractIndexering,
+                                    FldPlanPeriodeVan = po.FldPlanPeriodeVan,
+                                    FldPlanPeriodeTot = po.FldPlanPeriodeTot,
+                                    SteekproefMaand = po.SteekproefMaand,
+                                    ProjectName = p != null ? p.FldProjectNaam : null,
+                                    ProjectNumber = p != null && p.FldProjectNummer.HasValue ? p.FldProjectNummer.Value.ToString() : null, // Oplossing voor CS0029
+                                    ProjectLocation = p != null ? p.FldPlaats + " (" + p.FldAdres + ")" : null,
+                                    CustomerName = a != null ? a.Bedrijf : null,
+                                    Applicator = a != null ? a.ZOEKCODE : null,
+                                    KiwaNumber = a != null ? a.KiwaNummer : null
+                                };
+
+                    // Filters
+                    if (projectId.HasValue)
+                        query = query.Where(a => a.FldProjectId == projectId);
+                    if (categoryId.HasValue)
+                        query = query.Where(a => a.CategoryId == categoryId);
+                    if (assignmentType.HasValue)
+                        query = query.Where(a => a.FldSoort.HasValue && a.FldSoort == assignmentType);
+                    if (!string.IsNullOrEmpty(department))
+                        query = query.Where(a => a.Department == department);
+                    if (!string.IsNullOrEmpty(searchTerm))
+                    {
+                        // Maak de zoekterm lowercase voor case-insensitive vergelijking
+                        var searchTermLower = searchTerm.ToLower();
+                        query = query.Where(a =>
+                            (a.FldOmschrijving != null && a.FldOmschrijving.ToLower().Contains(searchTermLower)) ||
+                            (a.FldOpdrachtStr != null && a.FldOpdrachtStr.ToLower().Contains(searchTermLower)) ||
+                            (a.OpdrachtAdres != null && a.OpdrachtAdres.ToLower().Contains(searchTermLower)) ||
+                            (a.OpdrachtHuisnr != null && a.OpdrachtHuisnr.ToLower().Contains(searchTermLower)) || // Toegevoegd
+                            (a.OpdrachtPlaats != null && a.OpdrachtPlaats.ToLower().Contains(searchTermLower)) ||
+                            // We laten OpdrachtLocatie weg vanwege de string.Format-problemen
+                            (a.ProjectName != null && a.ProjectName.ToLower().Contains(searchTermLower)) ||
+                            (a.ProjectNumber != null && a.ProjectNumber.ToLower().Contains(searchTermLower)) ||
+                            (a.ProjectLocation != null && a.ProjectLocation.ToLower().Contains(searchTermLower)) ||
+                            (a.CustomerName != null && a.CustomerName.ToLower().Contains(searchTermLower)) ||
+                            (a.Applicator != null && a.Applicator.ToLower().Contains(searchTermLower)) ||
+                            (a.KiwaNumber != null && a.KiwaNumber.ToLower().Contains(searchTermLower))
+                        );
+                    }
+
+                    // Sortering
+                    if (!string.IsNullOrEmpty(sortBy))
+                    {
+                        query = sortBy switch
+                        {
+                            "name" => query.OrderBy(a => a.FldOmschrijving),
+                            "assignmentNumber" => query.OrderBy(a => a.FldOpdrachtStr),
+                            "status" => query.OrderBy(a => a.FldStatus.HasValue ? a.FldStatus : int.MinValue), // Null-check toegevoegd
+                            _ => query.OrderBy(a => a.Id)
+                        };
+                    }
+
+                    var countStart = stopwatch.ElapsedMilliseconds;
+                    var totalCount = await query.CountAsync();
+                    var countEnd = stopwatch.ElapsedMilliseconds;
+                    logger.LogInformation($"Count query duurde: {countEnd - countStart} ms");
+
+                    var dataStart = stopwatch.ElapsedMilliseconds;
+                    var assignments = await query
+                        .Skip((pageNumber - 1) * pageSize)
+                        .Take(pageSize)
+                        .ToListAsync();
+                    var dataEnd = stopwatch.ElapsedMilliseconds;
+                    logger.LogInformation($"Data query duurde: {dataEnd - dataStart} ms");
+
+                    if (!assignments.Any())
+                    {
+                        stopwatch.Stop();
+                        logger.LogInformation($"Totale tijd: {stopwatch.ElapsedMilliseconds} ms");
+                        return Results.NotFound("Geen opdrachten gevonden.");
+                    }
+
+                    stopwatch.Stop();
+                    logger.LogInformation($"Totale tijd: {stopwatch.ElapsedMilliseconds} ms");
+                    return Results.Ok(new { Data = assignments, TotalCount = totalCount });
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Fout bij het ophalen van projectopdrachten");
+                    return Results.Problem(ex.ToString() ?? "Er is een onbekende fout opgetreden.");
+                }
+            })
+            .WithName("GetProjectAssignments")
             .WithOpenApi();
         }
     }

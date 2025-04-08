@@ -6,7 +6,7 @@ namespace ActielijstApi.Models
     {
         public int Id { get; set; } // Primaire sleutel
         public int? Klantnum { get; set; }
-        public string? Zoekcode { get; set; }
+        public string? ZOEKCODE { get; set; }
         public string? Bedrijf { get; set; } // Voor "Bedrijf" custom property
         public string? Tav { get; set; }
         public string? Geachte { get; set; }

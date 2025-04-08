@@ -262,13 +262,13 @@
         public int StatusId { get; set; }
         public string Status { get; set; }
         public string Opdracht { get; set; }
-        public int SoortId { get; set; }
+        public int? SoortId { get; set; }
         public string Soort { get; set; }
         public DateTime? Toegekend { get; set; }
         public bool Toegewezen { get; set; }
         public DateTime? AppointmentDateTime { get; set; }
-        public int FldOpdrachtgeverId { get; set; }
-        public int FldContactpersoonId { get; set; }
+        public int? FldOpdrachtgeverId { get; set; }
+        public int? FldContactpersoonId { get; set; }
     }
 
     public class GridSettings

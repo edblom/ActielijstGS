@@ -15,13 +15,15 @@ namespace ActielijstApi.Data
         public DbSet<Inspectie> Inspecties { get; set; }
         public DbSet<AankomendeInspectie> AankomendeInspecties { get; set; }
         public DbSet<Correspondentie> Correspondentie { get; set; }
-        //public DbSet<StblCorrespondentieField> CorrespondentieFields { get; set; }
-        public DbSet<ProjectOnderdeel> ProjectOnderdelen { get; set; }
         public DbSet<Adres> Adressen { get; set; }
         public DbSet<CorrespondentieFields> CorrespondentieVelden { get; set; }
         public DbSet<StandaardDoc> StandaardDocs { get; set; }
         public DbSet<Globals> Globals { get; set; }
         public DbSet<Project> Projecten { get; set; }
+        public DbSet<ProjectAssignment> ProjectAssignments { get; set; } // Hernoemd van ProjectOnderdelen
+        public DbSet<ProjectType> ProjectTypes { get; set; }
+        public DbSet<AssignmentCategory> AssignmentCategories { get; set; }
+        public DbSet<Status> Statuses { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -58,22 +60,12 @@ namespace ActielijstApi.Data
             // Correspondentie
             modelBuilder.Entity<Correspondentie>()
                 .ToTable("correspondentie")
-                .HasKey(c => c.Id); // Alleen de sleutel hier
+                .HasKey(c => c.Id);
 
             modelBuilder.Entity<Actie>()
                 .Property(a => a.SSMA_TimeStamp)
-                .IsRowVersion() // Markeer als rowversion
-                .IsConcurrencyToken(); // Gebruik voor concurrency-controle
-
-            // StblCorrespondentieField
-            modelBuilder.Entity<StblCorrespondentieField>()
-                .ToTable("stblCorrespondentieFields")
-                .HasKey(f => f.Id);
-
-            // ProjectOnderdeel
-            modelBuilder.Entity<ProjectOnderdeel>()
-                .ToTable("tblProjectOnderdelen")
-                .HasKey(p => p.fldProjectId);
+                .IsRowVersion()
+                .IsConcurrencyToken();
 
             // Adres
             modelBuilder.Entity<Adres>()
@@ -84,6 +76,10 @@ namespace ActielijstApi.Data
                 .Property(a => a.Id).HasColumnName("ID");
             modelBuilder.Entity<Adres>()
                 .Property(a => a.Bedrijf).HasColumnName("BEDRIJF");
+            modelBuilder.Entity<Adres>()
+                .Property(a => a.ZOEKCODE).HasColumnName("ZOEKCODE"); // Toegevoegd
+            modelBuilder.Entity<Adres>()
+                .Property(a => a.KiwaNummer).HasColumnName("KiwaNummer"); // Toegevoegd
             modelBuilder.Entity<Adres>()
                 .Property(a => a.EmailAdr).HasColumnName("E-MAIL_ADR");
             modelBuilder.Entity<Adres>()
@@ -253,6 +249,179 @@ namespace ActielijstApi.Data
                 .Property(p => p.FldAfwerking).HasColumnName("fldAfwerking");
             modelBuilder.Entity<Project>()
                 .Property(p => p.FldPrevProjectId).HasColumnName("fldPrevProjectId");
+
+            // ProjectAssignment (voorheen ProjectOnderdeel)
+            modelBuilder.Entity<ProjectAssignment>()
+                .ToTable("tblProjectOnderdelen")
+                .HasKey(p => p.Id);
+
+            modelBuilder.Entity<ProjectAssignment>()
+                .Property(p => p.Id).HasColumnName("id");
+            modelBuilder.Entity<ProjectAssignment>()
+                .Property(p => p.FldOpdrachtId).HasColumnName("fldOpdrachtId");
+            modelBuilder.Entity<ProjectAssignment>()
+                .Property(p => p.FldOpdrachtNr).HasColumnName("fldOpdrachtNr");
+            modelBuilder.Entity<ProjectAssignment>()
+                .Property(p => p.FldOpdrachtStr).HasColumnName("fldOpdrachtStr");
+            modelBuilder.Entity<ProjectAssignment>()
+                .Property(p => p.FldProjectId).HasColumnName("fldProjectId");
+            modelBuilder.Entity<ProjectAssignment>()
+                .Property(p => p.FldAfdeling).HasColumnName("fldAfdeling");
+            modelBuilder.Entity<ProjectAssignment>()
+                .Property(p => p.FldSoort).HasColumnName("fldSoort");
+            modelBuilder.Entity<ProjectAssignment>()
+                .Property(p => p.FldPlanDatum).HasColumnName("fldPlanDatum");
+            modelBuilder.Entity<ProjectAssignment>()
+                .Property(p => p.FldOmschrijving).HasColumnName("fldOmschrijving");
+            modelBuilder.Entity<ProjectAssignment>()
+                .Property(p => p.FldPrijsId).HasColumnName("fldPrijsId");
+            modelBuilder.Entity<ProjectAssignment>()
+                .Property(p => p.FldVolgnr).HasColumnName("fldVolgnr");
+            modelBuilder.Entity<ProjectAssignment>()
+                .Property(p => p.FldBedrag).HasColumnName("fldBedrag");
+            modelBuilder.Entity<ProjectAssignment>()
+                .Property(p => p.FldKiwabedrag).HasColumnName("fldKiwabedrag");
+            modelBuilder.Entity<ProjectAssignment>()
+                .Property(p => p.FldMaandBedrag).HasColumnName("fldMaandBedrag");
+            modelBuilder.Entity<ProjectAssignment>()
+                .Property(p => p.FldStatus).HasColumnName("fldStatus");
+            modelBuilder.Entity<ProjectAssignment>()
+                .Property(p => p.FldGefactureerd).HasColumnName("fldGefactureerd");
+            modelBuilder.Entity<ProjectAssignment>()
+                .Property(p => p.FldFactuurRegelId).HasColumnName("fldFactuurRegelId");
+            modelBuilder.Entity<ProjectAssignment>()
+                .Property(p => p.FldProjectLeider).HasColumnName("fldProjectLeider");
+            modelBuilder.Entity<ProjectAssignment>()
+                .Property(p => p.ExtraMedewerker).HasColumnName("ExtraMedewerker");
+            modelBuilder.Entity<ProjectAssignment>()
+                .Property(p => p.FldDatumGereed).HasColumnName("fldDatumGereed");
+            modelBuilder.Entity<ProjectAssignment>()
+                .Property(p => p.FldGereedVoor).HasColumnName("fldGereedVoor");
+            modelBuilder.Entity<ProjectAssignment>()
+                .Property(p => p.FldOpdrachtgeverId).HasColumnName("fldOpdrachtgeverId");
+            modelBuilder.Entity<ProjectAssignment>()
+                .Property(p => p.FldContactpersoonId).HasColumnName("fldContactpersoonId");
+            modelBuilder.Entity<ProjectAssignment>()
+                .Property(p => p.FldAantalKms).HasColumnName("fldAantalKms");
+            modelBuilder.Entity<ProjectAssignment>()
+                .Property(p => p.FldKmvergoeding).HasColumnName("fldKmvergoeding");
+            modelBuilder.Entity<ProjectAssignment>()
+                .Property(p => p.FldFacturering).HasColumnName("fldFacturering");
+            modelBuilder.Entity<ProjectAssignment>()
+                .Property(p => p.Fabrikant).HasColumnName("Fabrikant");
+            modelBuilder.Entity<ProjectAssignment>()
+                .Property(p => p.Systeem).HasColumnName("Systeem");
+
+            modelBuilder.Entity<ProjectAssignment>()
+                .Property(p => p.Gnummer).HasColumnName("Gnummer");
+            modelBuilder.Entity<ProjectAssignment>()
+                .Property(p => p.Datum1eInspectie1).HasColumnName("Datum1eInspectie1");
+            modelBuilder.Entity<ProjectAssignment>()
+                .Property(p => p.VerwerkendBedrijf).HasColumnName("VerwerkendBedrijf");
+            modelBuilder.Entity<ProjectAssignment>()
+                .Property(p => p.SSMA_TimeStamp).HasColumnName("SSMA_TimeStamp").IsRowVersion();
+            modelBuilder.Entity<ProjectAssignment>()
+                .Property(p => p.Contractnr).HasColumnName("Contractnr");
+            modelBuilder.Entity<ProjectAssignment>()
+                .Property(p => p.Looptijd).HasColumnName("Looptijd");
+            modelBuilder.Entity<ProjectAssignment>()
+                .Property(p => p.EindDatumContract).HasColumnName("EindDatumContract");
+            modelBuilder.Entity<ProjectAssignment>()
+                .Property(p => p.Factuurmaand).HasColumnName("Factuurmaand");
+            modelBuilder.Entity<ProjectAssignment>()
+                .Property(p => p.BelStatus).HasColumnName("BelStatus");
+            modelBuilder.Entity<ProjectAssignment>()
+                .Property(p => p.BelNotitie).HasColumnName("BelNotitie");
+            modelBuilder.Entity<ProjectAssignment>()
+                .Property(p => p.BelDatum).HasColumnName("BelDatum");
+            modelBuilder.Entity<ProjectAssignment>()
+                .Property(p => p.BelStatusText).HasColumnName("BelStatusText");
+            modelBuilder.Entity<ProjectAssignment>()
+                .Property(p => p.FldCertKeuring).HasColumnName("fldCertKeuring");
+            modelBuilder.Entity<ProjectAssignment>()
+                .Property(p => p.FldKiwaKeuringsNr).HasColumnName("fldKiwaKeuringsNr");
+            modelBuilder.Entity<ProjectAssignment>()
+                .Property(p => p.KortingId).HasColumnName("KortingId");
+            modelBuilder.Entity<ProjectAssignment>()
+                .Property(p => p.Kortingomschrijving).HasColumnName("Kortingomschrijving");
+            modelBuilder.Entity<ProjectAssignment>()
+                .Property(p => p.Kortingbedrag).HasColumnName("Kortingbedrag");
+            modelBuilder.Entity<ProjectAssignment>()
+                .Property(p => p.Kortingspercentage).HasColumnName("Kortingspercentage");
+            modelBuilder.Entity<ProjectAssignment>()
+                .Property(p => p.Toegekend).HasColumnName("Toegekend");
+            modelBuilder.Entity<ProjectAssignment>()
+                .Property(p => p.AppointmentEntryID).HasColumnName("AppointmentEntryID");
+            modelBuilder.Entity<ProjectAssignment>()
+                .Property(p => p.AppointmentDateTime).HasColumnName("AppointmentDateTime");
+            modelBuilder.Entity<ProjectAssignment>()
+                .Property(p => p.OpdrachtAdres).HasColumnName("OpdrachtAdres");
+            modelBuilder.Entity<ProjectAssignment>()
+                .Property(p => p.OpdrachtHuisnr).HasColumnName("OpdrachtHuisnr");
+            modelBuilder.Entity<ProjectAssignment>()
+                .Property(p => p.OpdrachtPC).HasColumnName("OpdrachtPC");
+            modelBuilder.Entity<ProjectAssignment>()
+                .Property(p => p.OpdrachtPlaats).HasColumnName("OpdrachtPlaats");
+            modelBuilder.Entity<ProjectAssignment>()
+                .Property(p => p.ContractBedrag).HasColumnName("ContractBedrag");
+            modelBuilder.Entity<ProjectAssignment>()
+                .Property(p => p.ContractIndexering).HasColumnName("ContractIndexering");
+            modelBuilder.Entity<ProjectAssignment>()
+                .Property(p => p.FldPlanPeriodeVan).HasColumnName("fldPlanPeriodeVan");
+            modelBuilder.Entity<ProjectAssignment>()
+                .Property(p => p.FldPlanPeriodeTot).HasColumnName("fldPlanPeriodeTot");
+            modelBuilder.Entity<ProjectAssignment>()
+                .Property(p => p.FldFolder).HasColumnName("fldFolder");
+            modelBuilder.Entity<ProjectAssignment>()
+                .Property(p => p.SteekproefMaand).HasColumnName("SteekproefMaand");
+
+            // ProjectType (tblSoortProject)
+            modelBuilder.Entity<ProjectType>()
+                .ToTable("tblSoortProject")
+                .HasKey(pt => pt.Id);
+
+            modelBuilder.Entity<ProjectType>()
+                .Property(pt => pt.Id).HasColumnName("Id");
+            modelBuilder.Entity<ProjectType>()
+                .Property(pt => pt.Omschrijving).HasColumnName("Omschrijving");
+            modelBuilder.Entity<ProjectType>()
+                .Property(pt => pt.Soort).HasColumnName("Soort");
+            modelBuilder.Entity<ProjectType>()
+                .Property(pt => pt.Categorie).HasColumnName("categorie");
+            modelBuilder.Entity<ProjectType>()
+                .Property(pt => pt.Tabel).HasColumnName("tabel");
+            modelBuilder.Entity<ProjectType>()
+                .Property(pt => pt.TabelSoort).HasColumnName("tabelSoort");
+            modelBuilder.Entity<ProjectType>()
+                .Property(pt => pt.Facturering).HasColumnName("facturering");
+            modelBuilder.Entity<ProjectType>()
+                .Property(pt => pt.OpEenRegel).HasColumnName("OpEenRegel");
+            modelBuilder.Entity<ProjectType>()
+                .Property(pt => pt.CategorieId).HasColumnName("CategorieId");
+            modelBuilder.Entity<ProjectType>()
+                .Property(pt => pt.SSMA_TimeStamp).HasColumnName("SSMA_TimeStamp").IsRowVersion();
+
+            // AssignmentCategory (stblOpdrachtCategorie)
+            modelBuilder.Entity<AssignmentCategory>()
+                .ToTable("stblOpdrachtCategorie")
+                .HasKey(ac => ac.Id);
+
+            modelBuilder.Entity<AssignmentCategory>()
+                .Property(ac => ac.Id).HasColumnName("id");
+            modelBuilder.Entity<AssignmentCategory>()
+                .Property(ac => ac.Categorie).HasColumnName("Categorie");
+            modelBuilder.Entity<AssignmentCategory>()
+                .Property(ac => ac.Volgorde).HasColumnName("Volgorde");
+
+            // Status (stblStatus)
+            modelBuilder.Entity<Status>()
+                .ToTable("stblStatus")
+                .HasKey(s => s.Id);
+
+            modelBuilder.Entity<Status>()
+                .Property(s => s.Id).HasColumnName("id");
+            modelBuilder.Entity<Status>()
+                .Property(s => s.StatusName).HasColumnName("status"); // Aangepast
         }
     }
 }

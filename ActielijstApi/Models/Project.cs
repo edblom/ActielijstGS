@@ -31,7 +31,7 @@ namespace ActielijstApi.Models
         public int? FldAantalM2 { get; set; } // fldAantalM2 (int)
         public string? FldKiWa { get; set; } // fldKiWa (nvarchar(50))
         public bool FldKiwaCert { get; set; } // fldKiwaCert (bit, DEFAULT 0)
-        public byte[] SSMA_TimeStamp { get; set; } // SSMA_TimeStamp (timestamp)
+        public byte[]? SSMA_TimeStamp { get; set; } // SSMA_TimeStamp (timestamp)
         public string? FldAfwerking { get; set; } // fldAfwerking (nvarchar(50))
         public int? FldPrevProjectId { get; set; } // fldPrevProjectId (int)
     }
