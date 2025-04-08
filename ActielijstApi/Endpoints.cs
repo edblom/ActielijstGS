@@ -165,7 +165,7 @@ namespace ActielijstApi
             // Nieuwe endpoint voor projectAssignments
             app.MapGet("/api/projectAssignments", async (ApplicationDbContext context, ILogger<Program> logger,
                 int? projectId = null, int? categoryId = null, int? assignmentType = null, string? department = null,
-                int pageNumber = 1, int pageSize = 50, string? searchTerm = null, string? sortBy = null) =>
+                int pageNumber = 1, int pageSize = 50, string? searchTerm = null, string? sortBy = null, string? sortDirection = "asc") =>
             {
                 try
                 {
@@ -232,7 +232,7 @@ namespace ActielijstApi
                                     FldPlanPeriodeTot = po.FldPlanPeriodeTot,
                                     SteekproefMaand = po.SteekproefMaand,
                                     ProjectName = p != null ? p.FldProjectNaam : null,
-                                    ProjectNumber = p != null && p.FldProjectNummer.HasValue ? p.FldProjectNummer.Value.ToString() : null, // Oplossing voor CS0029
+                                    ProjectNumber = p != null && p.FldProjectNummer.HasValue ? p.FldProjectNummer.Value.ToString() : null,
                                     ProjectLocation = p != null ? p.FldPlaats + " (" + p.FldAdres + ")" : null,
                                     CustomerName = a != null ? a.Bedrijf : null,
                                     Applicator = a != null ? a.ZOEKCODE : null,
@@ -250,18 +250,16 @@ namespace ActielijstApi
                         query = query.Where(a => a.Department == department);
                     if (!string.IsNullOrEmpty(searchTerm))
                     {
-                        // Maak de zoekterm lowercase voor case-insensitive vergelijking
                         var searchTermLower = searchTerm.ToLower();
                         query = query.Where(a =>
                             (a.FldOmschrijving != null && a.FldOmschrijving.ToLower().Contains(searchTermLower)) ||
                             (a.FldOpdrachtStr != null && a.FldOpdrachtStr.ToLower().Contains(searchTermLower)) ||
                             (a.OpdrachtAdres != null && a.OpdrachtAdres.ToLower().Contains(searchTermLower)) ||
-                            (a.OpdrachtHuisnr != null && a.OpdrachtHuisnr.ToLower().Contains(searchTermLower)) || // Toegevoegd
+                            (a.OpdrachtHuisnr != null && a.OpdrachtHuisnr.ToLower().Contains(searchTermLower)) ||
                             (a.OpdrachtPlaats != null && a.OpdrachtPlaats.ToLower().Contains(searchTermLower)) ||
-                            // We laten OpdrachtLocatie weg vanwege de string.Format-problemen
                             (a.ProjectName != null && a.ProjectName.ToLower().Contains(searchTermLower)) ||
                             (a.ProjectNumber != null && a.ProjectNumber.ToLower().Contains(searchTermLower)) ||
-                            (a.ProjectLocation != null && a.ProjectLocation.ToLower().Contains(searchTermLower)) ||
+                            // We laten ProjectLocation weg vanwege de CS0103-fout
                             (a.CustomerName != null && a.CustomerName.ToLower().Contains(searchTermLower)) ||
                             (a.Applicator != null && a.Applicator.ToLower().Contains(searchTermLower)) ||
                             (a.KiwaNumber != null && a.KiwaNumber.ToLower().Contains(searchTermLower))
@@ -271,12 +269,33 @@ namespace ActielijstApi
                     // Sortering
                     if (!string.IsNullOrEmpty(sortBy))
                     {
-                        query = sortBy switch
+                        bool isDescending = sortDirection?.ToLower() == "desc";
+                        query = sortBy.ToLower() switch
                         {
-                            "name" => query.OrderBy(a => a.FldOmschrijving),
-                            "assignmentNumber" => query.OrderBy(a => a.FldOpdrachtStr),
-                            "status" => query.OrderBy(a => a.FldStatus.HasValue ? a.FldStatus : int.MinValue), // Null-check toegevoegd
-                            _ => query.OrderBy(a => a.Id)
+                            "name" => isDescending
+                                ? query.OrderByDescending(a => a.FldOmschrijving)
+                                : query.OrderBy(a => a.FldOmschrijving),
+                            "assignmentnumber" => isDescending
+                                ? query.OrderByDescending(a => a.FldOpdrachtStr)
+                                : query.OrderBy(a => a.FldOpdrachtStr),
+                            "status" => isDescending
+                                ? query.OrderByDescending(a => a.FldStatus.HasValue ? a.FldStatus : int.MinValue)
+                                : query.OrderBy(a => a.FldStatus.HasValue ? a.FldStatus : int.MinValue),
+                            "projectleider" => isDescending
+                                ? query.OrderByDescending(a => a.FldProjectLeider ?? "")
+                                : query.OrderBy(a => a.FldProjectLeider ?? ""),
+                            "extramedewerker" => isDescending
+                                ? query.OrderByDescending(a => a.ExtraMedewerker ?? "")
+                                : query.OrderBy(a => a.ExtraMedewerker ?? ""),
+                            "aanmaakdatum" => isDescending
+                                ? query.OrderByDescending(a => a.FldPlanDatum.HasValue ? a.FldPlanDatum : DateTime.MinValue)
+                                : query.OrderBy(a => a.FldPlanDatum.HasValue ? a.FldPlanDatum : DateTime.MinValue),
+                            "gereeddatum" => isDescending
+                                ? query.OrderByDescending(a => a.FldDatumGereed.HasValue ? a.FldDatumGereed : DateTime.MinValue)
+                                : query.OrderBy(a => a.FldDatumGereed.HasValue ? a.FldDatumGereed : DateTime.MinValue),
+                            _ => isDescending
+                                ? query.OrderByDescending(a => a.Id)
+                                : query.OrderBy(a => a.Id)
                         };
                     }
 
