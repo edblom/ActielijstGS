@@ -1,12 +1,15 @@
 ﻿using ActielijstApi.Models;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Microsoft.EntityFrameworkCore;
 
 namespace ActielijstApi.Data
 {
     public class ApplicationDbContext : DbContext
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
+
+        public DbSet<AssignmentListDefinition> AssignmentListDefinitions { get; set; }
+        public DbSet<AssignmentFieldConfig> AssignmentFieldConfigs { get; set; }
 
         public DbSet<Actie> Acties { get; set; }
         public DbSet<Werknemer> Werknemers { get; set; }
@@ -20,13 +23,17 @@ namespace ActielijstApi.Data
         public DbSet<StandaardDoc> StandaardDocs { get; set; }
         public DbSet<Globals> Globals { get; set; }
         public DbSet<Project> Projecten { get; set; }
-        public DbSet<ProjectAssignment> ProjectAssignments { get; set; } // Hernoemd van ProjectOnderdelen
+        public DbSet<ProjectAssignment> ProjectAssignments { get; set; }
         public DbSet<ProjectType> ProjectTypes { get; set; }
         public DbSet<AssignmentCategory> AssignmentCategories { get; set; }
         public DbSet<Status> Statuses { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            // Forceer de tabelnamen naar enkelvoud
+            modelBuilder.Entity<AssignmentListDefinition>().ToTable("AssignmentListDefinition");
+            modelBuilder.Entity<AssignmentFieldConfig>().ToTable("AssignmentFieldConfig");
+
             // Actie
             modelBuilder.Entity<Actie>()
                 .ToTable("tblMemo", "dbo")
@@ -77,13 +84,13 @@ namespace ActielijstApi.Data
             modelBuilder.Entity<Adres>()
                 .Property(a => a.Bedrijf).HasColumnName("BEDRIJF");
             modelBuilder.Entity<Adres>()
-                .Property(a => a.ZOEKCODE).HasColumnName("ZOEKCODE"); // Toegevoegd
+                .Property(a => a.ZOEKCODE).HasColumnName("ZOEKCODE");
             modelBuilder.Entity<Adres>()
-                .Property(a => a.KiwaNummer).HasColumnName("KiwaNummer"); // Toegevoegd
+                .Property(a => a.KiwaNummer).HasColumnName("KiwaNummer");
             modelBuilder.Entity<Adres>()
                 .Property(a => a.EmailAdr).HasColumnName("E-MAIL_ADR");
             modelBuilder.Entity<Adres>()
-                .Property(a => a.SsmaTimeStamp).IsRowVersion();
+                .Property(a => a.SSMA_TimeStamp).HasColumnName("SSMA_TimeStamp").IsRowVersion();
 
             // CorrespondentieFields
             modelBuilder.Entity<CorrespondentieFields>()
@@ -185,9 +192,9 @@ namespace ActielijstApi.Data
                 .Property(g => g.DisplayMailVoorVerzenden).HasColumnName("DisplayMailVoorVerzenden");
 
             // Project
-            modelBuilder.Entity<Project>()
-                .ToTable("tblprojecten")
-                .HasKey(p => p.Id);
+            //modelBuilder.Entity<Project>()
+            //    .ToTable("tblprojecten")
+            //    .HasKey(p => p.Id);
 
             modelBuilder.Entity<Project>()
                 .Property(p => p.Id).HasColumnName("id");
@@ -311,7 +318,6 @@ namespace ActielijstApi.Data
                 .Property(p => p.Fabrikant).HasColumnName("Fabrikant");
             modelBuilder.Entity<ProjectAssignment>()
                 .Property(p => p.Systeem).HasColumnName("Systeem");
-
             modelBuilder.Entity<ProjectAssignment>()
                 .Property(p => p.Gnummer).HasColumnName("Gnummer");
             modelBuilder.Entity<ProjectAssignment>()
@@ -386,8 +392,7 @@ namespace ActielijstApi.Data
                 .Property(pt => pt.Omschrijving).HasColumnName("Omschrijving");
             modelBuilder.Entity<ProjectType>()
                 .Property(pt => pt.Soort).HasColumnName("Soort");
-            modelBuilder.Entity<ProjectType>()
-                .Property(pt => pt.Categorie).HasColumnName("categorie");
+
             modelBuilder.Entity<ProjectType>()
                 .Property(pt => pt.Tabel).HasColumnName("tabel");
             modelBuilder.Entity<ProjectType>()
@@ -400,6 +405,12 @@ namespace ActielijstApi.Data
                 .Property(pt => pt.CategorieId).HasColumnName("CategorieId");
             modelBuilder.Entity<ProjectType>()
                 .Property(pt => pt.SSMA_TimeStamp).HasColumnName("SSMA_TimeStamp").IsRowVersion();
+
+            // Define the relationship
+            modelBuilder.Entity<ProjectType>()
+                .HasOne(pt => pt.RelatedCategory)
+                .WithMany()
+                .HasForeignKey(pt => pt.CategorieId);
 
             // AssignmentCategory (stblOpdrachtCategorie)
             modelBuilder.Entity<AssignmentCategory>()
@@ -421,7 +432,34 @@ namespace ActielijstApi.Data
             modelBuilder.Entity<Status>()
                 .Property(s => s.Id).HasColumnName("id");
             modelBuilder.Entity<Status>()
-                .Property(s => s.StatusName).HasColumnName("status"); // Aangepast
+                .Property(s => s.StatusName).HasColumnName("status");
+
+            // Relaties
+            modelBuilder.Entity<ProjectAssignment>()
+                .HasOne(pa => pa.Project)
+                .WithMany()
+                .HasForeignKey(pa => pa.FldProjectId);
+
+            modelBuilder.Entity<ProjectAssignment>()
+                .HasOne(pa => pa.Status)
+                .WithMany()
+                .HasForeignKey(pa => pa.FldStatus);
+
+            modelBuilder.Entity<ProjectAssignment>()
+                .HasOne(pa => pa.Customer)
+                .WithMany()
+                .HasForeignKey(pa => pa.FldOpdrachtgeverId);
+
+            modelBuilder.Entity<Project>()
+                .HasOne(p => p.VerwerkendBedrijf)
+                .WithMany()
+                .HasForeignKey(p => p.FldVerwerkendBedrijf);
+
+            modelBuilder.Entity<ProjectAssignment>()
+                .HasOne(pa => pa.ProjectType)
+                .WithMany()
+                .HasForeignKey(pa => pa.FldSoort);
+
         }
     }
 }

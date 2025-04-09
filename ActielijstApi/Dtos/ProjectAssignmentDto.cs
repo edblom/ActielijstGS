@@ -6,14 +6,14 @@ namespace ActielijstApi.Dtos
     {
         public int Id { get; set; }
         public int FldProjectId { get; set; }
-        public int? FldSoort { get; set; } // Nullable gemaakt
+        public int? FldSoort { get; set; }
         public int? CategoryId { get; set; }
         public string? CategoryName { get; set; }
         public string? AssignmentTypeName { get; set; }
         public string? Department { get; set; }
         public string? FldOmschrijving { get; set; }
         public string? FldOpdrachtStr { get; set; }
-        public int? FldStatus { get; set; } // Nullable gemaakt
+        public int? FldStatus { get; set; } // int?, consistent met ProjectAssignment
         public string? StatusName { get; set; }
         public DateTime? FldPlanDatum { get; set; }
         public decimal? FldBedrag { get; set; }
@@ -28,7 +28,7 @@ namespace ActielijstApi.Dtos
         public decimal? FldKmvergoeding { get; set; }
         public string? Fabrikant { get; set; }
         public string? Systeem { get; set; }
-        public string? AantalM2 { get; set; }
+        public int? AantalM2 { get; set; } // string, consistent met Project
         public string? Gnummer { get; set; }
         public DateTime? Datum1eInspectie1 { get; set; }
         public string? Contractnr { get; set; }
@@ -51,10 +51,11 @@ namespace ActielijstApi.Dtos
         public DateTime? FldPlanPeriodeTot { get; set; }
         public string? SteekproefMaand { get; set; }
         public string? ProjectName { get; set; }
-        public string? ProjectNumber { get; set; }
+        public string? ProjectNumber { get; set; } // string, consistent met Project
         public string? ProjectLocation { get; set; }
         public string? CustomerName { get; set; }
         public string? Applicator { get; set; }
         public string? KiwaNumber { get; set; }
+        public string? BelNotitie { get; set; }
     }
 }

@@ -1,0 +1,12 @@
+@hostname=localhost
+@port=44361
+@host={{hostname}}:{{port}}
+
+
+GET https://{{host}}/api/genericList?listName=KIWA%20Inspecties&pageNumber=1&pageSize=50
+
+
+###
+GET https://{{host}}/api/genericList?listName=KIWA%20Inspecties&pageNumber=3&pageSize=50
+
+###

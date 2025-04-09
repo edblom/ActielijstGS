@@ -10,13 +10,17 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using System;
+using System.Diagnostics;
 using System.IO;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Voeg DbContext toe
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
+    .EnableSensitiveDataLogging()
+    .EnableDetailedErrors()
+    .LogTo(log => Debug.WriteLine(log),LogLevel.Information));
 
 // Voeg SmtpSettings toe
 builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("SmtpSettings"));

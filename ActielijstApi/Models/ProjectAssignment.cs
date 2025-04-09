@@ -63,32 +63,11 @@ namespace ActielijstApi.Models
         public DateTime? FldPlanPeriodeTot { get; set; }
         public string? FldFolder { get; set; }
         public string? SteekproefMaand { get; set; }
-    }
 
-    public class ProjectType
-    {
-        public int Id { get; set; }
-        public string? Omschrijving { get; set; }
-        public string? Soort { get; set; }
-        public string? Categorie { get; set; }
-        public string? Tabel { get; set; }
-        public string? TabelSoort { get; set; }
-        public int Facturering { get; set; }
-        public int OpEenRegel { get; set; }
-        public int CategorieId { get; set; }
-        public byte[]? SSMA_TimeStamp { get; set; }
-    }
-
-    public class AssignmentCategory
-    {
-        public int Id { get; set; }
-        public string? Categorie { get; set; }
-        public int Volgorde { get; set; }
-    }
-
-    public class Status
-    {
-        public int Id { get; set; }
-        public string? StatusName { get; set; }
+        // Navigatie-eigenschappen
+        public Project? Project { get; set; }
+        public Status? Status { get; set; }
+        public Adres? Customer { get; set; }
+        public ProjectType? ProjectType { get; set; }
     }
 }

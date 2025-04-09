@@ -1,0 +1,5 @@
+﻿@ActielijstApi_HostAddress = https://localhost:44361
+
+GET {{ActielijstApi_HostAddress}}/api/actiesoorten/all
+
+###
