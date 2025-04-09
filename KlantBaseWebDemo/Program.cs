@@ -32,6 +32,13 @@ builder.Services.AddHttpClient("KlantBaseApi", client =>
     client.DefaultRequestHeaders.Add("Accept", "application/json");
 });
 
+// Configureer HttpClient voor ActielijstApi
+builder.Services.AddHttpClient("ActielijstApi", client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["ActielijstApiUrl"] ?? "https://localhost:7142/");
+    client.DefaultRequestHeaders.Add("Accept", "application/json");
+});
+
 // Bestaande services
 builder.Services.AddScoped<KlantBaseWebDemo.KlantBaseService>();
 builder.Services.AddDbContext<KlantBaseWebDemo.Data.KlantBaseContext>(options =>

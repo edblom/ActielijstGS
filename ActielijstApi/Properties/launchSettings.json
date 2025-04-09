@@ -1,29 +1,14 @@
 {
   "profiles": {
-    "IIS Express": {
-      "commandName": "IISExpress",
-      "launchBrowser": true,
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      }
-    },
     "ActielijstApi": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "swagger", // Leeg, want Swagger staat op de root
+      "launchUrl": "", // Leeg, want Swagger staat op de root
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
       "dotnetRunMessages": true,
-      "applicationUrl": "https://localhost:44361;http://localhost:5000"
-    }
-  },
-  "iisSettings": {
-    "windowsAuthentication": false,
-    "anonymousAuthentication": true,
-    "iisExpress": {
-      "applicationUrl": "http://localhost:41095",
-      "sslPort": 44361
+      "applicationUrl": "https://localhost:44361"
     }
   }
 }

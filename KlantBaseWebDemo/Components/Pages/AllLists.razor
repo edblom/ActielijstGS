@@ -1,0 +1,66 @@
+@using KlantBaseWebDemo.Models
+@using Microsoft.AspNetCore.WebUtilities
+
+@page "/all-lists"
+@inject IHttpClientFactory HttpClientFactory
+@inject NavigationManager Navigation
+
+<h3>Alle Lijsten</h3>
+
+<div class="row mb-3">
+    <div class="col-md-4">
+        <RadzenLabel Text="Selecteer een lijst" />
+        <RadzenDropDown @bind-Value="selectedListName" Data="@availableLists" TextProperty="ListName" 
+                        ValueProperty="ListName" Change="@OnListChanged" Placeholder="Kies een lijst" Style="width: 100%;">
+            <Template Context="item">
+                <span title="@item.Description">@item.ListName</span>
+            </Template>
+        </RadzenDropDown>
+    </div>
+</div>
+
+@if (!string.IsNullOrEmpty(selectedListName))
+{
+        <GenericList ListName="@selectedListName" />
+}
+
+@code {
+    private string selectedListName = null;
+    private IEnumerable<AssignmentListDto> availableLists = new List<AssignmentListDto>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var httpClient = HttpClientFactory.CreateClient("ActielijstApi");
+
+        try
+        {
+            availableLists = await httpClient.GetFromJsonAsync<IEnumerable<AssignmentListDto>>("/api/assignmentLists");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Fout bij het ophalen van lijsten: {ex.Message}");
+            availableLists = new List<AssignmentListDto>();
+        }
+
+        string listNameFromUrl = null;
+        if (Navigation.Uri.Contains("?"))
+        {
+            var query = QueryHelpers.ParseQuery(new Uri(Navigation.Uri).Query);
+            if (query.TryGetValue("listName", out var listNameValue))
+            {
+                listNameFromUrl = listNameValue.ToString();
+            }
+        }
+
+        selectedListName = !string.IsNullOrEmpty(listNameFromUrl) && availableLists.Any(l => l.ListName == listNameFromUrl)
+            ? listNameFromUrl
+            : availableLists.FirstOrDefault()?.ListName;
+    }
+
+    private async Task OnListChanged(object value)
+    {
+        selectedListName = value as string;
+        Navigation.NavigateTo($"/all-lists?listName={Uri.EscapeDataString(selectedListName ?? "")}", forceLoad: false);
+        StateHasChanged();
+    }
+}

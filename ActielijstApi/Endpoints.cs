@@ -274,10 +274,10 @@ namespace ActielijstApi
                 // Dynamische response
                 var result = assignments.Select(pa =>
                 {
-                    var dict = new Dictionary<string, object>();
+                    var dict = new Dictionary<string, object?>();
                     foreach (var field in config)
                     {
-                        object value;
+                        object? value;
                         switch (field.FieldName.ToLower())
                         {
                             case "applicator":
@@ -310,7 +310,7 @@ namespace ActielijstApi
                                 break;
                         }
 
-                        dict[field.FieldName] = value ?? DBNull.Value;
+                        dict[field.FieldName] = value;
 
                         if (!string.IsNullOrEmpty(field.BackgroundColorRule))
                         {

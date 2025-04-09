@@ -12,6 +12,9 @@ using Microsoft.OpenApi.Models;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Text.Json.Serialization;
+using System.Text.Json;
+using Microsoft.AspNetCore.Http.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -52,6 +55,10 @@ builder.Services.AddScoped<CorrespondenceService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<GlobalsService>();
 builder.Services.AddScoped<IActieService, ActieService>();
+
+// Optioneel: als je Swagger gebruikt
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
 // Voeg CORS toe
 builder.Services.AddCors(options =>

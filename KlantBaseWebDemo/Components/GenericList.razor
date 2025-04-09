@@ -1,0 +1,84 @@
+﻿@using KlantBaseWebDemo.Models
+
+@inject IHttpClientFactory HttpClientFactory
+
+<RadzenDataGrid Data="@assignments" TItem="Dictionary<string, object>" Count="@totalCount"
+                LoadData="@LoadData" AllowSorting="true" AllowFiltering="true" AllowPaging="true"
+                PageSize="@PageSize" PagerHorizontalAlign="HorizontalAlign.Center"
+                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive">
+    <Columns>
+        @foreach (var field in fields)
+        {
+            <RadzenDataGridColumn TItem="Dictionary<string, object>" Property="@field.FieldName"
+                                  Title="@field.Prompt" Sortable="@field.IsSortable" Filterable="@field.IsFilterable"
+                                  FormatString="@field.FormatString" Width="@(field.Width != null ? $"{field.Width}px" : null)">
+                <Template Context="data">
+                    <span style="@(data.ContainsKey($"{field.FieldName}_BackgroundColor") ? $"background-color: {data[$"{field.FieldName}_BackgroundColor"]}; padding: 2px;" : "")">
+                        @(data[field.FieldName])
+                    </span>
+                </Template>
+            </RadzenDataGridColumn>
+        }
+    </Columns>
+</RadzenDataGrid>
+
+@code {
+    [Parameter] public string ListName { get; set; }
+    [Parameter] public int? ProjectId { get; set; }
+    [Parameter] public int? CustomerId { get; set; }
+    [Parameter] public int PageSize { get; set; } = 50;
+
+    private IEnumerable<Dictionary<string, object>> assignments = new List<Dictionary<string, object>>();
+    private int totalCount;
+    private int pageNumber = 1;
+    private FieldConfigDto[] fields = Array.Empty<FieldConfigDto>();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadData(new LoadDataArgs { Skip = 0, Top = PageSize });
+    }
+
+    private async Task LoadData(LoadDataArgs args)
+    {
+        if (string.IsNullOrEmpty(ListName)) return;
+
+        var httpClient = HttpClientFactory.CreateClient("ActielijstApi");
+
+        var query = $"/api/genericList?listName={Uri.EscapeDataString(ListName)}" +
+                    $"&pageNumber={(args.Skip / PageSize) + 1}&pageSize={PageSize}";
+        if (ProjectId.HasValue) query += $"&projectId={ProjectId.Value}";
+        if (CustomerId.HasValue) query += $"&customerId={CustomerId.Value}";
+        if (!string.IsNullOrEmpty(args.OrderBy)) query += $"&sortBy={args.OrderBy}";
+        if (args.Filters?.Any() == true) query += $"&searchTerm={Uri.EscapeDataString(args.Filters.First().FilterValue.ToString())}";
+
+        try
+        {
+            var response = await httpClient.GetFromJsonAsync<GenericListResponse>(query);
+            if (response != null)
+            {
+                assignments = response.Data;
+                totalCount = response.TotalCount;
+                fields = response.Fields?.ToArray() ?? Array.Empty<FieldConfigDto>();
+                pageNumber = response.PageNumber;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Fout bij ophalen data: {ex.Message}");
+            assignments = new List<Dictionary<string, object>>();
+            totalCount = 0;
+            fields = Array.Empty<FieldConfigDto>();
+        }
+        StateHasChanged();
+    }
+
+    public class GenericListResponse
+    {
+        public int TotalCount { get; set; }
+        public int PageNumber { get; set; }
+        public int PageSize { get; set; }
+        public string ListName { get; set; }
+        public IEnumerable<Dictionary<string, object>> Data { get; set; }
+        public IEnumerable<FieldConfigDto> Fields { get; set; }
+    }
+}
