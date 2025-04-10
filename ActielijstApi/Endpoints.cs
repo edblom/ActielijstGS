@@ -3,6 +3,7 @@ using ActielijstApi.Dtos;
 using ActielijstApi.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
@@ -177,9 +178,9 @@ namespace ActielijstApi
             .WithOpenApi();
 
             app.MapGet("/api/genericList", async (ApplicationDbContext context, ILogger<Program> logger, HttpContext httpContext,
-                string listName, int? projectId = null, int pageNumber = 1, int pageSize = 50, string? searchTerm = null, string? sortBy = null) =>
+                string listName, int? projectId = null, int? customerId = null, int pageNumber = 1, int pageSize = 50, string? sortBy = null) =>
             {
-                logger.LogInformation("Fetching generic list for listName={ListName}, projectId={ProjectId}", listName, projectId);
+                logger.LogInformation("Fetching generic list for listName={ListName}, projectId={ProjectId}, customerId={CustomerId}", listName, projectId, customerId);
 
                 // Validatie
                 if (string.IsNullOrEmpty(listName)) return Results.BadRequest("listName is verplicht!");
@@ -200,15 +201,9 @@ namespace ActielijstApi
 
                 if (!config.Any()) return Results.BadRequest($"Geen zichtbare velden voor lijst '{listName}' en rol '{userRole}'!");
 
-                // Valideer veldnamen
-                var validFields = typeof(ProjectAssignmentDto).GetProperties().Select(p => p.Name).ToHashSet();
-                var invalidFields = config.Where(c => !validFields.Contains(c.FieldName)).Select(c => c.FieldName).ToList();
-                if (invalidFields.Any()) return Results.BadRequest($"Ongeldige veldnamen: {string.Join(", ", invalidFields)}");
-
                 // Query bouwen met joins
                 var query = context.ProjectAssignments
                     .Include(pa => pa.Project)
-                        .ThenInclude(p => p.VerwerkendBedrijf)
                     .Include(pa => pa.Status)
                     .Include(pa => pa.Customer)
                     .Include(pa => pa.ProjectType)
@@ -221,36 +216,172 @@ namespace ActielijstApi
 
                 // Extra filters
                 if (projectId.HasValue) query = query.Where(pa => pa.FldProjectId == projectId);
-                if (!string.IsNullOrEmpty(searchTerm))
+                if (customerId.HasValue) query = query.Where(pa => pa.FldOpdrachtgeverId == customerId);
+
+                // Filteren per kolom (handmatig parsen van queryparameters)
+                var filter = new Dictionary<string, string>();
+                foreach (var key in httpContext.Request.Query.Keys)
                 {
-                    query = query.Where(pa => config.Where(c => c.IsFilterable)
-                        .Any(c =>
-                            (c.FieldName == "Applicator" && pa.Project != null && pa.Project.VerwerkendBedrijf != null && pa.Project.VerwerkendBedrijf.ZOEKCODE != null && pa.Project.VerwerkendBedrijf.ZOEKCODE.Contains(searchTerm)) ||
-                            (c.FieldName == "StatusName" && pa.Status != null && pa.Status.StatusName != null && pa.Status.StatusName.Contains(searchTerm)) ||
-                            (c.FieldName == "ProjectName" && pa.Project != null && pa.Project.FldProjectNaam != null && pa.Project.FldProjectNaam.Contains(searchTerm)) ||
-                            (c.FieldName == "ProjectLocation" && pa.Project != null && pa.Project.FldPlaats != null && (pa.Project.FldPlaats + " (" + pa.Project.FldAdres + ")").Contains(searchTerm)) ||
-                            (c.FieldName == "CustomerName" && pa.Customer != null && pa.Customer.Bedrijf != null && pa.Customer.Bedrijf.Contains(searchTerm)) ||
-                            (c.FieldName == "OpdrachtLocatie" && (pa.OpdrachtAdres + " " + pa.OpdrachtHuisnr + " (" + pa.OpdrachtPlaats + ")").Contains(searchTerm)) ||
-                            (EF.Property<string>(pa, c.FieldName) != null && EF.Property<string>(pa, c.FieldName).Contains(searchTerm))
-                        ));
+                    if (key.StartsWith("filter[") && key.EndsWith("]"))
+                    {
+                        var fieldName = key.Substring(7, key.Length - 8); // Verwijdert "filter[" en "]"
+                        var value = httpContext.Request.Query[key].ToString();
+                        if (!string.IsNullOrEmpty(value))
+                        {
+                            filter[fieldName] = value;
+                        }
+                    }
                 }
+
+                if (filter.Any())
+                {
+                    foreach (var f in filter)
+                    {
+                        var fieldName = f.Key;
+                        var filterValue = f.Value?.ToLower();
+                        if (!string.IsNullOrEmpty(filterValue) && config.Any(c => c.FieldName == fieldName && c.IsFilterable))
+                        {
+                            switch (fieldName)
+                            {
+                                case "Id":
+                                    if (int.TryParse(filterValue, out var id))
+                                        query = query.Where(pa => pa.Id == id);
+                                    break;
+                                case "FldOpdrachtStr":
+                                    query = query.Where(pa => pa.FldOpdrachtStr != null && pa.FldOpdrachtStr.ToLower().Contains(filterValue));
+                                    break;
+                                case "AantalM2":
+                                    if (int.TryParse(filterValue, out var aantalM2))
+                                        query = query.Where(pa => pa.Project != null && pa.Project.FldAantalM2 == aantalM2);
+                                    break;
+                                case "FldCertKeuring":
+                                    if (bool.TryParse(filterValue, out var certKeuring))
+                                        query = query.Where(pa => pa.FldCertKeuring == certKeuring);
+                                    break;
+                                case "OpdrachtLocatie":
+                                    query = query.Where(pa => pa.OpdrachtPlaats != null && (pa.OpdrachtPlaats + " (" + pa.OpdrachtAdres + ")").ToLower().Contains(filterValue));
+                                    break;
+                                case "Applicator":
+                                    query = query.Where(pa => pa.Project != null && pa.Project.FldFabrikant != null && pa.Project.FldFabrikant.ToLower().Contains(filterValue));
+                                    break;
+                                case "FldPlanDatum":
+                                    if (DateTime.TryParse(filterValue, out var planDatum))
+                                        query = query.Where(pa => pa.FldPlanDatum != null && pa.FldPlanDatum == planDatum);
+                                    break;
+                                case "KiwaNumber":
+                                    query = query.Where(pa => pa.Project != null && pa.Project.FldKiWa != null && pa.Project.FldKiWa.ToLower().Contains(filterValue));
+                                    break;
+                                case "StatusName":
+                                    query = query.Where(pa => pa.Status != null && pa.Status.StatusName != null && pa.Status.StatusName.ToLower().Contains(filterValue));
+                                    break;
+                                case "FldDatumGereed":
+                                    if (DateTime.TryParse(filterValue, out var datumGereed))
+                                        query = query.Where(pa => pa.FldDatumGereed != null && pa.FldDatumGereed == datumGereed);
+                                    break;
+                                case "BelNotitie":
+                                    query = query.Where(pa => pa.BelNotitie != null && pa.BelNotitie.ToLower().Contains(filterValue));
+                                    break;
+                                case "FldProjectLeider":
+                                    query = query.Where(pa => pa.FldProjectLeider != null && pa.FldProjectLeider.ToLower().Contains(filterValue));
+                                    break;
+                                case "ExtraMedewerker":
+                                    query = query.Where(pa => pa.ExtraMedewerker != null && pa.ExtraMedewerker.ToLower().Contains(filterValue));
+                                    break;
+                                case "FldKiwaKeuringsNr":
+                                    if (int.TryParse(filterValue, out var kiwaKeuringsNr))
+                                        query = query.Where(pa => pa.FldKiwaKeuringsNr == kiwaKeuringsNr);
+                                    break;
+                            }
+                        }
+                    }
+                }
+
+                // Totaal aantal items
+                var totalCount = await query.CountAsync();
 
                 // Sortering
                 if (!string.IsNullOrEmpty(sortBy))
                 {
-                    var sortField = config.FirstOrDefault(c => c.FieldName.ToLower() == sortBy.ToLower() && c.IsSortable);
-                    if (sortField != null)
+                    var sortField = sortBy.Split(' ')[0];
+                    var sortDirection = sortBy.EndsWith(" desc") ? "desc" : "asc";
+                    if (config.Any(f => f.FieldName == sortField && f.IsSortable))
                     {
-                        query = sortField.FieldName.ToLower() switch
+                        switch (sortField)
                         {
-                            "applicator" => query.OrderBy(pa => pa.Project != null && pa.Project.VerwerkendBedrijf != null ? pa.Project.VerwerkendBedrijf.ZOEKCODE : ""),
-                            "statusname" => query.OrderBy(pa => pa.Status != null ? pa.Status.StatusName : ""),
-                            "projectname" => query.OrderBy(pa => pa.Project != null ? pa.Project.FldProjectNaam : ""),
-                            "projectlocation" => query.OrderBy(pa => pa.Project != null ? pa.Project.FldPlaats + " (" + pa.Project.FldAdres + ")" : ""),
-                            "customname" => query.OrderBy(pa => pa.Customer != null ? pa.Customer.Bedrijf : ""),
-                            "opdrachtlocatie" => query.OrderBy(pa => pa.OpdrachtAdres + " " + pa.OpdrachtHuisnr + " (" + pa.OpdrachtPlaats + ")"),
-                            _ => query.OrderBy(pa => EF.Property<object>(pa, sortField.FieldName))
-                        };
+                            case "Id":
+                                query = sortDirection == "desc" ?
+                                    query.OrderByDescending(pa => pa.Id) :
+                                    query.OrderBy(pa => pa.Id);
+                                break;
+                            case "FldOpdrachtStr":
+                                query = sortDirection == "desc" ?
+                                    query.OrderByDescending(pa => pa.FldOpdrachtStr) :
+                                    query.OrderBy(pa => pa.FldOpdrachtStr);
+                                break;
+                            case "AantalM2":
+                                query = sortDirection == "desc" ?
+                                    query.OrderByDescending(pa => pa.Project != null ? pa.Project.FldAantalM2 : null) :
+                                    query.OrderBy(pa => pa.Project != null ? pa.Project.FldAantalM2 : null);
+                                break;
+                            case "FldCertKeuring":
+                                query = sortDirection == "desc" ?
+                                    query.OrderByDescending(pa => pa.FldCertKeuring) :
+                                    query.OrderBy(pa => pa.FldCertKeuring);
+                                break;
+                            case "OpdrachtLocatie":
+                                query = sortDirection == "desc" ?
+                                    query.OrderByDescending(pa => pa.OpdrachtPlaats != null ? pa.OpdrachtPlaats + " (" + pa.OpdrachtAdres + ")" : null) :
+                                    query.OrderBy(pa => pa.OpdrachtPlaats != null ? pa.OpdrachtPlaats + " (" + pa.OpdrachtAdres + ")" : null);
+                                break;
+                            case "Applicator":
+                                query = sortDirection == "desc" ?
+                                    query.OrderByDescending(pa => pa.Project != null ? pa.Project.FldFabrikant : null) :
+                                    query.OrderBy(pa => pa.Project != null ? pa.Project.FldFabrikant : null);
+                                break;
+                            case "FldPlanDatum":
+                                query = sortDirection == "desc" ?
+                                    query.OrderByDescending(pa => pa.FldPlanDatum) :
+                                    query.OrderBy(pa => pa.FldPlanDatum);
+                                break;
+                            case "KiwaNumber":
+                                query = sortDirection == "desc" ?
+                                    query.OrderByDescending(pa => pa.Project != null ? pa.Project.FldKiWa : null) :
+                                    query.OrderBy(pa => pa.Project != null ? pa.Project.FldKiWa : null);
+                                break;
+                            case "StatusName":
+                                query = sortDirection == "desc" ?
+                                    query.OrderByDescending(pa => pa.Status != null ? pa.Status.StatusName : null) :
+                                    query.OrderBy(pa => pa.Status != null ? pa.Status.StatusName : null);
+                                break;
+                            case "FldDatumGereed":
+                                query = sortDirection == "desc" ?
+                                    query.OrderByDescending(pa => pa.FldDatumGereed) :
+                                    query.OrderBy(pa => pa.FldDatumGereed);
+                                break;
+                            case "BelNotitie":
+                                query = sortDirection == "desc" ?
+                                    query.OrderByDescending(pa => pa.BelNotitie) :
+                                    query.OrderBy(pa => pa.BelNotitie);
+                                break;
+                            case "FldProjectLeider":
+                                query = sortDirection == "desc" ?
+                                    query.OrderByDescending(pa => pa.FldProjectLeider) :
+                                    query.OrderBy(pa => pa.FldProjectLeider);
+                                break;
+                            case "ExtraMedewerker":
+                                query = sortDirection == "desc" ?
+                                    query.OrderByDescending(pa => pa.ExtraMedewerker) :
+                                    query.OrderBy(pa => pa.ExtraMedewerker);
+                                break;
+                            case "FldKiwaKeuringsNr":
+                                query = sortDirection == "desc" ?
+                                    query.OrderByDescending(pa => pa.FldKiwaKeuringsNr) :
+                                    query.OrderBy(pa => pa.FldKiwaKeuringsNr);
+                                break;
+                            default:
+                                query = query.OrderBy(pa => pa.Id);
+                                break;
+                        }
                     }
                     else
                     {
@@ -262,65 +393,40 @@ namespace ActielijstApi
                     query = query.OrderBy(pa => pa.Id);
                 }
 
-                // Totaal aantal items
-                var totalCount = await query.CountAsync();
-
                 // Paginering
                 var assignments = await query
                     .Skip((pageNumber - 1) * pageSize)
                     .Take(pageSize)
+                    .Select(pa => new Dictionary<string, object>
+                    {
+            { "Id", pa.Id },
+            { "FldOpdrachtStr", pa.FldOpdrachtStr },
+            { "AantalM2", pa.Project != null ? pa.Project.FldAantalM2 : null },
+            { "FldCertKeuring", pa.FldCertKeuring },
+            { "OpdrachtLocatie", pa.OpdrachtPlaats != null ? $"{pa.OpdrachtPlaats} ({pa.OpdrachtAdres})" : null },
+            { "Applicator", pa.Project != null ? pa.Project.FldFabrikant : null },
+            { "FldPlanDatum", pa.FldPlanDatum },
+            { "KiwaNumber", pa.Project != null ? pa.Project.FldKiWa : null },
+            { "StatusName", pa.Status != null ? pa.Status.StatusName : null },
+            { "FldDatumGereed", pa.FldDatumGereed },
+            { "BelNotitie", pa.BelNotitie },
+            { "FldProjectLeider", pa.FldProjectLeider },
+            { "ExtraMedewerker", pa.ExtraMedewerker },
+            { "FldKiwaKeuringsNr", pa.FldKiwaKeuringsNr }
+                    })
                     .ToListAsync();
 
-                // Dynamische response
-                var result = assignments.Select(pa =>
+                // Pas achtergrondkleur toe op basis van BackgroundColorRule
+                foreach (var assignment in assignments)
                 {
-                    var dict = new Dictionary<string, object?>();
-                    foreach (var field in config)
+                    foreach (var field in config.Where(f => !string.IsNullOrEmpty(f.BackgroundColorRule)))
                     {
-                        object? value;
-                        switch (field.FieldName.ToLower())
+                        if (field.BackgroundColorRule == "FldStatus == 1" && assignment["FldStatus"]?.ToString() == "1")
                         {
-                            case "applicator":
-                                value = pa.Project?.VerwerkendBedrijf?.ZOEKCODE;
-                                break;
-                            case "statusname":
-                                value = pa.Status?.StatusName;
-                                break;
-                            case "projectname":
-                                value = pa.Project?.FldProjectNaam;
-                                break;
-                            case "projectnumber":
-                                value = pa.Project?.FldProjectNummer;
-                                break;
-                            case "projectlocation":
-                                value = pa.Project != null ? $"{pa.Project.FldPlaats} ({pa.Project.FldAdres})" : null;
-                                break;
-                            case "customname":
-                                value = pa.Customer?.Bedrijf;
-                                break;
-                            case "opdrachtlocatie":
-                                value = $"{pa.OpdrachtAdres ?? ""} {pa.OpdrachtHuisnr ?? ""} {(pa.OpdrachtPlaats != null ? $"({pa.OpdrachtPlaats})" : "")}".Trim();
-                                break;
-                            case "kiwanumber":
-                                value = pa.Customer?.KiwaNummer;
-                                break;
-                            default:
-                                var property = typeof(ProjectAssignment).GetProperty(field.FieldName);
-                                value = property?.GetValue(pa);
-                                break;
-                        }
-
-                        dict[field.FieldName] = value;
-
-                        if (!string.IsNullOrEmpty(field.BackgroundColorRule))
-                        {
-                            var color = EvaluateBackgroundColor(field.BackgroundColorRule, pa, field.FieldName);
-                            if (!string.IsNullOrEmpty(color))
-                                dict[$"{field.FieldName}_BackgroundColor"] = color;
+                            assignment[$"{field.FieldName}_BackgroundColor"] = "lightcoral";
                         }
                     }
-                    return dict;
-                }).ToList();
+                }
 
                 return Results.Ok(new
                 {
@@ -328,7 +434,7 @@ namespace ActielijstApi
                     pageNumber,
                     pageSize,
                     listName,
-                    data = result,
+                    data = assignments,
                     fields = config.Select(c => new
                     {
                         c.FieldName,

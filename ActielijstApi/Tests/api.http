@@ -10,3 +10,9 @@ GET https://{{host}}/api/genericList?listName=KIWA%20Inspecties&pageNumber=1&pag
 GET https://{{host}}/api/genericList?listName=KIWA%20Inspecties&pageNumber=3&pageSize=50
 
 ###
+# Sorteer op Opdrachtlocatie aflopend
+https://localhost:44361/api/genericList?listName=KIWA%20INspecties&pageNmber=1&pageSize=50&sortBy=OpdrachtLocatie%20desc
+
+###
+# Sorteer op Opdrachtlocatie oplopend
+https://localhost:44361/api/genericList?listName=KIWA%20INspecties&pageNumber=1&pageSize=50&sortBy=OpdrachtLocatie

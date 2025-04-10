@@ -1,6 +1,7 @@
 ﻿@using KlantBaseWebDemo.Models
 
 @inject IHttpClientFactory HttpClientFactory
+@inject ILogger<GenericList> Logger
 
 <RadzenDataGrid Data="@assignments" TItem="Dictionary<string, object>" Count="@totalCount"
                 LoadData="@LoadData" AllowSorting="true" AllowFiltering="true" AllowPaging="true"
@@ -9,15 +10,15 @@
     <Columns>
         @foreach (var field in fields)
         {
-            <RadzenDataGridColumn TItem="Dictionary<string, object>" Property="@field.FieldName"
-                                  Title="@field.Prompt" Sortable="@field.IsSortable" Filterable="@field.IsFilterable"
-                                  FormatString="@field.FormatString" Width="@(field.Width != null ? $"{field.Width}px" : null)">
-                <Template Context="data">
-                    <span style="@(data.ContainsKey($"{field.FieldName}_BackgroundColor") ? $"background-color: {data[$"{field.FieldName}_BackgroundColor"]}; padding: 2px;" : "")">
+                <RadzenDataGridColumn TItem="Dictionary<string, object>" Property="@field.FieldName"
+                                      Title="@field.Prompt" Sortable="@field.IsSortable" Filterable="@field.IsFilterable"
+                                      FormatString="@field.FormatString" Width="@(field.Width != null ? $"{field.Width}px" : null)">
+                    <Template Context="data">
+                        <span style="@(data.ContainsKey($"{field.FieldName}_BackgroundColor") ? $"background-color: {data[$"{field.FieldName}_BackgroundColor"]}; padding: 2px;" : "")">
                         @(data[field.FieldName])
-                    </span>
-                </Template>
-            </RadzenDataGridColumn>
+                        </span>
+                    </Template>
+                </RadzenDataGridColumn>
         }
     </Columns>
 </RadzenDataGrid>
@@ -35,12 +36,17 @@
 
     protected override async Task OnParametersSetAsync()
     {
+        Logger.LogInformation($"OnParametersSetAsync called with ListName={ListName}, ProjectId={ProjectId}, CustomerId={CustomerId}, PageSize={PageSize}");
         await LoadData(new LoadDataArgs { Skip = 0, Top = PageSize });
     }
 
     private async Task LoadData(LoadDataArgs args)
     {
-        if (string.IsNullOrEmpty(ListName)) return;
+        if (string.IsNullOrEmpty(ListName))
+        {
+            Logger.LogWarning("ListName is empty, returning.");
+            return;
+        }
 
         var httpClient = HttpClientFactory.CreateClient("ActielijstApi");
 
@@ -49,26 +55,44 @@
         if (ProjectId.HasValue) query += $"&projectId={ProjectId.Value}";
         if (CustomerId.HasValue) query += $"&customerId={CustomerId.Value}";
         if (!string.IsNullOrEmpty(args.OrderBy)) query += $"&sortBy={args.OrderBy}";
-        if (args.Filters?.Any() == true) query += $"&searchTerm={Uri.EscapeDataString(args.Filters.First().FilterValue.ToString())}";
+        if (args.Filters?.Any() == true)
+        {
+            foreach (var filter in args.Filters)
+            {
+                query += $"&filter[{filter.Property}]={Uri.EscapeDataString(filter.FilterValue?.ToString() ?? "")}";
+            }
+        }
+
+        Logger.LogInformation($"Calling API with query: {query}");
 
         try
         {
             var response = await httpClient.GetFromJsonAsync<GenericListResponse>(query);
             if (response != null)
             {
+                Logger.LogInformation($"Received response: TotalCount={response.TotalCount}, PageNumber={response.PageNumber}, DataCount={response.Data?.Count() ?? 0}, FieldsCount={response.Fields?.Count() ?? 0}");
                 assignments = response.Data;
                 totalCount = response.TotalCount;
                 fields = response.Fields?.ToArray() ?? Array.Empty<FieldConfigDto>();
                 pageNumber = response.PageNumber;
             }
+            else
+            {
+                Logger.LogWarning("API response was null.");
+                assignments = new List<Dictionary<string, object>>();
+                totalCount = 0;
+                fields = Array.Empty<FieldConfigDto>();
+            }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Fout bij ophalen data: {ex.Message}");
+            Logger.LogError(ex, "Fout bij ophalen data");
             assignments = new List<Dictionary<string, object>>();
             totalCount = 0;
             fields = Array.Empty<FieldConfigDto>();
         }
+
+        Logger.LogInformation($"Assignments count after load: {assignments.Count()}");
         StateHasChanged();
     }
 
