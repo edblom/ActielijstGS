@@ -1,19 +1,49 @@
-﻿namespace ActielijstApi.Models
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace ActielijstApi.Models
 {
+    [Table("tblStandaardDoc", Schema = "dbo")]
     public class StandaardDoc
     {
-        public int DocId { get; set; } // doc_id
-        public string? NaamDoc { get; set; } // fldNaamDoc
-        public string? PathDoc { get; set; } // fldPathDoc
-        public string? DocOmschrijving { get; set; } // fldDocOmschrijving
-        public int? DocNum { get; set; } // fldDocNum
-        public string? DocSavePath { get; set; } // fldDocSavePath
-        public bool ProjectMap { get; set; } // fldProjectMap
-        public string? DocPrefix { get; set; } // fldDocPrefix
-        public int? Soort { get; set; } // fldSoort
-        public int? PrijsId { get; set; } // fldPrijsId
-        public string? EmailSjabloon { get; set; } // fldEmailSjabloon
-        public string? EmailAan { get; set; } // fldEmailAan
-        public string? EmailSubject { get; set; } // fldEmailSubject
+        [Key]
+        [Column("doc_id")]
+        public int DocId { get; set; }
+
+        [Column("fldNaamDoc")]
+        public string? NaamDoc { get; set; }
+
+        [Column("fldPathDoc")]
+        public string? PathDoc { get; set; }
+
+        [Column("fldDocOmschrijving")]
+        public string? DocOmschrijving { get; set; }
+
+        [Column("fldDocNum")]
+        public int? DocNum { get; set; }
+
+        [Column("fldDocSavePath")]
+        public string? DocSavePath { get; set; }
+
+        [Column("fldProjectMap")]
+        public bool ProjectMap { get; set; }
+
+        [Column("fldDocPrefix")]
+        public string? DocPrefix { get; set; }
+
+        [Column("fldSoort")]
+        public int? Soort { get; set; }
+
+        [Column("fldPrijsId")]
+        public int? PrijsId { get; set; }
+
+        [Column("fldEmailSjabloon")]
+        public string? EmailSjabloon { get; set; }
+
+        [Column("fldEmailAan")]
+        public string? EmailAan { get; set; }
+
+        [Column("fldEmailSubject")]
+        public string? EmailSubject { get; set; }
     }
 }

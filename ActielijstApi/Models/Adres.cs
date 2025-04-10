@@ -1,12 +1,23 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
 
 namespace ActielijstApi.Models
 {
+    [Table("adres")]
     public class Adres
     {
+        [Key]
+        [Column("ID")]
         public int Id { get; set; } // Primaire sleutel
+
+        [Column("Klantnum")]
         public int? Klantnum { get; set; }
+
+        [Column("ZOEKCODE")]
         public string? ZOEKCODE { get; set; }
+
+        [Column("BEDRIJF")]
         public string? Bedrijf { get; set; } // Voor "Bedrijf" custom property
         //public string? Tav { get; set; }
         //public string? Geachte { get; set; }
@@ -24,6 +35,7 @@ namespace ActielijstApi.Models
         //public string? Categorie { get; set; }
         //public string? Omschr { get; set; }
         //public string? HardSoft { get; set; }
+        [Column("E-MAIL_ADR")]
         public string? EmailAdr { get; set; } // Voor "BedrijfEmail" custom property
         //public string? Opmerkingen { get; set; }
         //public int? Cursistnr { get; set; }
@@ -57,6 +69,7 @@ namespace ActielijstApi.Models
         //public string? Partner { get; set; }
         //public string? NrSgg { get; set; }
         //public string? Deelnemer { get; set; }
+        [Column("KiwaNummer")]
         public string? KiwaNummer { get; set; }
         //public string? KomOhouder { get; set; }
         //public int? OldId { get; set; }
@@ -65,6 +78,8 @@ namespace ActielijstApi.Models
         //public string? EmailAanmaning { get; set; }
         //public int? KiwaContactId { get; set; }
         //public string? MeldSoort { get; set; }
+        [Column("SSMA_TimeStamp")]
+        [Timestamp]
         public byte[]? SSMA_TimeStamp { get; set; } // Timestamp voor concurrency
     }
 }

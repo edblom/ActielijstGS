@@ -1,9 +1,29 @@
-﻿public class AssignmentListDefinition
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace ActielijstApi.Models
 {
-    public int Id { get; set; }
-    public required string ListName { get; set; }
-    public int? CategorieId { get; set; }
-    public string? FldAfdeling { get; set; }
-    public string? Description { get; set; }
-    public int SortOrder { get; set; }
+    [Table("AssignmentListDefinition")]
+    public class AssignmentListDefinition
+    {
+        [Key]
+        [Column("Id")]
+        public int Id { get; set; }
+
+        [Required]
+        [Column("ListName")]
+        public string ListName { get; set; }
+
+        [Column("CategorieId")]
+        public int? CategorieId { get; set; }
+
+        [Column("FldAfdeling")]
+        public string? FldAfdeling { get; set; }
+
+        [Column("Description")]
+        public string? Description { get; set; }
+
+        [Column("SortOrder")]
+        public int SortOrder { get; set; }
+    }
 }

@@ -1,20 +1,45 @@
-﻿using ActielijstApi.Models;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-public class ProjectType
+namespace ActielijstApi.Models
 {
-    public int Id { get; set; }
-    public string? Omschrijving { get; set; }
-    public string? Soort { get; set; }
-    [Column("categorie")]
-    public string? CategorieName { get; set; }
-    public string? Tabel { get; set; }
-    public string? TabelSoort { get; set; }
-    public int? Facturering { get; set; }
-    public bool? OpEenRegel { get; set; }
-    public int CategorieId { get; set; }
-    public byte[]? SSMA_TimeStamp { get; set; }
+    [Table("tblSoortProject", Schema = "dbo")]
+    public class ProjectType
+    {
+        [Key]
+        [Column("Id")]
+        public int Id { get; set; }
 
-    // Hernoemd naar een unieke naam
-    public AssignmentCategory? RelatedCategory { get; set; }
+        [Column("Omschrijving")]
+        public string? Omschrijving { get; set; }
+
+        [Column("Soort")]
+        public string? Soort { get; set; }
+
+        [Column("categorie")]
+        public string? CategorieName { get; set; }
+
+        [Column("tabel")]
+        public string? Tabel { get; set; }
+
+        [Column("tabelSoort")]
+        public string? TabelSoort { get; set; }
+
+        [Column("facturering")]
+        public int? Facturering { get; set; }
+
+        [Column("OpEenRegel")]
+        public bool? OpEenRegel { get; set; }
+
+        [Column("CategorieId")]
+        public int CategorieId { get; set; }
+
+        [Column("SSMA_TimeStamp")]
+        [Timestamp]
+        public byte[]? SSMA_TimeStamp { get; set; }
+
+        // Navigatie-eigenschap
+        [ForeignKey("CategorieId")]
+        public AssignmentCategory? RelatedCategory { get; set; }
+    }
 }
