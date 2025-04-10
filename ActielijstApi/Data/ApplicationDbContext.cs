@@ -1,6 +1,6 @@
 ﻿using ActielijstApi.Models;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace ActielijstApi.Data
 {
@@ -10,7 +10,6 @@ namespace ActielijstApi.Data
 
         public DbSet<AssignmentListDefinition> AssignmentListDefinitions { get; set; }
         public DbSet<AssignmentFieldConfig> AssignmentFieldConfigs { get; set; }
-
         public DbSet<Actie> Acties { get; set; }
         public DbSet<Werknemer> Werknemers { get; set; }
         public DbSet<ActieSoort> ActieSoorten { get; set; }
@@ -33,11 +32,6 @@ namespace ActielijstApi.Data
             // Forceer de tabelnamen naar enkelvoud
             modelBuilder.Entity<AssignmentListDefinition>().ToTable("AssignmentListDefinition");
             modelBuilder.Entity<AssignmentFieldConfig>().ToTable("AssignmentFieldConfig");
-
-            // Actie
-            modelBuilder.Entity<Actie>()
-                .ToTable("tblMemo", "dbo")
-                .HasKey(m => m.FldMid);
 
             // Werknemer
             modelBuilder.Entity<Werknemer>()
@@ -68,11 +62,6 @@ namespace ActielijstApi.Data
             modelBuilder.Entity<Correspondentie>()
                 .ToTable("correspondentie")
                 .HasKey(c => c.Id);
-
-            modelBuilder.Entity<Actie>()
-                .Property(a => a.SSMA_TimeStamp)
-                .IsRowVersion()
-                .IsConcurrencyToken();
 
             // Adres
             modelBuilder.Entity<Adres>()
@@ -191,197 +180,7 @@ namespace ActielijstApi.Data
             modelBuilder.Entity<Globals>()
                 .Property(g => g.DisplayMailVoorVerzenden).HasColumnName("DisplayMailVoorVerzenden");
 
-            // Project
-            //modelBuilder.Entity<Project>()
-            //    .ToTable("tblprojecten")
-            //    .HasKey(p => p.Id);
-
-            modelBuilder.Entity<Project>()
-                .Property(p => p.Id).HasColumnName("id");
-            modelBuilder.Entity<Project>()
-                .Property(p => p.FldProjectNummer).HasColumnName("fldProjectNummer");
-            modelBuilder.Entity<Project>()
-                .Property(p => p.FldExternNummer).HasColumnName("fldExternNummer");
-            modelBuilder.Entity<Project>()
-                .Property(p => p.FldExternNummer2).HasColumnName("fldExternNummer2");
-            modelBuilder.Entity<Project>()
-                .Property(p => p.FldProjectNaam).HasColumnName("fldProjectNaam");
-            modelBuilder.Entity<Project>()
-                .Property(p => p.FldAfdeling).HasColumnName("fldAfdeling");
-            modelBuilder.Entity<Project>()
-                .Property(p => p.FldJaar).HasColumnName("fldjaar");
-            modelBuilder.Entity<Project>()
-                .Property(p => p.FldDatum).HasColumnName("fldDatum");
-            modelBuilder.Entity<Project>()
-                .Property(p => p.FldAdres).HasColumnName("fldAdres");
-            modelBuilder.Entity<Project>()
-                .Property(p => p.FldPC).HasColumnName("fldPC");
-            modelBuilder.Entity<Project>()
-                .Property(p => p.FldPlaats).HasColumnName("fldPlaats");
-            modelBuilder.Entity<Project>()
-                .Property(p => p.FldSoort).HasColumnName("fldSoort");
-            modelBuilder.Entity<Project>()
-                .Property(p => p.FldActie).HasColumnName("fldActie");
-            modelBuilder.Entity<Project>()
-                .Property(p => p.FldIntracNr).HasColumnName("fldIntracNr");
-            modelBuilder.Entity<Project>()
-                .Property(p => p.FldSGG).HasColumnName("fldSGG");
-            modelBuilder.Entity<Project>()
-                .Property(p => p.FldEPA).HasColumnName("fldEPA");
-            modelBuilder.Entity<Project>()
-                .Property(p => p.FldOpdrachtgeverId).HasColumnName("fldOpdrachtgeverId");
-            modelBuilder.Entity<Project>()
-                .Property(p => p.FldOpdrachtgever).HasColumnName("fldOpdrachtgever");
-            modelBuilder.Entity<Project>()
-                .Property(p => p.FldStatus).HasColumnName("fldStatus");
-            modelBuilder.Entity<Project>()
-                .Property(p => p.FldFolder).HasColumnName("fldFolder");
-            modelBuilder.Entity<Project>()
-                .Property(p => p.FldArchiefMap).HasColumnName("fldArchiefMap");
-            modelBuilder.Entity<Project>()
-                .Property(p => p.FldVerwerkendBedrijf).HasColumnName("fldVerwerkendBedrijf");
-            modelBuilder.Entity<Project>()
-                .Property(p => p.FldFabrikant).HasColumnName("fldFabrikant");
-            modelBuilder.Entity<Project>()
-                .Property(p => p.FldSysteem).HasColumnName("fldSysteem");
-            modelBuilder.Entity<Project>()
-                .Property(p => p.FldAantalM2).HasColumnName("fldAantalM2");
-            modelBuilder.Entity<Project>()
-                .Property(p => p.FldKiWa).HasColumnName("fldKiWa");
-            modelBuilder.Entity<Project>()
-                .Property(p => p.FldKiwaCert).HasColumnName("fldKiwaCert");
-            modelBuilder.Entity<Project>()
-                .Property(p => p.SSMA_TimeStamp).HasColumnName("SSMA_TimeStamp").IsRowVersion();
-            modelBuilder.Entity<Project>()
-                .Property(p => p.FldAfwerking).HasColumnName("fldAfwerking");
-            modelBuilder.Entity<Project>()
-                .Property(p => p.FldPrevProjectId).HasColumnName("fldPrevProjectId");
-
-            // ProjectAssignment (voorheen ProjectOnderdeel)
-            modelBuilder.Entity<ProjectAssignment>()
-                .ToTable("tblProjectOnderdelen")
-                .HasKey(p => p.Id);
-
-            modelBuilder.Entity<ProjectAssignment>()
-                .Property(p => p.Id).HasColumnName("id");
-            modelBuilder.Entity<ProjectAssignment>()
-                .Property(p => p.FldOpdrachtId).HasColumnName("fldOpdrachtId");
-            modelBuilder.Entity<ProjectAssignment>()
-                .Property(p => p.FldOpdrachtNr).HasColumnName("fldOpdrachtNr");
-            modelBuilder.Entity<ProjectAssignment>()
-                .Property(p => p.FldOpdrachtStr).HasColumnName("fldOpdrachtStr");
-            modelBuilder.Entity<ProjectAssignment>()
-                .Property(p => p.FldProjectId).HasColumnName("fldProjectId");
-            modelBuilder.Entity<ProjectAssignment>()
-                .Property(p => p.FldAfdeling).HasColumnName("fldAfdeling");
-            modelBuilder.Entity<ProjectAssignment>()
-                .Property(p => p.FldSoort).HasColumnName("fldSoort");
-            modelBuilder.Entity<ProjectAssignment>()
-                .Property(p => p.FldPlanDatum).HasColumnName("fldPlanDatum");
-            modelBuilder.Entity<ProjectAssignment>()
-                .Property(p => p.FldOmschrijving).HasColumnName("fldOmschrijving");
-            modelBuilder.Entity<ProjectAssignment>()
-                .Property(p => p.FldPrijsId).HasColumnName("fldPrijsId");
-            modelBuilder.Entity<ProjectAssignment>()
-                .Property(p => p.FldVolgnr).HasColumnName("fldVolgnr");
-            modelBuilder.Entity<ProjectAssignment>()
-                .Property(p => p.FldBedrag).HasColumnName("fldBedrag");
-            modelBuilder.Entity<ProjectAssignment>()
-                .Property(p => p.FldKiwabedrag).HasColumnName("fldKiwabedrag");
-            modelBuilder.Entity<ProjectAssignment>()
-                .Property(p => p.FldMaandBedrag).HasColumnName("fldMaandBedrag");
-            modelBuilder.Entity<ProjectAssignment>()
-                .Property(p => p.FldStatus).HasColumnName("fldStatus");
-            modelBuilder.Entity<ProjectAssignment>()
-                .Property(p => p.FldGefactureerd).HasColumnName("fldGefactureerd");
-            modelBuilder.Entity<ProjectAssignment>()
-                .Property(p => p.FldFactuurRegelId).HasColumnName("fldFactuurRegelId");
-            modelBuilder.Entity<ProjectAssignment>()
-                .Property(p => p.FldProjectLeider).HasColumnName("fldProjectLeider");
-            modelBuilder.Entity<ProjectAssignment>()
-                .Property(p => p.ExtraMedewerker).HasColumnName("ExtraMedewerker");
-            modelBuilder.Entity<ProjectAssignment>()
-                .Property(p => p.FldDatumGereed).HasColumnName("fldDatumGereed");
-            modelBuilder.Entity<ProjectAssignment>()
-                .Property(p => p.FldGereedVoor).HasColumnName("fldGereedVoor");
-            modelBuilder.Entity<ProjectAssignment>()
-                .Property(p => p.FldOpdrachtgeverId).HasColumnName("fldOpdrachtgeverId");
-            modelBuilder.Entity<ProjectAssignment>()
-                .Property(p => p.FldContactpersoonId).HasColumnName("fldContactpersoonId");
-            modelBuilder.Entity<ProjectAssignment>()
-                .Property(p => p.FldAantalKms).HasColumnName("fldAantalKms");
-            modelBuilder.Entity<ProjectAssignment>()
-                .Property(p => p.FldKmvergoeding).HasColumnName("fldKmvergoeding");
-            modelBuilder.Entity<ProjectAssignment>()
-                .Property(p => p.FldFacturering).HasColumnName("fldFacturering");
-            modelBuilder.Entity<ProjectAssignment>()
-                .Property(p => p.Fabrikant).HasColumnName("Fabrikant");
-            modelBuilder.Entity<ProjectAssignment>()
-                .Property(p => p.Systeem).HasColumnName("Systeem");
-            modelBuilder.Entity<ProjectAssignment>()
-                .Property(p => p.Gnummer).HasColumnName("Gnummer");
-            modelBuilder.Entity<ProjectAssignment>()
-                .Property(p => p.Datum1eInspectie1).HasColumnName("Datum1eInspectie1");
-            modelBuilder.Entity<ProjectAssignment>()
-                .Property(p => p.VerwerkendBedrijf).HasColumnName("VerwerkendBedrijf");
-            modelBuilder.Entity<ProjectAssignment>()
-                .Property(p => p.SSMA_TimeStamp).HasColumnName("SSMA_TimeStamp").IsRowVersion();
-            modelBuilder.Entity<ProjectAssignment>()
-                .Property(p => p.Contractnr).HasColumnName("Contractnr");
-            modelBuilder.Entity<ProjectAssignment>()
-                .Property(p => p.Looptijd).HasColumnName("Looptijd");
-            modelBuilder.Entity<ProjectAssignment>()
-                .Property(p => p.EindDatumContract).HasColumnName("EindDatumContract");
-            modelBuilder.Entity<ProjectAssignment>()
-                .Property(p => p.Factuurmaand).HasColumnName("Factuurmaand");
-            modelBuilder.Entity<ProjectAssignment>()
-                .Property(p => p.BelStatus).HasColumnName("BelStatus");
-            modelBuilder.Entity<ProjectAssignment>()
-                .Property(p => p.BelNotitie).HasColumnName("BelNotitie");
-            modelBuilder.Entity<ProjectAssignment>()
-                .Property(p => p.BelDatum).HasColumnName("BelDatum");
-            modelBuilder.Entity<ProjectAssignment>()
-                .Property(p => p.BelStatusText).HasColumnName("BelStatusText");
-            modelBuilder.Entity<ProjectAssignment>()
-                .Property(p => p.FldCertKeuring).HasColumnName("fldCertKeuring");
-            modelBuilder.Entity<ProjectAssignment>()
-                .Property(p => p.FldKiwaKeuringsNr).HasColumnName("fldKiwaKeuringsNr");
-            modelBuilder.Entity<ProjectAssignment>()
-                .Property(p => p.KortingId).HasColumnName("KortingId");
-            modelBuilder.Entity<ProjectAssignment>()
-                .Property(p => p.Kortingomschrijving).HasColumnName("Kortingomschrijving");
-            modelBuilder.Entity<ProjectAssignment>()
-                .Property(p => p.Kortingbedrag).HasColumnName("Kortingbedrag");
-            modelBuilder.Entity<ProjectAssignment>()
-                .Property(p => p.Kortingspercentage).HasColumnName("Kortingspercentage");
-            modelBuilder.Entity<ProjectAssignment>()
-                .Property(p => p.Toegekend).HasColumnName("Toegekend");
-            modelBuilder.Entity<ProjectAssignment>()
-                .Property(p => p.AppointmentEntryID).HasColumnName("AppointmentEntryID");
-            modelBuilder.Entity<ProjectAssignment>()
-                .Property(p => p.AppointmentDateTime).HasColumnName("AppointmentDateTime");
-            modelBuilder.Entity<ProjectAssignment>()
-                .Property(p => p.OpdrachtAdres).HasColumnName("OpdrachtAdres");
-            modelBuilder.Entity<ProjectAssignment>()
-                .Property(p => p.OpdrachtHuisnr).HasColumnName("OpdrachtHuisnr");
-            modelBuilder.Entity<ProjectAssignment>()
-                .Property(p => p.OpdrachtPC).HasColumnName("OpdrachtPC");
-            modelBuilder.Entity<ProjectAssignment>()
-                .Property(p => p.OpdrachtPlaats).HasColumnName("OpdrachtPlaats");
-            modelBuilder.Entity<ProjectAssignment>()
-                .Property(p => p.ContractBedrag).HasColumnName("ContractBedrag");
-            modelBuilder.Entity<ProjectAssignment>()
-                .Property(p => p.ContractIndexering).HasColumnName("ContractIndexering");
-            modelBuilder.Entity<ProjectAssignment>()
-                .Property(p => p.FldPlanPeriodeVan).HasColumnName("fldPlanPeriodeVan");
-            modelBuilder.Entity<ProjectAssignment>()
-                .Property(p => p.FldPlanPeriodeTot).HasColumnName("fldPlanPeriodeTot");
-            modelBuilder.Entity<ProjectAssignment>()
-                .Property(p => p.FldFolder).HasColumnName("fldFolder");
-            modelBuilder.Entity<ProjectAssignment>()
-                .Property(p => p.SteekproefMaand).HasColumnName("SteekproefMaand");
-
-            // ProjectType (tblSoortProject)
+            // ProjectType
             modelBuilder.Entity<ProjectType>()
                 .ToTable("tblSoortProject")
                 .HasKey(pt => pt.Id);
@@ -392,7 +191,6 @@ namespace ActielijstApi.Data
                 .Property(pt => pt.Omschrijving).HasColumnName("Omschrijving");
             modelBuilder.Entity<ProjectType>()
                 .Property(pt => pt.Soort).HasColumnName("Soort");
-
             modelBuilder.Entity<ProjectType>()
                 .Property(pt => pt.Tabel).HasColumnName("tabel");
             modelBuilder.Entity<ProjectType>()
@@ -406,25 +204,7 @@ namespace ActielijstApi.Data
             modelBuilder.Entity<ProjectType>()
                 .Property(pt => pt.SSMA_TimeStamp).HasColumnName("SSMA_TimeStamp").IsRowVersion();
 
-            // Define the relationship
-            modelBuilder.Entity<ProjectType>()
-                .HasOne(pt => pt.RelatedCategory)
-                .WithMany()
-                .HasForeignKey(pt => pt.CategorieId);
-
-            // AssignmentCategory (stblOpdrachtCategorie)
-            modelBuilder.Entity<AssignmentCategory>()
-                .ToTable("stblOpdrachtCategorie")
-                .HasKey(ac => ac.Id);
-
-            modelBuilder.Entity<AssignmentCategory>()
-                .Property(ac => ac.Id).HasColumnName("id");
-            modelBuilder.Entity<AssignmentCategory>()
-                .Property(ac => ac.Categorie).HasColumnName("Categorie");
-            modelBuilder.Entity<AssignmentCategory>()
-                .Property(ac => ac.Volgorde).HasColumnName("Volgorde");
-
-            // Status (stblStatus)
+            // Status
             modelBuilder.Entity<Status>()
                 .ToTable("stblStatus")
                 .HasKey(s => s.Id);
@@ -435,31 +215,10 @@ namespace ActielijstApi.Data
                 .Property(s => s.StatusName).HasColumnName("status");
 
             // Relaties
-            modelBuilder.Entity<ProjectAssignment>()
-                .HasOne(pa => pa.Project)
+            modelBuilder.Entity<ProjectType>()
+                .HasOne(pt => pt.RelatedCategory)
                 .WithMany()
-                .HasForeignKey(pa => pa.FldProjectId);
-
-            modelBuilder.Entity<ProjectAssignment>()
-                .HasOne(pa => pa.Status)
-                .WithMany()
-                .HasForeignKey(pa => pa.FldStatus);
-
-            modelBuilder.Entity<ProjectAssignment>()
-                .HasOne(pa => pa.Customer)
-                .WithMany()
-                .HasForeignKey(pa => pa.FldOpdrachtgeverId);
-
-            modelBuilder.Entity<Project>()
-                .HasOne(p => p.VerwerkendBedrijf)
-                .WithMany()
-                .HasForeignKey(p => p.FldVerwerkendBedrijf);
-
-            modelBuilder.Entity<ProjectAssignment>()
-                .HasOne(pa => pa.ProjectType)
-                .WithMany()
-                .HasForeignKey(pa => pa.FldSoort);
-
+                .HasForeignKey(pt => pt.CategorieId);
         }
     }
 }
