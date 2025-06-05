@@ -17,7 +17,7 @@
     </RadzenRow>
     <RadzenRow>
       <RadzenColumn SizeMD=12>
-        <RadzenDataGrid @ref="grid0" ColumnWidth="200px"   AllowFiltering="true" FilterMode="FilterMode.Advanced" AllowPaging="true" AllowSorting="true" ShowPagingSummary="true" PageSizeOptions=@(new int[]{5, 10, 20, 30})
+        <RadzenDataGrid @ref="grid0" ColumnWidth="200px"  AllowColumnResize="true" AllowColumnReorder="true" AllowFiltering="true" FilterMode="FilterMode.Advanced" AllowPaging="true" AllowSorting="true" ShowPagingSummary="true" PageSizeOptions=@(new int[]{5, 10, 20, 30})
             Data="@(tblMemos)" TItem="KlantBaseWebDemo.Models.KlantBase.TblMemo" RowSelect="@EditRow">
             <Columns>
                 <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.TblMemo" Property="FldMid" Title="Fld Mid">
