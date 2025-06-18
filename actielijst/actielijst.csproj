@@ -10,9 +10,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="9.0.4" />
-    <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="9.0.4" />
-    <PackageReference Include="Radzen.Blazor" Version="6.6.4" />
+    <PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="9.0.6" />
+    <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="9.0.6" />
+    <PackageReference Include="Radzen.Blazor" Version="7.1.0" />
   </ItemGroup>
 
   <ItemGroup>

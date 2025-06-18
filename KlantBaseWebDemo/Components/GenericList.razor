@@ -3,8 +3,14 @@
 @inject IHttpClientFactory HttpClientFactory
 @inject ILogger<GenericList> Logger
 
-<RadzenDataGrid Data="@assignments" TItem="Dictionary<string, object>" Count="@totalCount"
-                LoadData="@LoadData" AllowSorting="true" AllowFiltering="true" AllowPaging="true"
+<RadzenDataGrid Data="@assignments" 
+                TItem="Dictionary<string, object>" Count="@totalCount"
+                LoadData="@LoadData" 
+                AllowSorting="true" 
+                AllowFiltering="true" 
+                AllowPaging="true"
+                AllowColumnResize="true" 
+                AllowColumnReorder="true"  
                 PageSize="@PageSize" PagerHorizontalAlign="HorizontalAlign.Center"
                 FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive">
     <Columns>

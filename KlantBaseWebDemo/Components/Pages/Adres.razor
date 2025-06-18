@@ -5,10 +5,21 @@
 <PageTitle>Adres</PageTitle>
 <RadzenStack>
     <RadzenRow AlignItems="AlignItems.Center">
-        <RadzenColumn Size="12" SizeMD="6">
+        <RadzenColumn Size="12" SizeMD="3">
             <RadzenText Text="Adres" TextStyle="TextStyle.H3" TagName="TagName.H1" style="margin: 0" />
+        </RadzenColumn>        
+        <RadzenColumn Size="12" SizeMD="4">
+            <RadzenLabel Text="Zoek een adres" />
+            <RadzenTextBox @bind-Value="searchText" 
+                           @oninput="@(e => SearchTextChanged(e.Value?.ToString()))"
+                           Placeholder="Typ om te zoeken"
+                           style="width: 100%; margin-bottom: 20px;" />
+            @if (!string.IsNullOrEmpty(searchText) && searchText.Length < 2)
+            {
+                    <RadzenText TextStyle="TextStyle.Caption" Text="Voer minimaal 2 tekens in om te zoeken." style="color: red;" />
+            }
         </RadzenColumn>
-        <RadzenColumn Size="12" SizeMD="6">
+        <RadzenColumn Size="12" SizeMD="3">
             <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.End" Gap="0.5rem">
                 <RadzenButton Icon="add_circle_outline" Text="Add" Click="@AddButtonClick" Variant="Variant.Flat" />
             </RadzenStack>
@@ -16,21 +27,15 @@
     </RadzenRow>
     <RadzenRow>
         <RadzenColumn SizeMD="12">
-            <RadzenLabel Text="Zoek een adres" />
-            <RadzenTextBox @bind-Value="searchText"
-                           Input="@((ChangeEventArgs args) => OnTextInput(args))"
-                           Placeholder="Typ om te zoeken (min. 2 tekens)..."
-                           style="width: 100%; margin-bottom: 20px;" />
-        </RadzenColumn>
-    </RadzenRow>
-    <RadzenRow>
-        <RadzenColumn SizeMD="12">
+            <RadzenProgressBar Visible="@isLoading" ProgressBarStyle="ProgressBarStyle.Primary" />
             <RadzenDataGrid @ref="grid0" 
                             ColumnWidth="200px" 
                             AllowFiltering="true" 
                             FilterMode="FilterMode.Advanced" 
                             AllowPaging="true" 
                             AllowSorting="true" 
+                            AllowColumnResize="true" 
+                            AllowColumnReorder="true"  
                             ShowPagingSummary="true" 
                             PageSizeOptions="@(new int[]{5, 10, 20, 30})"
                             Data="@adres" 
@@ -39,28 +44,31 @@
                 <Columns>
                     <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Adre" Property="Zoekcode" Title="Zoekcode" />
                     <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Adre" Property="Bedrijf" Title="Bedrijf" />
-                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Adre" Property="Tav" Title="Tav" />
-                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Adre" Property="Geachte" Title="Geachte" />
-                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Adre" Property="VestigAdr" Title="Vestig Adr" />
-                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Adre" Property="VestigPc" Title="Vestig Pc" />
-                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Adre" Property="VestigPlaats" Title="Vestig Plaats" />
+                    @* <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Adre" Property="Tav" Title="Tav" /> *@
+                    @* <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Adre" Property="Geachte" Title="Geachte" /> *@
+                    @* <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Adre" Property="VestigAdr" Title="Vestig Adr" /> *@
+                    @* <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Adre" Property="VestigPc" Title="Vestig Pc" /> *@
+                    @* <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Adre" Property="VestigPlaats" Title="Vestig Plaats" /> *@
                     <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Adre" Property="Postadres" Title="Postadres" />
-                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Adre" Property="Pc" Title="Pc" />
-                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Adre" Property="Wpl" Title="Wpl" />
-                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Adre" Property="Land" Title="Land" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Adre" Property="Pc" Title="Postcode" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Adre" Property="Wpl" Title="Plaats" />
+                    @* <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Adre" Property="Land" Title="Land" /> *@
                     <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Adre" Property="Tel" Title="Tel" />
-                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Adre" Property="TelPrive" Title="Tel Prive" />
-                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Adre" Property="Fax" Title="Fax" />
-                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Adre" Property="MobelTel" Title="Mobiel Tel" />
+                    @* <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Adre" Property="TelPrive" Title="Tel Prive" /> *@
+                    @* <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Adre" Property="Fax" Title="Fax" /> *@
+                    @* <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Adre" Property="MobelTel" Title="Mobiel Tel" /> *@
                     <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Adre" Property="Debiteurnummer" Title="Debiteurnummer" />
-                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Adre" Property="FldWebSite" Title="Website" />
-                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Adre" Property="FirstContactId" Title="First Contact Id" />
+                    @* <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Adre" Property="FldWebSite" Title="Website" /> *@
+                    @* <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Adre" Property="FirstContactId" Title="First Contact Id" /> *@
                     <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Adre" Property="EmailFactuur" Title="Email Factuur" />
-                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Adre" Property="EmailAanmaning" Title="Email Aanmaning" />
+                    @* <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Adre" Property="EmailAanmaning" Title="Email Aanmaning" /> *@
                     <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Adre" Property="KiwaContactId" Title="Kiwa Contact Id" />
                     <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Adre" Property="MeldSoort" Title="Meld Soort" />
                     <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Adre" Filterable="false" Sortable="false" Width="70px" TextAlign="TextAlign.Center">
                         <Template Context="adre">
+                            <!-- <RadzenButton ButtonStyle="ButtonStyle.Primary" Icon="description" Size="ButtonSize.Medium"
+                                          Shade="Shade.Lighter" Variant="Variant.Flat"
+                                          Click="@(args => GenerateDocument(adre))" @onclick:stopPropagation="true" /> -->
                             <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Size="ButtonSize.Medium"
                                           Shade="Shade.Lighter" Variant="Variant.Flat"
                                           Click="@(args => GridDeleteButtonClick(args, adre))" @onclick:stopPropagation="true" />

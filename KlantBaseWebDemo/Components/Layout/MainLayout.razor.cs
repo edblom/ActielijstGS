@@ -1,4 +1,5 @@
 using System.Net.Http;
+using System.Threading.Tasks; // Toevoegen voor async
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -32,10 +33,10 @@ namespace KlantBaseWebDemo.Components.Layout
         [Inject]
         protected NotificationService NotificationService { get; set; }
 
-        private bool sidebarExpanded = true;
-
         [Inject]
         protected SecurityService Security { get; set; }
+
+        private bool sidebarExpanded = true;
 
         void SidebarToggleClick()
         {
@@ -49,5 +50,6 @@ namespace KlantBaseWebDemo.Components.Layout
                 Security.Logout();
             }
         }
+
     }
 }

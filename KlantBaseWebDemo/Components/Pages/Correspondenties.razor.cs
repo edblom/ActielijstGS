@@ -1,10 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Json;
 using System.Threading.Tasks;
-using Microsoft.JSInterop;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.JSInterop;
 using Radzen;
 using Radzen.Blazor;
 
@@ -33,12 +36,16 @@ namespace KlantBaseWebDemo.Components.Pages
         [Inject]
         public KlantBaseService KlantBaseService { get; set; }
 
+        [Inject]
+        protected SecurityService Security { get; set; }
+
+        [Inject]
+        protected HttpClient Http { get; set; }
+
         protected IEnumerable<KlantBaseWebDemo.Models.KlantBase.Correspondentie> correspondenties;
 
         protected RadzenDataGrid<KlantBaseWebDemo.Models.KlantBase.Correspondentie> grid0;
 
-        [Inject]
-        protected SecurityService Security { get; set; }
         protected override async Task OnInitializedAsync()
         {
             correspondenties = await KlantBaseService.GetCorrespondenties();
@@ -52,7 +59,7 @@ namespace KlantBaseWebDemo.Components.Pages
 
         protected async Task EditRow(KlantBaseWebDemo.Models.KlantBase.Correspondentie args)
         {
-            await DialogService.OpenAsync<EditCorrespondentie>("Edit Correspondentie", new Dictionary<string, object> { {"Id", args.Id} });
+            await DialogService.OpenAsync<EditCorrespondentie>("Edit Correspondentie", new Dictionary<string, object> { { "Id", args.Id } });
         }
 
         protected async Task GridDeleteButtonClick(MouseEventArgs args, KlantBaseWebDemo.Models.KlantBase.Correspondentie correspondentie)
@@ -78,6 +85,44 @@ namespace KlantBaseWebDemo.Components.Pages
                     Detail = $"Unable to delete Correspondentie"
                 });
             }
+        }
+
+        protected async Task OpenDocumentByCorrespondence(int correspondentieId)
+        {
+            try
+            {
+                var request = new OpenDocumentByCorrespondenceRequest { CorrespondentieId = correspondentieId };
+                var response = await Http.PostAsJsonAsync("/api/Correspondence/open/by-correspondence", request);
+                response.EnsureSuccessStatusCode();
+
+                var fileName = response.Content.Headers.ContentDisposition?.FileName ?? $"correspondentie_{correspondentieId}.docx";
+                var stream = await response.Content.ReadAsStreamAsync();
+                using var ms = new MemoryStream();
+                await stream.CopyToAsync(ms);
+                var bytes = ms.ToArray();
+
+                await JSRuntime.InvokeVoidAsync("downloadFile", fileName, Convert.ToBase64String(bytes), "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+                NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Success,
+                    Summary = "Succes",
+                    Detail = "Document wordt gedownload."
+                });
+            }
+            catch (HttpRequestException ex)
+            {
+                NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Fout",
+                    Detail = ex.Message
+                });
+            }
+        }
+
+        protected class OpenDocumentByCorrespondenceRequest
+        {
+            public int CorrespondentieId { get; set; }
         }
     }
 }

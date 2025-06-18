@@ -36,7 +36,7 @@ namespace ActielijstApi.Services
         {
             // 1. Haal het juiste sjabloon op basis van Soort
             var standaardDoc = await _context.StandaardDocs
-                .FirstOrDefaultAsync(sd => sd.Soort == request.Soort)
+                .FirstOrDefaultAsync(sd => sd.DocId == request.Soort)
                 ?? throw new Exception($"Geen sjabloon gevonden voor soort {request.Soort}");
 
             // 2. Maak een Correspondentie-record
@@ -219,6 +219,7 @@ namespace ActielijstApi.Services
                         if (string.IsNullOrEmpty(propName)) continue;
 
                         string? fieldValue = typeof(CorrespondentieFields).GetProperty(propName)?.GetValue(fields)?.ToString();
+                        _logger.LogInformation($"Gevonden:Property '{propName}'");
                         if (fieldValue != null)
                         {
                             DocumentHelper.UpdatePropertyValue(prop, fieldValue);

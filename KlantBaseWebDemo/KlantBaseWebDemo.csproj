@@ -6,15 +6,15 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Radzen.Blazor" Version="6.6.4" />
+    <PackageReference Include="Radzen.Blazor" Version="7.1.0" />
     <PackageReference Include="Blazored.LocalStorage" Version="4.5.0" />
     <PackageReference Include="DocumentFormat.OpenXml" Version="3.3.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.4" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.6" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.*-*" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.4" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.6" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.*-*" />
     <PackageReference Include="Microsoft.AspNetCore.HeaderPropagation" Version="9.*-*" />
-    <PackageReference Include="Microsoft.AspNetCore.OData" Version="9.3.0" />
+    <PackageReference Include="Microsoft.AspNetCore.OData" Version="9.3.2" />
     <ProjectReference Include="..\ActielijstApi\ActielijstApi.csproj" />
 
   </ItemGroup>

@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 
 using KlantBaseWebDemo.Models;
+using ActielijstApi.Models;
 
 namespace KlantBaseWebDemo.Data
 {

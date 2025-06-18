@@ -1,4 +1,5 @@
-@page "/correspondenties"
+@page "/correspondenties"
+
 @attribute [Authorize]
 
 @inject Microsoft.Extensions.Localization.IStringLocalizer<Correspondenties> L
@@ -15,78 +16,50 @@
         </RadzenColumn>
     </RadzenRow>
     <RadzenRow>
-      <RadzenColumn SizeMD=12>
-        <RadzenDataGrid @ref="grid0" ColumnWidth="200px"   AllowFiltering="true" FilterMode="FilterMode.Advanced" AllowPaging="true" AllowSorting="true" ShowPagingSummary="true" PageSizeOptions=@(new int[]{5, 10, 20, 30})
-            Data="@(correspondenties)" TItem="KlantBaseWebDemo.Models.KlantBase.Correspondentie" RowSelect="@EditRow">
-            <Columns>
-                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Correspondentie" Property="Id" Title="Id">
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Correspondentie" Property="KlantId" Title="Klant Id">
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Correspondentie" Property="FldCorOffNum" Title="Fld Cor Off Num">
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Correspondentie" Property="FldCorProjNum" Title="Fld Cor Proj Num">
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Correspondentie" Property="FldCorOpdrachtNum" Title="Fld Cor Opdracht Num">
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Correspondentie" Property="FldCorConsultancyId" Title="Fld Cor Consultancy Id">
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Correspondentie" Property="FldCorTrainingId" Title="Fld Cor Training Id">
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Correspondentie" Property="FldCorFactuurId" Title="Fld Cor Factuur Id">
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Correspondentie" Property="FldCorDatum" Title="Fld Cor Datum">
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Correspondentie" Property="FldCorDatum2" Title="Fld Cor Datum2">
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Correspondentie" Property="FldCorAuteur" Title="Fld Cor Auteur">
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Correspondentie" Property="FldCorOmschrijving" Title="Fld Cor Omschrijving">
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Correspondentie" Property="FldCorKenmerk" Title="Fld Cor Kenmerk">
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Correspondentie" Property="FldCorBestand" Title="Fld Cor Bestand">
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Correspondentie" Property="FldCorSoort" Title="Fld Cor Soort">
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Correspondentie" Property="FldCorTav" Title="Fld Cor Tav">
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Correspondentie" Property="FldCorGeachte" Title="Fld Cor Geachte">
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Correspondentie" Property="FldCorCpersId" Title="Fld Cor Cpers Id">
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Correspondentie" Property="FldCorExtensie" Title="Fld Cor Extensie">
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Correspondentie" Property="FldCorProgramma" Title="Fld Cor Programma">
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Correspondentie" Property="FldSjabloon" Title="Fld Sjabloon">
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Correspondentie" Property="FldAan" Title="Fld Aan">
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Correspondentie" Property="FldCc" Title="Fld Cc">
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Correspondentie" Property="FldFrom" Title="Fld From">
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Correspondentie" Property="FldBijlage" Title="Fld Bijlage">
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Correspondentie" Property="FldBijlage2" Title="Fld Bijlage2">
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Correspondentie" Property="FldBijlage3" Title="Fld Bijlage3">
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Correspondentie" Property="FldBody" Title="Fld Body">
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Correspondentie" Filterable="false" Sortable="false" Width="70px" TextAlign="TextAlign.Center">
-                    <Template Context="correspondentie">
-
-                        <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Size="ButtonSize.Medium"
-                            Shade="Shade.Lighter" Variant="Variant.Flat"
-                            Click=@(args => GridDeleteButtonClick(args, correspondentie)) @onclick:stopPropagation="true" />
-                    </Template>
-                </RadzenDataGridColumn>
-            </Columns>
-
-        </RadzenDataGrid>
-
-    </RadzenColumn>
-  </RadzenRow>
+        <RadzenColumn SizeMD="12">
+            <RadzenDataGrid @ref="grid0" ColumnWidth="200px" AllowFiltering="true" FilterMode="FilterMode.Advanced" AllowPaging="true" AllowSorting="true" ShowPagingSummary="true" PageSizeOptions=@(new int[]{5, 10, 20, 30})
+                            Data="@correspondenties" TItem="KlantBaseWebDemo.Models.KlantBase.Correspondentie" RowSelect="@EditRow">
+                <Columns>
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Correspondentie" Property="Id" Title="Id" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Correspondentie" Property="KlantId" Title="Klant Id" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Correspondentie" Property="FldCorOffNum" Title="Fld Cor Off Num" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Correspondentie" Property="FldCorProjNum" Title="Fld Cor Proj Num" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Correspondentie" Property="FldCorOpdrachtNum" Title="Fld Cor Opdracht Num" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Correspondentie" Property="FldCorConsultancyId" Title="Fld Cor Consultancy Id" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Correspondentie" Property="FldCorTrainingId" Title="Fld Cor Training Id" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Correspondentie" Property="FldCorFactuurId" Title="Fld Cor Factuur Id" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Correspondentie" Property="FldCorDatum" Title="Fld Cor Datum" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Correspondentie" Property="FldCorDatum2" Title="Fld Cor Datum2" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Correspondentie" Property="FldCorAuteur" Title="Fld Cor Auteur" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Correspondentie" Property="FldCorOmschrijving" Title="Fld Cor Omschrijving" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Correspondentie" Property="FldCorKenmerk" Title="Fld Cor Kenmerk" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Correspondentie" Property="FldCorBestand" Title="Fld Cor Bestand" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Correspondentie" Property="FldCorSoort" Title="Fld Cor Soort" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Correspondentie" Property="FldCorTav" Title="Fld Cor Tav" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Correspondentie" Property="FldCorGeachte" Title="Fld Cor Geachte" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Correspondentie" Property="FldCorCpersId" Title="Fld Cor Cpers Id" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Correspondentie" Property="FldCorExtensie" Title="Fld Cor Extensie" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Correspondentie" Property="FldCorProgramma" Title="Fld Cor Programma" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Correspondentie" Property="FldSjabloon" Title="Fld Sjabloon" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Correspondentie" Property="FldAan" Title="Fld Aan" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Correspondentie" Property="FldCc" Title="Fld Cc" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Correspondentie" Property="FldFrom" Title="Fld From" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Correspondentie" Property="FldBijlage" Title="Fld Bijlage" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Correspondentie" Property="FldBijlage2" Title="Fld Bijlage2" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Correspondentie" Property="FldBijlage3" Title="Fld Bijlage3" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Correspondentie" Property="FldBody" Title="Fld Body" />
+                    <RadzenDataGridColumn TItem="KlantBaseWebDemo.Models.KlantBase.Correspondentie" Filterable="false" Sortable="false" Width="100px" TextAlign="TextAlign.Center">
+                        <Template Context="correspondentie">
+                            <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Size="ButtonSize.Medium"
+                                          Shade="Shade.Lighter" Variant="Variant.Flat"
+                                          Click=@(args => GridDeleteButtonClick(args, correspondentie)) @onclick:stopPropagation="true" />
+                            <RadzenButton ButtonStyle="ButtonStyle.Primary" Icon="description" Size="ButtonSize.Medium"
+                                          Shade="Shade.Lighter" Variant="Variant.Flat" Title="Open in Word"
+                                          Click=@(args => OpenDocumentByCorrespondence(correspondentie.Id)) @onclick:stopPropagation="true" />
+                        </Template>
+                    </RadzenDataGridColumn>
+                </Columns>
+            </RadzenDataGrid>
+        </RadzenColumn>
+    </RadzenRow>
 </RadzenStack>

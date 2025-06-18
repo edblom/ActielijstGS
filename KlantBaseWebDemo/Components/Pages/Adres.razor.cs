@@ -41,18 +41,19 @@ namespace KlantBaseWebDemo.Components.Pages
         protected IEnumerable<KlantBaseWebDemo.Models.KlantBase.Adre> adres;
         protected IEnumerable<KlantBaseWebDemo.Models.KlantBase.Adre> allAdres;
         protected RadzenDataGrid<KlantBaseWebDemo.Models.KlantBase.Adre> grid0;
-
         protected string searchText;
+        protected bool isLoading;
 
         protected override async Task OnInitializedAsync()
         {
+            isLoading = true;
             try
             {
                 var queryableAdres = await KlantBaseService.GetAdres();
                 if (queryableAdres != null)
                 {
                     allAdres = await queryableAdres.ToListAsync();
-                    adres = allAdres; // Start met alle adressen
+                    adres = allAdres;
                     Console.WriteLine($"Aantal adressen geladen: {allAdres.Count()}");
                 }
                 else
@@ -72,15 +73,20 @@ namespace KlantBaseWebDemo.Components.Pages
                     Detail = "Kan adressen niet laden."
                 });
             }
+            finally
+            {
+                isLoading = false;
+            }
         }
 
-        protected void OnTextInput(ChangeEventArgs args)
+        protected async Task SearchTextChanged(string value)
         {
-            searchText = args.Value?.ToString();
-            Console.WriteLine($"OnTextInput aangeroepen met waarde: '{searchText}'"); // Debug-logging
+            searchText = value;
+            Console.WriteLine($"SearchTextChanged aangeroepen met waarde: '{searchText}'");
+
+            await Task.Delay(300); // 300ms debounce
             FilterAdres();
-            //StateHasChanged(); // Update de grid direct
-            grid0?.Reload(); // Vernieuw de grid expliciet
+            await grid0.Reload();
         }
 
         private void FilterAdres()
@@ -100,6 +106,8 @@ namespace KlantBaseWebDemo.Components.Pages
 
         private bool ContainsSearchText(KlantBaseWebDemo.Models.KlantBase.Adre adre, string search)
         {
+            if (string.IsNullOrEmpty(search)) return true;
+
             return (adre.Zoekcode?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false) ||
                    (adre.Bedrijf?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false) ||
                    (adre.Tav?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false) ||
