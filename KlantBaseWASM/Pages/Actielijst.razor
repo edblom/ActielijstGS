@@ -1,0 +1,54 @@
+﻿@page "/actielijst"
+@using Radzen
+@using Radzen.Blazor
+@using KlantBaseWASM.Models
+@inject HttpClient HttpClient
+@inject DialogService DialogService
+
+<h3>Actielijst</h3>
+<RadzenDataGrid Data="@actions" TItem="Actie" AllowFiltering="true" AllowSorting="true" AllowPaging="true" PageSize="10"
+                RowDoubleClick="@((args) => EditAction(args))">
+    <Columns>
+        <RadzenDataGridColumn Property="FldMid" Title="ID" Width="80px" />
+        <RadzenDataGridColumn Property="FldOmschrijving" Title="Description" Width="200px" />
+        <RadzenDataGridColumn Property="FldMActieDatum" Title="Action Date" Width="100px" FormatString="{0:dd-MM-yyyy}" />
+        <RadzenDataGridColumn Property="FldMActieSoort" Title="Soort" Width="50px" />
+        <RadzenDataGridColumn Property="FldMActieVoor" Title="Voor" Width="50px" />
+        <RadzenDataGridColumn Property="FldMActieGereed" Title="Completed" Width="150px" FormatString="{0:dd-MM-yyyy}" />
+        <RadzenDataGridColumn Title="Links" Width="200px">
+            <Template Context="actie">
+                <NavLink href="@($"project/{actie.FldMProjectId}")">Project</NavLink> |
+                <NavLink href="@($"klant/{actie.FldMKlantId}")">Klant</NavLink> |
+                <NavLink href="@($"contactpersoon/{actie.FldMContactPers}")">Contact</NavLink> |
+                <NavLink href="@($"opdracht/{actie.FldOpdrachtId}")">Opdracht</NavLink>
+            </Template>
+        </RadzenDataGridColumn>
+    </Columns>
+</RadzenDataGrid>
+
+@code {
+    private List<Actie> actions = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            actions = await HttpClient.GetFromJsonAsync<List<Actie>>("api/acties");
+        }
+        catch (Exception ex)
+        {
+            DialogService.Alert("Error loading actions: " + ex.Message); // Synchronous Alert
+        }
+    }
+
+    private async Task EditAction(DataGridRowMouseEventArgs<Actie> args)
+    {
+        var result = await DialogService.OpenAsync<EditActionDialog>("Edit Action",
+            new Dictionary<string, object> { { "Action", args.Data } });
+        if (result != null)
+        {
+            actions = await HttpClient.GetFromJsonAsync<List<Actie>>("api/acties");
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+}

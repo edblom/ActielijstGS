@@ -1,0 +1,88 @@
+﻿@using Radzen
+@using Radzen.Blazor
+@using KlantBaseWASM.Models
+@inject HttpClient HttpClient
+@inject DialogService DialogService
+
+<RadzenFormField Text="Description">
+    <RadzenTextArea @bind-Value="Action.FldOmschrijving" Cols="70" Rows="3" />
+</RadzenFormField>
+<RadzenFormField Text="Action Date">
+    <RadzenDatePicker @bind-Value="Action.FldMActieDatum" DateFormat="dd-MM-yyyy" Style="width:100%" />
+</RadzenFormField>
+<RadzenFormField Text="Assigned To">
+    <RadzenDropDown Data="@employees" TextProperty="Voornaam" ValueProperty="WerknId" @bind-Value="Action.FldMActieVoor" Style="width:100%" AllowClear="true" />
+</RadzenFormField>
+<RadzenFormField Text="Completed">
+    <RadzenDatePicker @bind-Value="Action.FldMActieGereed" DateFormat="dd-MM-yyyy" Style="width:100%" AllowClear="true" />
+</RadzenFormField>
+<RadzenFormField Text="Action Type">
+    <RadzenDropDown Data="@actionTypes" TextProperty="Omschrijving" ValueProperty="Id" @bind-Value="Action.FldMActieSoort" Style="width:100%" AllowClear="true" />
+</RadzenFormField>
+<RadzenFormField Text="Priority">
+    <RadzenNumeric @bind-Value="Action.FldMPrioriteit" Style="width:100%" AllowClear="true" />
+</RadzenFormField>
+<div class="mt-3">
+    <RadzenButton Text="Save" Click="@SaveAction" />
+    <RadzenButton Text="Cancel" Click="@(() => DialogService.Close())" />
+</div>
+
+@code {
+    [Parameter] public Actie Action { get; set; } = new();
+    private List<Actiesoort> actionTypes = new();
+    private List<Werknemer> employees = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var rawActionTypes = await HttpClient.GetFromJsonAsync<List<ActiesoortApi>>("api/actiesoorten/all");
+            actionTypes = rawActionTypes.Select(a => new Actiesoort { Id = a.Id.ToString(), Omschrijving = a.Omschrijving }).ToList();
+            employees = await HttpClient.GetFromJsonAsync<List<Werknemer>>("api/Werknemers/actueel");
+        }
+        catch (Exception ex)
+        {
+            DialogService.Alert("Error loading data: " + ex.Message);
+        }
+    }
+
+    private async Task SaveAction()
+    {
+        try
+        {
+            // Ensure FldMActieSoort is sent as a string (API should handle varchar)
+            var actionToSave = new Actie
+            {
+                FldMid = Action.FldMid,
+                FldMDatum = Action.FldMDatum,
+                WerknId = Action.WerknId,
+                FldMKlantId = Action.FldMKlantId,
+                FldMContactPers = Action.FldMContactPers,
+                FldMProjectId = Action.FldMProjectId,
+                FldOpdrachtId = Action.FldOpdrachtId,
+                FldOmschrijving = Action.FldOmschrijving,
+                FldMAfspraak = Action.FldMAfspraak,
+                FldMActieDatum = Action.FldMActieDatum,
+                FldMActieVoor = Action.FldMActieVoor,
+                FldMActieVoor2 = Action.FldMActieVoor2,
+                FldMActieGereed = Action.FldMActieGereed,
+                FldMActieSoort = Action.FldMActieSoort, // String value
+                FldMPrioriteit = Action.FldMPrioriteit
+            };
+            var response = await HttpClient.PutAsJsonAsync($"api/acties/{Action.FldMid}", actionToSave);
+            response.EnsureSuccessStatusCode(); // Check for HTTP success
+            DialogService.Close(Action);
+        }
+        catch (Exception ex)
+        {
+            DialogService.Alert("Error saving action: " + ex.Message);
+        }
+    }
+
+    // Temporary model to deserialize API response
+    private class ActiesoortApi
+    {
+        public int Id { get; set; } // Match API's integer Id
+        public string Omschrijving { get; set; }
+    }
+}
