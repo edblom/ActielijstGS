@@ -1,0 +1,34 @@
+﻿@inherits LayoutComponentBase
+
+<div class="page">
+    <RadzenSidebar @ref="sidebar" style="width: 250px;">
+        <RadzenMenu>
+            <RadzenMenuItem Text="Home" Path="/" Icon="home" />
+            <RadzenMenuItem Text="Counter" Path="/counter" Icon="plus" />
+            <RadzenMenuItem Text="Actielijst" Path="/actielijst" Icon="list" />
+        </RadzenMenu>
+    </RadzenSidebar>
+
+    <div class="main-content" style="margin-left: 250px; padding: 20px;">
+        <div class="top-row px-4">
+            <RadzenButton Icon="menu" Click="@ToggleSidebar" style="float: left;" />
+            <h3>@PageTitle</h3> <!-- Use the parameter instead of Body.Title -->
+        </div>
+
+        <div class="content px-4">
+            @Body
+        </div>
+    </div>
+</div>
+
+@code {
+    private RadzenSidebar sidebar;
+
+    private void ToggleSidebar()
+    {
+        sidebar.Toggle();
+    }
+
+    [Parameter]
+    public string PageTitle { get; set; } = "KlantBaseWASM"; // Default title
+}

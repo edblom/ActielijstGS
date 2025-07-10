@@ -1,0 +1,102 @@
+﻿@page "/documentgeneration"
+@inject CorrespondenceService CorrespondenceService
+@inject HttpClient HttpClient
+@using KlantBaseWASM.Models
+@using KlantBaseWASM.Services
+@using Radzen.Blazor
+
+<h3>Document Genereren</h3>
+
+<RadzenCard>
+    <RadzenFormField Text="Klant">
+        <RadzenDropDown @bind-Value="request.KlantId" Data="@klanten" TextProperty="Bedrijf" ValueProperty="Id" Change="@(args => LoadProjects())" />
+    </RadzenFormField>
+    <RadzenFormField Text="Project">
+        <RadzenDropDown @bind-Value="request.ProjectId" Data="@projecten" TextProperty="fldProjectNaam" ValueProperty="id" Change="@(args => LoadOpdrachten())" AllowClear="true" />
+    </RadzenFormField>
+    <RadzenFormField Text="Opdracht">
+        <RadzenDropDown @bind-Value="request.OpdrachtId" Data="@opdrachten" TextProperty="fldOmschrijving" ValueProperty="id" AllowClear="true" />
+    </RadzenFormField>
+    <RadzenFormField Text="Contactpersoon">
+        <RadzenDropDown @bind-Value="request.ContactpersoonId" Data="@contactpersonen" TextProperty="achternaam" ValueProperty="ContactPersID" AllowClear="true" />
+    </RadzenFormField>
+    <RadzenFormField Text="Sjabloon">
+        <RadzenDropDown @bind-Value="request.Soort" Data="@sjablonen" TextProperty="DocOmschrijving" ValueProperty="DocId" />
+    </RadzenFormField>
+    <RadzenFormField Text="Omschrijving">
+        <RadzenTextArea @bind-Value="request.Omschrijving" />
+    </RadzenFormField>
+    <RadzenCheckBox @bind-Value="request.OpenDocumentInWord" Text="Openen in Word" />
+    <RadzenCheckBox @bind-Value="request.SendEmail" Text="Verzenden via e-mail" />
+    <RadzenButton Text="Genereren" Click="@GenerateDocument" Disabled="@isGenerating" />
+</RadzenCard>
+
+@if (response != null)
+{
+    <RadzenCard>
+        <h4>Resultaat</h4>
+        <p>Correspondentie ID: @response.CorrespondentieId</p>
+        <p>Bestand: <a href="@response.FilePath" target="_blank">Download</a></p>
+        <p>E-mail verzonden: @(response.EmailSent ? "Ja" : "Nee")</p>
+    </RadzenCard>
+}
+
+@code {
+    private GenerateCorrespondenceRequest request = new();
+    private GenerateCorrespondenceResponse? response;
+    private List<Adres> klanten = new();
+    private List<TblProjecten> projecten = new();
+    private List<TblOpdrachten> opdrachten = new();
+    private List<Contactpersonen> contactpersonen = new();
+    private List<StandaardDoc> sjablonen = new();
+    private bool isGenerating;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Laad initiële gegevens
+        klanten = await HttpClient.GetFromJsonAsync<List<Adres>>("/api/adres");
+        contactpersonen = await HttpClient.GetFromJsonAsync<List<Contactpersonen>>("/api/contactpersonen");
+        sjablonen = await CorrespondenceService.GetSjablonenAsync();
+    }
+
+    private async Task LoadProjects()
+    {
+        if (request.KlantId > 0)
+        {
+            projecten = await HttpClient.GetFromJsonAsync<List<TblProjecten>>($"/api/projecten?klantId={request.KlantId}");
+        }
+        else
+        {
+            projecten = new();
+        }
+        opdrachten = new();
+        request.ProjectId = null;
+        request.OpdrachtId = null;
+    }
+
+    private async Task LoadOpdrachten()
+    {
+        if (request.ProjectId.HasValue)
+        {
+            opdrachten = await HttpClient.GetFromJsonAsync<List<TblOpdrachten>>($"/api/opdrachten?projectId={request.ProjectId}");
+        }
+        else
+        {
+            opdrachten = new();
+        }
+        request.OpdrachtId = null;
+    }
+
+    private async Task GenerateDocument()
+    {
+        isGenerating = true;
+        try
+        {
+            response = await CorrespondenceService.GenerateDocumentAsync(request);
+        }
+        finally
+        {
+            isGenerating = false;
+        }
+    }
+}

@@ -399,20 +399,20 @@ namespace ActielijstApi
                     .Take(pageSize)
                     .Select(pa => new Dictionary<string, object>
                     {
-            { "Id", pa.Id },
-            { "FldOpdrachtStr", pa.FldOpdrachtStr },
-            { "AantalM2", pa.Project != null ? pa.Project.FldAantalM2 : null },
-            { "FldCertKeuring", pa.FldCertKeuring },
-            { "OpdrachtLocatie", pa.OpdrachtPlaats != null ? $"{pa.OpdrachtPlaats} ({pa.OpdrachtAdres})" : null },
-            { "Applicator", pa.Project != null ? pa.Project.FldFabrikant : null },
-            { "FldPlanDatum", pa.FldPlanDatum },
-            { "KiwaNumber", pa.Project != null ? pa.Project.FldKiWa : null },
-            { "StatusName", pa.Status != null ? pa.Status.StatusName : null },
-            { "FldDatumGereed", pa.FldDatumGereed },
-            { "BelNotitie", pa.BelNotitie },
-            { "FldProjectLeider", pa.FldProjectLeider },
-            { "ExtraMedewerker", pa.ExtraMedewerker },
-            { "FldKiwaKeuringsNr", pa.FldKiwaKeuringsNr }
+                        { "Id", pa.Id },
+                        { "FldOpdrachtStr", pa.FldOpdrachtStr },
+                        { "AantalM2", pa.Project != null ? pa.Project.FldAantalM2 : null },
+                        { "FldCertKeuring", pa.FldCertKeuring },
+                        { "OpdrachtLocatie", pa.OpdrachtPlaats != null ? $"{pa.OpdrachtPlaats} ({pa.OpdrachtAdres})" : null },
+                        { "Applicator", pa.Project != null ? pa.Project.FldFabrikant : null },
+                        { "FldPlanDatum", pa.FldPlanDatum },
+                        { "KiwaNumber", pa.Project != null ? pa.Project.FldKiWa : null },
+                        { "StatusName", pa.Status != null ? pa.Status.StatusName : null },
+                        { "FldDatumGereed", pa.FldDatumGereed },
+                        { "BelNotitie", pa.BelNotitie },
+                        { "FldProjectLeider", pa.FldProjectLeider },
+                        { "ExtraMedewerker", pa.ExtraMedewerker },
+                        { "FldKiwaKeuringsNr", pa.FldKiwaKeuringsNr }
                     })
                     .ToListAsync();
 
@@ -451,6 +451,29 @@ namespace ActielijstApi
             .WithName("GetGenericList")
             .WithOpenApi();
 
+            // Nieuwe /api/adres endpoint
+            app.MapGet("/api/adres", async (ApplicationDbContext context, ILogger<Program> logger) =>
+            {
+                try
+                {
+                    var klanten = await context.Adressen
+                        .Select(a => new Adres
+                        {
+                            Id = a.Id,
+                            Bedrijf = a.Bedrijf
+                        })
+                        .ToListAsync();
+                    return Results.Ok(klanten);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Fout bij het ophalen van klanten.");
+                    return Results.Problem("Kon klanten niet ophalen: " + ex.Message);
+                }
+            })
+            .WithName("GetKlanten")
+            .WithOpenApi();
+
             // Hulp methode voor achtergrondkleur (ongewijzigd)
             static string EvaluateBackgroundColor(string rule, ProjectAssignment pa, string fieldName)
             {
@@ -487,7 +510,6 @@ namespace ActielijstApi
                 {
                     var stopwatch = System.Diagnostics.Stopwatch.StartNew();
 
-                    var queryStart = stopwatch.ElapsedMilliseconds;
                     var query = context.ProjectAssignments
                         .Include(pa => pa.ProjectType)
                             .ThenInclude(pt => pt.RelatedCategory)

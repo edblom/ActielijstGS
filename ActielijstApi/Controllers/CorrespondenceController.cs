@@ -1,14 +1,15 @@
-﻿using ActielijstApi.Dtos;
+﻿using ActielijstApi.Data;
+using ActielijstApi.Dtos;
 using ActielijstApi.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using ActielijstApi.Data;
-using Microsoft.EntityFrameworkCore;
 
 namespace ActielijstApi.Controllers
 {
@@ -31,6 +32,64 @@ namespace ActielijstApi.Controllers
             _emailService = emailService;
             _logger = logger;
             _context = context;
+        }
+
+        /// <summary>
+        /// Haalt een gefilterde lijst van correspondentiedocumenten op.
+        /// </summary>
+        /// <param name="klantId">Optionele klant-ID om op te filteren.</param>
+        /// <param name="projectId">Optionele project-ID om op te filteren.</param>
+        /// <param name="opdrachtId">Optionele opdracht-ID om op te filteren.</param>
+        /// <param name="pageNumber">Paginanummer (standaard 1).</param>
+        /// <param name="pageSize">Aantal items per pagina (standaard 50).</param>
+        /// <returns>Een lijst van correspondentiedocumenten.</returns>
+        /// <response code="200">Lijst succesvol opgehaald.</response>
+        /// <response code="500">Fout bij het ophalen van de lijst.</response>
+        [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<CorrespondentieDto>))]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(object))]
+        public async Task<ActionResult<List<CorrespondentieDto>>> GetCorrespondentie(
+            [FromQuery] int? klantId = null,
+            [FromQuery] int? projectId = null,
+            [FromQuery] int? opdrachtId = null,
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 50)
+        {
+            try
+            {
+                var query = _context.Correspondentie.AsQueryable();
+
+                if (klantId.HasValue)
+                    query = query.Where(c => c.KlantID == klantId);
+                if (projectId.HasValue)
+                    query = query.Where(c => c.fldCorProjNum == projectId);
+                if (opdrachtId.HasValue)
+                    query = query.Where(c => c.fldCorOpdrachtNum == opdrachtId);
+
+                var correspondenties = await query
+                    .Select(c => new CorrespondentieDto
+                    {
+                        Id = c.Id,
+                        KlantID = c.KlantID,
+                        fldCorProjNum = c.fldCorProjNum,
+                        fldCorOpdrachtNum = c.fldCorOpdrachtNum,
+                        fldCorDatum = c.fldCorDatum,
+                        fldCorOmschrijving = c.fldCorOmschrijving,
+                        fldCorBestand = c.fldCorBestand,
+                        fldCorKenmerk = c.fldCorKenmerk
+                    })
+                    .OrderBy(c => c.fldCorDatum)
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
+
+                return Ok(correspondenties);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Fout bij het ophalen van correspondentielijst.");
+                return StatusCode(500, new { error = "Kon de correspondentielijst niet ophalen.", details = ex.Message });
+            }
         }
 
         /// <summary>
@@ -112,7 +171,7 @@ namespace ActielijstApi.Controllers
                 return BadRequest(new { error = "Invalid document path." });
             }
 
-            if (!System.IO.File.Exists(request.DocumentPath)) // Expliciet System.IO.File gebruiken
+            if (!System.IO.File.Exists(request.DocumentPath))
             {
                 _logger.LogError($"Document niet gevonden: {request.DocumentPath}");
                 return NotFound(new { error = "Document not found." });
@@ -120,7 +179,7 @@ namespace ActielijstApi.Controllers
 
             try
             {
-                var fileStream = new System.IO.FileStream(request.DocumentPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+                var fileStream = new FileStream(request.DocumentPath, FileMode.Open, FileAccess.Read, FileShare.Read);
                 return new FileStreamResult(fileStream, "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
                 {
                     FileDownloadName = Path.GetFileName(request.DocumentPath)
@@ -136,26 +195,26 @@ namespace ActielijstApi.Controllers
         /// <summary>
         /// Retourneert een document als downloadbaar bestand op basis van het opgegeven correspondentie-ID.
         /// </summary>
-        /// <param name="request">Het verzoek met het correspondentie-ID.</param>
+        /// <param name="id">Het correspondentie-ID.</param>
         /// <returns>Het document als een downloadbaar bestand.</returns>
         /// <response code="200">Document succesvol geretourneerd.</response>
         /// <response code="400">Ongeldig correspondentie-ID opgegeven.</response>
         /// <response code="404">Correspondentie of document niet gevonden.</response>
         /// <response code="500">Fout bij het verwerken van het document.</response>
-        [HttpPost("open/by-correspondence")]
+        [HttpGet("open/by-correspondence/{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(object))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(object))]
         [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(object))]
-        public async Task<IActionResult> OpenDocumentByCorrespondence([FromBody] OpenDocumentByCorrespondenceRequest request)
+        public async Task<IActionResult> OpenDocumentByCorrespondence(int id)
         {
-            if (request.CorrespondentieId <= 0)
+            if (id <= 0)
             {
                 return BadRequest(new { error = "Invalid correspondence ID." });
             }
 
             var correspondentie = await _context.Correspondentie
-                .FirstOrDefaultAsync(c => c.Id == request.CorrespondentieId);
+                .FirstOrDefaultAsync(c => c.Id == id);
 
             if (correspondentie == null)
             {
@@ -174,7 +233,7 @@ namespace ActielijstApi.Controllers
             //    return BadRequest(new { error = "Invalid document path." });
             //}
 
-            if (!System.IO.File.Exists(documentPath)) // Expliciet System.IO.File gebruiken
+            if (!System.IO.File.Exists(documentPath))
             {
                 _logger.LogError($"Document niet gevonden: {documentPath}");
                 return NotFound(new { error = "Document not found." });
@@ -182,7 +241,7 @@ namespace ActielijstApi.Controllers
 
             try
             {
-                var fileStream = new System.IO.FileStream(documentPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+                var fileStream = new FileStream(documentPath, FileMode.Open, FileAccess.Read, FileShare.Read);
                 return new FileStreamResult(fileStream, "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
                 {
                     FileDownloadName = Path.GetFileName(documentPath)
@@ -190,10 +249,22 @@ namespace ActielijstApi.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Fout bij openen van document voor Correspondentie ID: {request.CorrespondentieId}.");
+                _logger.LogError(ex, $"Fout bij openen van document voor Correspondentie ID: {id}.");
                 return StatusCode(500, new { error = "Kon het document niet verwerken.", details = ex.Message });
             }
         }
+    }
+
+    public class CorrespondentieDto
+    {
+        public int Id { get; set; }
+        public int? KlantID { get; set; }
+        public int? fldCorProjNum { get; set; }
+        public int? fldCorOpdrachtNum { get; set; }
+        public DateTime? fldCorDatum { get; set; }
+        public string? fldCorOmschrijving { get; set; }
+        public string? fldCorBestand { get; set; }
+        public string? fldCorKenmerk { get; set; }
     }
 
     public class OpenDocumentRequest

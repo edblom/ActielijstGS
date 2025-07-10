@@ -5,16 +5,16 @@
 @inject DialogService DialogService
 
 <RadzenFormField Text="Description">
-    <RadzenTextArea @bind-Value="Action.FldOmschrijving" Cols="70" Rows="3" />
+    <RadzenTextArea @bind-Value="Action.FldOmschrijving" Cols="60" Rows="4" />
 </RadzenFormField>
 <RadzenFormField Text="Action Date">
-    <RadzenDatePicker @bind-Value="Action.FldMActieDatum" DateFormat="dd-MM-yyyy" Style="width:100%" />
+    <RadzenDatePicker @bind-Value="Action.FldMActieDatum" DateFormat="dd-MM-yyyy" Style="width:70%" />
 </RadzenFormField>
 <RadzenFormField Text="Assigned To">
     <RadzenDropDown Data="@employees" TextProperty="Voornaam" ValueProperty="WerknId" @bind-Value="Action.FldMActieVoor" Style="width:100%" AllowClear="true" />
 </RadzenFormField>
 <RadzenFormField Text="Completed">
-    <RadzenDatePicker @bind-Value="Action.FldMActieGereed" DateFormat="dd-MM-yyyy" Style="width:100%" AllowClear="true" />
+    <RadzenDatePicker @bind-Value="Action.FldMActieGereed" DateFormat="dd-MM-yyyy" Style="width:70%" AllowClear="true" />
 </RadzenFormField>
 <RadzenFormField Text="Action Type">
     <RadzenDropDown Data="@actionTypes" TextProperty="Omschrijving" ValueProperty="Id" @bind-Value="Action.FldMActieSoort" Style="width:100%" AllowClear="true" />

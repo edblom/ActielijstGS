@@ -2,8 +2,10 @@
 @using Radzen
 @using Radzen.Blazor
 @using KlantBaseWASM.Models
+@using KlantBaseWASM.Services
 @inject HttpClient HttpClient
 @inject DialogService DialogService
+@inject ActieService ActieService
 
 <h3>Actielijst</h3>
 <RadzenDataGrid Data="@actions" TItem="Actie" AllowFiltering="true" AllowSorting="true" AllowPaging="true" PageSize="10"
@@ -33,7 +35,8 @@
     {
         try
         {
-            actions = await HttpClient.GetFromJsonAsync<List<Actie>>("api/acties");
+            actions = await ActieService.GetActionsAsync();
+            // actions = await HttpClient.GetFromJsonAsync<List<Actie>>("api/acties");
         }
         catch (Exception ex)
         {

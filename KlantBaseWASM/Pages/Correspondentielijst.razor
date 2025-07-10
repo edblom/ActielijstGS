@@ -1,0 +1,115 @@
+﻿@page "/correspondentielijst"
+@using Radzen
+@using Radzen.Blazor
+@using KlantBaseWASM.Models
+@using KlantBaseWASM.Services
+@inject CorrespondenceService CorrespondenceService
+@inject NotificationService NotificationService
+
+<h3>Correspondentie Lijst</h3>
+
+<RadzenCard>
+    <div class="row">
+        <div class="col-md-4">
+            <RadzenFormField Text="Klant">
+                <RadzenDropDown @bind-Value="filterKlantId" Data="@klanten" TextProperty="Bedrijf" ValueProperty="Id"
+                                AllowClear="true" Change="@(args => ApplyFilters())" />
+            </RadzenFormField>
+        </div>
+        <div class="col-md-4">
+            <RadzenFormField Text="Project">
+                <RadzenDropDown @bind-Value="filterProjectId" Data="@projecten" TextProperty="fldProjectNaam" ValueProperty="id"
+                                AllowClear="true" Change="@(args => ApplyFilters())" />
+            </RadzenFormField>
+        </div>
+        <div class="col-md-4">
+            <RadzenFormField Text="Opdracht">
+                <RadzenDropDown @bind-Value="filterOpdrachtId" Data="@opdrachten" TextProperty="fldOmschrijving" ValueProperty="id"
+                                AllowClear="true" Change="@(args => ApplyFilters())" />
+            </RadzenFormField>
+        </div>
+    </div>
+</RadzenCard>
+
+<RadzenDataGrid Data="@correspondenties" TItem="CorrespondentieDto" AllowFiltering="true" AllowSorting="true" AllowPaging="true" PageSize="50"
+                RowClick="@(args => OpenDocument(args.Data))">
+    <Columns>
+        <RadzenDataGridColumn TItem="CorrespondentieDto" Property="fldCorDatum" Title="Datum" />
+        <RadzenDataGridColumn TItem="CorrespondentieDto" Property="fldCorOmschrijving" Title="Omschrijving" />
+        <RadzenDataGridColumn TItem="CorrespondentieDto" Property="fldCorKenmerk" Title="Kenmerk" />
+        <RadzenDataGridColumn TItem="CorrespondentieDto" Property="fldCorBestand" Title="Document">
+            <Template Context="item">
+                <a href="/api/Correspondence/open/by-correspondence/@item.Id" target="_blank">Open</a>
+            </Template>
+        </RadzenDataGridColumn>
+    </Columns>
+</RadzenDataGrid>
+
+@code {
+    private List<CorrespondentieDto> correspondenties = new();
+    private List<Adres> klanten = new();
+    private List<TblProjecten> projecten = new();
+    private List<TblOpdrachten> opdrachten = new();
+    private int? filterKlantId;
+    private int? filterProjectId;
+    private int? filterOpdrachtId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            klanten = await CorrespondenceService.GetKlantenAsync();
+            await ApplyFilters();
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Error,
+                Summary = "Fout",
+                Detail = "Kan gegevens niet laden: " + ex.Message,
+                Duration = 4000
+            });
+        }
+    }
+
+    private async Task ApplyFilters()
+    {
+        try
+        {
+            projecten = filterKlantId.HasValue ? await CorrespondenceService.GetProjectenAsync(filterKlantId) : new();
+            opdrachten = filterProjectId.HasValue ? await CorrespondenceService.GetOpdrachtenAsync(filterProjectId) : new();
+            correspondenties = await CorrespondenceService.GetCorrespondentieAsync(filterKlantId, filterProjectId, filterOpdrachtId);
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Error,
+                Summary = "Fout",
+                Detail = "Kan gegevens niet laden: " + ex.Message,
+                Duration = 4000
+            });
+        }
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task OpenDocument(CorrespondentieDto item)
+    {
+        try
+        {
+            // De <a> tag handelt de download af, maar je kunt hier extra logica toevoegen indien nodig
+            // Bijvoorbeeld: var fileBytes = await CorrespondenceService.DownloadDocumentAsync(item.Id);
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Error,
+                Summary = "Fout",
+                Detail = "Kan document niet openen: " + ex.Message,
+                Duration = 4000
+            });
+        }
+    }
+}
