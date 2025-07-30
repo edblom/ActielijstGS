@@ -1,123 +1,54 @@
-﻿/* wwwroot/css/custom-theme.css */
-/* Primary Colors (Dark Blue and Light Blue) */
+﻿/* Basisvariabelen voor Gevelsupport-thema (versie-compatibel met Radzen 7.1.2) */
 :root {
-    --rz-primary: #003087; /* Dark blue for main actions */
-    --rz-primary-light: #0056b3; /* Lighter for hover */
-    --rz-primary-dark: #002266; /* Darker for active */
-    --rz-accent: #00AEEF; /* Light blue for accents */
-    --rz-accent-light: #33C4F1; /* Lighter for hover */
-    --rz-accent-dark: #0088CC; /* Darker for active */
+    --rz-primary: #003366; /* Blauw voor primaire elementen */
+    --rz-secondary: #FF6600; /* Oranje voor accenten/hovers */
+    --rz-success: #00CC00; /* Groen voor succes */
+    --rz-text-color: #000000;
+    --rz-background-color: #FFFFFF;
+    --rz-panel-menu-background-color: #003366; /* Lichte grijs voor sidebar (niet zwart) */
+    --rz-panel-menu-item-background-color: transparent; /* Transparant voor items */
+    --rz-panel-menu-item-hover-background-color: #00CC00; /* Oranje hover */
+    --rz-panel-menu-item-text-color: #FFFFFF; /* Zwart tekst */
+    --rz-panel-menu-item-hover-text-color: #FFFFFF; /* Wit tekst bij hover */
+    --rz-navigation-item-background-color: transparent; /* Voor navigation-items */
+    --rz-navigation-item-hover-background-color: #00CC00; /* Oranje hover */
+    --rz-navigation-item-text-color: #FFFFFF;
+    --rz-navigation-item-hover-text-color: #FFFFFF;
 }
 
-/* Secondary Colors (Orange and Green) */
-:root {
-    --rz-secondary: #FF6200; /* Orange for highlights or secondary actions */
-    --rz-secondary-light: #FF8533; /* Lighter for hover */
-    --rz-secondary-dark: #CC4E00; /* Darker for active */
-    --rz-tertiary: #00A651; /* Green for success or tertiary actions */
-    --rz-tertiary-light: #33B875; /* Lighter for hover */
-    --rz-tertiary-dark: #00843F; /* Darker for active */
+/* Overschrijf sidebar en menu classes (exacte namen uit Radzen 7.x docs) */
+.rz-sidebar {
+    background-color: var(--rz-panel-menu-background-color) !important; /* Lichte grijs sidebar */
 }
 
-/* Background and Text Colors */
-:root {
-    --rz-background: #FFFFFF; /* White background */
-    --rz-text-color: #003087; /* Dark blue text */
-    --rz-border-color: #808080; /* Gray borders */
+.rz-panel-menu {
+    background-color: var(--rz-panel-menu-background-color) !important;
 }
 
-/* Component-Specific Styles */
-.rz-datagrid {
-    background-color: var(--rz-background);
-    border-color: var(--rz-border-color);
-    color: var(--rz-text-color);
+.rz-navigation-item {
+    background-color: var(--rz-navigation-item-background-color) !important;
+    color: var(--rz-navigation-item-text-color) !important;
 }
 
-    .rz-datagrid .rz-header {
-        background-color: var(--rz-primary);
-        color: #FFFFFF;
+    .rz-navigation-item:hover {
+        background-color: var(--rz-navigation-item-hover-background-color) !important;
+        color: var(--rz-navigation-item-hover-text-color) !important;
     }
 
-    .rz-datagrid .rz-row {
-        border-bottom-color: var(--rz-border-color);
-    }
-
-    .rz-datagrid .rz-cell {
-        color: var(--rz-text-color);
-    }
-
-.rz-dialog {
-    background-color: var(--rz-background);
-    border-color: var(--rz-border-color);
-    color: var(--rz-text-color);
+.rz-navigation-item-text {
+    color: var(--rz-navigation-item-text-color) !important;
 }
 
-.rz-button {
-    background-color: var(--rz-accent); /* Light blue by default */
-    color: #FFFFFF;
-    border: none;
+.rz-navigation-item:hover .rz-navigation-item-text {
+    color: var(--rz-navigation-item-hover-text-color) !important;
 }
 
-    .rz-button:hover {
-        background-color: var(--rz-accent-light);
-    }
-
-    .rz-button:active {
-        background-color: var(--rz-accent-dark);
-    }
-
-    /* Secondary button (e.g., Cancel) uses orange */
-    .rz-button.secondary {
-        background-color: var(--rz-secondary); /* Orange */
-    }
-
-        .rz-button.secondary:hover {
-            background-color: var(--rz-secondary-light);
-        }
-
-        .rz-button.secondary:active {
-            background-color: var(--rz-secondary-dark);
-        }
-
-    /* Success button (e.g., Save) uses green */
-    .rz-button.success {
-        background-color: var(--rz-tertiary); /* Green */
-    }
-
-        .rz-button.success:hover {
-            background-color: var(--rz-tertiary-light);
-        }
-
-        .rz-button.success:active {
-            background-color: var(--rz-tertiary-dark);
-        }
-
-.rz-input, .rz-dropdown {
-    border-color: var(--rz-border-color);
-    color: var(--rz-text-color);
+/* Voor de item-wrapper (uit je DevTools-screenshot) */
+.rz-navigation-item-wrapper:hover {
+    background-color: var(--rz-navigation-item-hover-background-color) !important;
 }
 
-    .rz-input:focus, .rz-dropdown:focus {
-        border-color: var(--rz-primary);
-        box-shadow: 0 0 5px var(--rz-primary-light);
-    }
-
-/* wwwroot/css/custom-theme.css */
-.top-row.navbar-dark {
-    background-color: #003087; /* Dark blue */
-    color: #FFFFFF;
+/* Algemene body om zwart te vermijden */
+html, body, .rz-body {
+    background-color: var(--rz-background-color);
 }
-
-.nav-link {
-    color: #00AEEF; /* Light blue */
-}
-
-    .nav-link:hover {
-        background-color: #FF6200; /* Orange */
-        color: #FFFFFF;
-    }
-
-    .nav-link.active {
-        background-color: #00A651; /* Green */
-        color: #FFFFFF;
-    }

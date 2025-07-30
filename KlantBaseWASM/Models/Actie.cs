@@ -14,7 +14,9 @@ public class Actie
     public string? FldMAfspraak { get; set; }
     public DateTime? FldMActieDatum { get; set; }
     public int? FldMActieVoor { get; set; }
+    public string? FldMActieVoorInitialen { get; set; } // Initialen voor de eerste werknemer
     public int? FldMActieVoor2 { get; set; }
+    public string? FldMActieVoor2Initialen { get; set; } // Initialen voor de tweede werknemer
     public DateTime? FldMActieGereed { get; set; }
     public string? FldMActieSoort { get; set; }
     public int? FldMPrioriteit { get; set; }

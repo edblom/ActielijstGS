@@ -24,5 +24,6 @@ builder.Services.AddHttpClient("ActielijstAPI", client =>
 // Register services with dependency injection
 builder.Services.AddScoped<ActieService>();
 builder.Services.AddScoped<CorrespondenceService>();
+builder.Services.AddScoped<WerknemerService>();
 
 await builder.Build().RunAsync();

@@ -15,7 +15,8 @@
         <RadzenDataGridColumn Property="FldOmschrijving" Title="Description" Width="200px" />
         <RadzenDataGridColumn Property="FldMActieDatum" Title="Action Date" Width="100px" FormatString="{0:dd-MM-yyyy}" />
         <RadzenDataGridColumn Property="FldMActieSoort" Title="Soort" Width="50px" />
-        <RadzenDataGridColumn Property="FldMActieVoor" Title="Voor" Width="50px" />
+        <RadzenDataGridColumn Property="FldMActieVoorInitialen" Title="Voor" Width="100px" />
+        <RadzenDataGridColumn Property="FldMActieVoor2Initialen" Title="Voor2" Width="100px" />
         <RadzenDataGridColumn Property="FldMActieGereed" Title="Completed" Width="150px" FormatString="{0:dd-MM-yyyy}" />
         <RadzenDataGridColumn Title="Links" Width="200px">
             <Template Context="actie">
@@ -31,16 +32,22 @@
 @code {
     private List<Actie> actions = new();
 
+    public Actielijst()
+    {
+        Console.WriteLine("Actielijst component constructor called.");
+    }
+
     protected override async Task OnInitializedAsync()
     {
         try
         {
+            await ActieService.InitializeAsync(); // Initialiseer de cache asynchroon
             actions = await ActieService.GetActionsAsync();
-            // actions = await HttpClient.GetFromJsonAsync<List<Actie>>("api/acties");
         }
         catch (Exception ex)
         {
-            DialogService.Alert("Error loading actions: " + ex.Message); // Synchronous Alert
+            Console.WriteLine($"Error loading actions: {ex}");
+            await DialogService.Alert("Error loading actions: " + ex.Message);
         }
     }
 
@@ -50,7 +57,8 @@
             new Dictionary<string, object> { { "Action", args.Data } });
         if (result != null)
         {
-            actions = await HttpClient.GetFromJsonAsync<List<Actie>>("api/acties");
+            await ActieService.InitializeAsync(); // Herinitialiseer bij update
+            actions = await ActieService.GetActionsAsync();
             await InvokeAsync(StateHasChanged);
         }
     }

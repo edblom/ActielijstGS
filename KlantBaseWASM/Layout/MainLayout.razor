@@ -1,17 +1,45 @@
 ﻿@inherits LayoutComponentBase
-<RadzenComponents />
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
+<RadzenLayout Style="height: 100vh;">
+    <RadzenHeader>
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem">
+            <RadzenImage Path="images/gevelsupport-logo.png" Style="margin-left:10px; height: 40px;" />  <!-- Logo uit WebDemo kopiëren -->
+            <RadzenLabel Text="@PageTitle" />
+            <RadzenButton Icon="menu" Click="@ToggleSidebar" Style="margin-left: auto;" />  <!-- Toggle rechts -->
+        </RadzenStack>
+    </RadzenHeader>
 
-        <article class="content px-4">
+    <RadzenSidebar @ref="sidebar" Style="width: 250px;">
+        <RadzenPanelMenu>
+            <!-- PanelMenu voor uitklapbaar/minimaal, zoals in WebDemo -->
+            <RadzenPanelMenuItem Text="Home" Icon="home" Path="/" />
+            <RadzenPanelMenuItem Text="Acties" Icon="list" Path="/actielijst" />  <!-- tblMemo via API -->
+            <RadzenPanelMenuItem Text="Correspondentie" Icon="email" Path="/correspondentielijst" />  <!-- Lijst uit API -->
+            <RadzenPanelMenuItem Text="Projecten" Icon="work" Path="/projecten" />  <!-- tblProjecten -->
+            <RadzenPanelMenuItem Text="Inspecties" Icon="search" Path="/inspecties" />  <!-- Upcoming inspecties -->
+            <RadzenPanelMenuItem Text="Documenten" Icon="description" Path="/documenten" />  <!-- Word-generatie -->
+            <RadzenPanelMenuItem Text="Weather" Icon="cloud" Path="/weather" />  <!-- Behoud placeholder als nodig -->
+            <RadzenPanelMenuItem Text="Logout" Icon="logout" Path="/logout" />
+        </RadzenPanelMenu>
+    </RadzenSidebar>
+
+    <RadzenBody>
+        <div style="padding: 20px;">
             @Body
-        </article>
-    </main>
-</div>
+        </div>
+    </RadzenBody>
+
+    <RadzenFooter>
+        <RadzenLabel Text="© 2025 Gevelsupport - Gebaseerd op KlantBase MSSQL" />
+    </RadzenFooter>
+</RadzenLayout>
+
+@code {
+    private RadzenSidebar sidebar;
+    [Parameter] public string PageTitle { get; set; } = "KlantBaseWASM";
+
+    private void ToggleSidebar()
+    {
+        sidebar.Toggle();
+    }
+}
