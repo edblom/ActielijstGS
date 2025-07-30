@@ -1,6 +1,7 @@
 using KlantBaseWASM;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using Microsoft.Extensions.Caching.Memory;
 using Radzen;
 using KlantBaseWASM.Services;
 
@@ -25,5 +26,6 @@ builder.Services.AddHttpClient("ActielijstAPI", client =>
 builder.Services.AddScoped<ActieService>();
 builder.Services.AddScoped<CorrespondenceService>();
 builder.Services.AddScoped<WerknemerService>();
+builder.Services.AddScoped<ActieSoortService>();
 
 await builder.Build().RunAsync();

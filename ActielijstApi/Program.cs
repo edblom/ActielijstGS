@@ -21,9 +21,9 @@ var builder = WebApplication.CreateBuilder(args);
 // Voeg DbContext toe
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
-    .EnableSensitiveDataLogging()
-    .EnableDetailedErrors()
-    .LogTo(log => Debug.WriteLine(log),LogLevel.Information));
+           .EnableSensitiveDataLogging()
+           .EnableDetailedErrors()
+           .LogTo(log => Debug.WriteLine(log), LogLevel.Information));
 
 // Voeg SmtpSettings toe
 builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("SmtpSettings"));
@@ -56,17 +56,16 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<GlobalsService>();
 builder.Services.AddScoped<IActieService, ActieService>();
 
-// Optioneel: als je Swagger gebruikt
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
 // Voeg CORS toe
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", builder =>
-        builder.AllowAnyOrigin()
-               .AllowAnyMethod()
-               .AllowAnyHeader());
+    options.AddPolicy("AllowBlazorFrontend", policy =>
+    {
+        policy.WithOrigins("https://localhost:7002") // Pas aan naar de frontend-poort
+              .AllowAnyMethod()
+              .AllowAnyHeader()
+              .AllowCredentials(); // Als authenticatie nodig is
+    });
 });
 
 // Voeg logging toe
@@ -109,7 +108,11 @@ else
     app.UseExceptionMiddleware();
 }
 
-app.UseCors("AllowAll");
+// CORS-middleware moet vóór UseAuthorization en UseEndpoints
+app.UseCors("AllowBlazorFrontend");
+
+app.UseHttpsRedirection();
+app.UseAuthorization();
 
 // Registreer minimal API-endpoints uit Endpoints.cs
 app.RegisterEndpoints();

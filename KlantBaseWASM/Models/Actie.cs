@@ -18,7 +18,7 @@ public class Actie
     public int? FldMActieVoor2 { get; set; }
     public string? FldMActieVoor2Initialen { get; set; } // Initialen voor de tweede werknemer
     public DateTime? FldMActieGereed { get; set; }
-    public string? FldMActieSoort { get; set; }
+    public int? FldMActieSoort { get; set; }
     public int? FldMPrioriteit { get; set; }
 }
 
