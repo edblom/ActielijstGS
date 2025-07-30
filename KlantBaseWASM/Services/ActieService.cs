@@ -54,7 +54,7 @@ namespace KlantBaseWASM.Services
         {
             if (string.IsNullOrEmpty(voornaam) || string.IsNullOrEmpty(initialen))
                 return "Onbekend";
-            return $"{voornaam[0]}{initialen}".ToUpper();
+            return $"{initialen}".ToUpper();
         }
     }
 }
