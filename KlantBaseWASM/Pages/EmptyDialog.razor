@@ -1,0 +1,6 @@
+﻿@using Radzen
+@inject DialogService DialogService
+
+<div>
+    <RadzenButton Text="Close" Click="@(() => DialogService.Close(true))" />
+</div>

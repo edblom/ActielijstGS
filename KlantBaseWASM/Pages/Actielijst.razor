@@ -11,7 +11,10 @@
 @inject PriorityService PriorityService
 
 <h3>Actielijst</h3>
-
+<RadzenButton Text="Test JS Interop" Click="@TestJsInterop" Style="margin-top: 10px;" />
+<RadzenButton Text="Test Simple Dialog" Click="@TestSimpleDialog" Style="margin-top: 10px;" />
+<RadzenButton Text="Test Empty Dialog" Click="@(() => TestEmptyDialog())" Style="margin-top: 10px;" />
+<RadzenButton Text="Test Minimal Dialog" Click="@TestMinimalDialog" Style="margin-top: 10px;" />
 <!-- Werknemer, Status, ActieSoort en Prioriteit Filters -->
 <div style="display: flex; align-items: center; margin-bottom: 10px; gap: 20px;">
     <div style="display: flex; align-items: center;">
@@ -116,8 +119,7 @@
     private Dictionary<int, string> ActieSoortLookup = new();
     private List<Priority> Priorities = new();
     private RadzenDataGrid<Actie> dataGrid; // Referentie naar de grid
-
-    IList<Actie> selectedActie;
+    private IList<Actie> selectedActie;
 
     private List<StatusOption> Statuses = new List<StatusOption>
     {
@@ -137,6 +139,24 @@
         selectedActie = null;
     }
 
+    private void CheckDialogService()
+    {
+        Console.WriteLine("Checking DialogService injection...");
+        if (DialogService == null)
+        {
+            Console.WriteLine("DialogService is null, injection failed.");
+        }
+        else
+        {
+            Console.WriteLine("DialogService is injected, type: " + DialogService.GetType().FullName);
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        CheckDialogService();
+    }
+
     protected override async Task OnInitializedAsync()
     {
         try
@@ -148,20 +168,31 @@
             Statuses = Statuses.OrderBy(s => s.Text).ToList();
             Priorities = (await PriorityService.GetAllPrioritiesAsync()).OrderBy(p => p.Omschrijving).ToList();
             Priorities.Insert(0, new Priority { Id = null, Omschrijving = "Alle prioriteiten", Prioriteit = null });
-            // Stel SelectedPriorityId in op "Hoog" (assumptie: Prioriteit = 3)
             var highPriority = Priorities.FirstOrDefault(p => p.Omschrijving == "Hoog");
             SelectedPriorityId = highPriority?.Id;
             ActieSoortLookup = ActieSoorten.ToDictionary(a => a.Id ?? 0, a => a.Omschrijving);
             await ActieService.InitializeAsync();
-            actions = (await ActieService.GetActionsAsync()).OrderBy(prop => prop.FldMActieDatum).ToList();
-            FilteredActions = actions; // Initialiseren met alle acties
-            selectedActie = actions.Take(1).ToList();
-            FilterGrid(); // Pas de filter toe om de initiële weergave te krijgen
+            actions = (await ActieService.GetActionsAsync()).OrderBy(a => a.FldMActieDatum).ToList();
+            FilteredActions = actions;
+            selectedActie = actions.Take(1).ToList(); // Standaard eerste actie selecteren
+            FilterGrid();
+            Console.WriteLine("DialogService available post-init: " + (DialogService != null ? "Yes" : "No"));
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error loading actions: {ex}");
             await DialogService.Alert("Error loading actions: " + ex.Message);
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && DialogService != null)
+        {
+            Console.WriteLine("Post-render DialogService test, thread ID: " + Environment.CurrentManagedThreadId);
+            var result = await DialogService.OpenAsync<MinimalDialog>("Post-Render Test", new Dictionary<string, object>(),
+                new DialogOptions { Width = "300px", Height = "auto" });
+            Console.WriteLine("Post-render Dialog closed with result: " + result);
         }
     }
 
@@ -200,20 +231,41 @@
         StateHasChanged();
     }
 
+    private async Task TestMinimalDialog()
+    {
+        Console.WriteLine("Testing minimal DialogService...");
+        var result = await DialogService.OpenAsync<MinimalDialog>("Test Minimal", new Dictionary<string, object>(),
+            new DialogOptions { Width = "300px", Height = "auto" });
+        Console.WriteLine("Minimal Dialog closed with result: " + result);
+    }
     private async Task EditAction(DataGridRowMouseEventArgs<Actie> args)
     {
         Console.WriteLine("EditAction triggered for action: " + args.Data?.FldOmschrijving);
         if (args.Data != null)
         {
-            var result = await DialogService.OpenAsync<EditActionDialog>("Edit Action",
-                new Dictionary<string, object> { { "Action", args.Data } },
-                new DialogOptions { Width = "500px", Height = "auto" });
-            if (result != null)
+            Console.WriteLine("Opening dialog with Action: " + args.Data.FldMid);
+            var parameters = new Dictionary<string, object>
+        {
+            { "Action", args.Data },
+            { "ActieSoortLookup", ActieSoortLookup },
+            { "Priorities", Priorities }
+        };
+            try
             {
-                await ActieService.InitializeAsync();
-                actions = await ActieService.GetActionsAsync();
-                FilterGrid();
-                StateHasChanged(); // Forceer UI-update
+                var result = await DialogService.OpenAsync<EditActionDialog>("Edit Action", parameters,
+                    new DialogOptions { Width = "500px", Height = "auto" });
+                Console.WriteLine("Dialog closed with result: " + result);
+                if (result != null)
+                {
+                    await ActieService.InitializeAsync();
+                    actions = await ActieService.GetActionsAsync();
+                    FilterGrid();
+                    StateHasChanged();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Dialog error: " + ex.Message);
             }
         }
         else
@@ -221,4 +273,34 @@
             Console.WriteLine("No action data available in EditAction.");
         }
     }
+    private async Task TestEmptyDialog()
+    {
+        Console.WriteLine("Testing empty DialogService, DialogService is " + (DialogService != null ? "not null" : "null"));
+        if (DialogService != null)
+        {
+            Console.WriteLine("Attempting to open EmptyDialog, thread ID: " + Environment.CurrentManagedThreadId);
+            var result = await DialogService.OpenAsync<EmptyDialog>("Test Empty", new Dictionary<string, object>(),
+                new DialogOptions { Width = "200px", Height = "auto" });
+            Console.WriteLine("Empty Dialog closed with result: " + result);
+        }
+        else
+        {
+            Console.WriteLine("DialogService is null, cannot open dialog.");
+        }
+    }
+    private async Task TestSimpleDialog()
+    {
+        Console.WriteLine("Testing simple DialogService...");
+        await DialogService.Alert("This is a simple alert dialog.", "Test Alert");
+        Console.WriteLine("Simple Dialog closed.");
+    }
+    private async Task TestJsInterop()
+    {
+        Console.WriteLine("Testing JS interop...");
+        var result = await JSRuntime.InvokeAsync<string>("alert", "JS Interop Test");
+        Console.WriteLine("JS interop result: " + result);
+    }
+
+    [Inject]
+    private IJSRuntime JSRuntime { get; set; }
 }

@@ -1,8 +1,9 @@
 ﻿@using Radzen
 @using Radzen.Blazor
 @using KlantBaseWASM.Models
-@inject HttpClient HttpClient
 @inject DialogService DialogService
+@inject HttpClient HttpClient
+
 
 <RadzenFormField Text="Description">
     <RadzenTextArea @bind-Value="Action.FldOmschrijving" Cols="60" Rows="4" />
@@ -31,14 +32,18 @@
     [Parameter] public Actie Action { get; set; } = new();
     private List<ActieSoort> actionTypes = new();
     private List<Werknemer> employees = new();
+    [Parameter] public Dictionary<int, string> ActieSoortLookup { get; set; }
+    [Parameter] public List<Priority> Priorities { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            var rawActionTypes = await HttpClient.GetFromJsonAsync<List<ActiesoortApi>>("api/actiesoorten/all");
-            actionTypes = rawActionTypes.Select(a => new ActieSoort { Id = a.Id, Omschrijving = a.Omschrijving }).ToList();
-            employees = await HttpClient.GetFromJsonAsync<List<Werknemer>>("api/Werknemers/actueel");
+            if (ActieSoortLookup != null)
+            {
+                actionTypes = ActieSoortLookup.Select(kvp => new ActieSoort { Id = kvp.Key, Omschrijving = kvp.Value }).ToList();
+            }
+            employees = await HttpClient.GetFromJsonAsync<List<Werknemer>>("api/Werknemers/actueel") ?? new List<Werknemer>();
         }
         catch (Exception ex)
         {
@@ -50,7 +55,6 @@
     {
         try
         {
-            // Ensure FldMActieSoort is sent as a string (API should handle varchar)
             var actionToSave = new Actie
             {
                 FldMid = Action.FldMid,
@@ -70,19 +74,12 @@
                 FldMPrioriteit = Action.FldMPrioriteit
             };
             var response = await HttpClient.PutAsJsonAsync($"api/acties/{Action.FldMid}", actionToSave);
-            response.EnsureSuccessStatusCode(); // Check for HTTP success
-            DialogService.Close(Action);
+            response.EnsureSuccessStatusCode();
+            DialogService.Close(true); // Sluit met succes
         }
         catch (Exception ex)
         {
             DialogService.Alert("Error saving action: " + ex.Message);
         }
-    }
-
-    // Temporary model to deserialize API response
-    private class ActiesoortApi
-    {
-        public int Id { get; set; } // Match API's integer Id
-        public string Omschrijving { get; set; }
     }
 }
