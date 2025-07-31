@@ -49,6 +49,6 @@
 }
 
 /* Algemene body om zwart te vermijden */
-html, body, .rz-body {
+/*html, body, .rz-body {
     background-color: var(--rz-background-color);
-}
+}*/

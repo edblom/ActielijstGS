@@ -53,7 +53,7 @@ namespace KlantBaseWASM.Services
         private string GenerateInitialen(string? voornaam, string? initialen)
         {
             if (string.IsNullOrEmpty(voornaam) || string.IsNullOrEmpty(initialen))
-                return "Onbekend";
+                return "-";
             return $"{initialen}".ToUpper();
         }
     }

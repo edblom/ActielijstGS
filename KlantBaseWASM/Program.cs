@@ -27,5 +27,6 @@ builder.Services.AddScoped<ActieService>();
 builder.Services.AddScoped<CorrespondenceService>();
 builder.Services.AddScoped<WerknemerService>();
 builder.Services.AddScoped<ActieSoortService>();
+builder.Services.AddScoped<PriorityService>();
 
 await builder.Build().RunAsync();
