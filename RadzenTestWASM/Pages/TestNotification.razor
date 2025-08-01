@@ -1,0 +1,37 @@
+﻿@page "/testnotification"
+@using Radzen
+@using Radzen.Blazor
+@inject NotificationService NotificationService
+
+<h3>Test Notification Page</h3>
+<p>This page is used to test the Radzen Notification component.</p>
+<RadzenButton Text="Show Notification" Click="@ShowNotification" Style="margin-top: 10px;" />
+
+@code {
+    private async Task ShowNotification()
+    {
+        Console.WriteLine("Showing notification...");
+        if (NotificationService != null)
+        {
+            Console.WriteLine("NotificationService is not null, type: " + NotificationService.GetType().FullName);
+            NotificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Info,
+                Summary = "Test",
+                Detail = "This is a simple notification test",
+                Duration = 4000
+            });
+            Console.WriteLine("Notification sent, checking DOM...");
+            await Task.Delay(500);
+            var dialogExists = await JSRuntime.InvokeAsync<bool>("checkNotificationExists");
+            Console.WriteLine("Notification exists in DOM: " + dialogExists);
+        }
+        else
+        {
+            Console.WriteLine("NotificationService is null.");
+        }
+    }
+
+    [Inject]
+    private IJSRuntime JSRuntime { get; set; }
+}

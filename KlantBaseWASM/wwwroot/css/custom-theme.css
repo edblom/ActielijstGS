@@ -15,7 +15,15 @@
     --rz-navigation-item-text-color: #FFFFFF;
     --rz-navigation-item-hover-text-color: #FFFFFF;
 }
+.rz-notification {
+    display: block !important;
+    z-index: 1050 !important;
+}
 
+.rz-dialog {
+    display: block !important;
+    z-index: 1050 !important;
+}
 /* Overschrijf sidebar en menu classes (exacte namen uit Radzen 7.x docs) */
 .rz-sidebar {
     background-color: var(--rz-panel-menu-background-color) !important; /* Lichte grijs sidebar */

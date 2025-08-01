@@ -1,0 +1,33 @@
+﻿@page "/testdialog"
+@using Radzen
+@using Radzen.Blazor
+@using Microsoft.AspNetCore.Components
+@inject DialogService DialogService
+
+<h3>Test Dialog Pagina</h3>
+
+<RadzenButton Text="Open Test Dialog" Click="@(() => OpenTestDialog())" Style="margin-top: 10px;" />
+
+@code {
+    protected override void OnInitialized()
+    {
+        Console.WriteLine("TestDialog initialized, DialogService is " + (DialogService != null ? "not null" : "null"));
+    }
+
+    private async Task OpenTestDialog()
+    {
+        Console.WriteLine("Opening Test Dialog, DialogService is " + (DialogService != null ? "not null" : "null"));
+        if (DialogService != null)
+        {
+            Console.WriteLine("Attempting to open TestDialog, thread ID: " + Environment.CurrentManagedThreadId);
+            var result = await DialogService.OpenAsync<TestDialogComponent>("Test Dialog",
+                new Dictionary<string, object>(),
+                new DialogOptions { Width = "300px", Height = "auto" });
+            Console.WriteLine("Test Dialog closed with result: " + result);
+        }
+        else
+        {
+            Console.WriteLine("DialogService is null in TestDialog.");
+        }
+    }
+}

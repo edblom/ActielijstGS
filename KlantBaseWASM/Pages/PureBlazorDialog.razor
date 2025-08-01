@@ -1,0 +1,12 @@
+﻿@using Microsoft.AspNetCore.Components
+@inject DialogService DialogService
+
+<div>
+    <h3>@Message</h3>
+    <p>Thread ID: @Environment.CurrentManagedThreadId</p>
+    <RadzenButton Text="Close" Click="@(() => DialogService.Close(true))" />
+</div>
+
+@code {
+    [Parameter] public string Message { get; set; }
+}

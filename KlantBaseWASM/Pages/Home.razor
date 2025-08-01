@@ -2,6 +2,17 @@
 
 <PageTitle>Home</PageTitle>
 
+@inject NotificationService NotificationService
+
 <h1>Hello, world!</h1>
 
-Welcome to your new app.
+<div class="rz-p-12 rz-text-align-center">
+    <RadzenButton Text="Show notification at custom position"
+                  Click=@(args => ShowNotification(new NotificationMessage { Style = "position: absolute; inset-inline-start: -1000px;", Severity = NotificationSeverity.Success, Summary = "Success Summary", Detail = "Success Detail", Duration = 4000 })) />
+</div>
+@code{
+    void ShowNotification(NotificationMessage message)
+    {
+        NotificationService.Notify(message);
+    }
+}

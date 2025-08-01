@@ -1,0 +1,8 @@
+﻿@using Radzen
+@inject DialogService DialogService
+
+<div>
+    <h3>Test Dialog Component</h3>
+    <p>This is a test dialog to verify DialogService in WASM.</p>
+    <RadzenButton Text="Close" Click="@(() => DialogService.Close(true))" />
+</div>
