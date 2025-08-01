@@ -14,51 +14,39 @@
 @inject NotificationService NotificationService
 
 <h3>Actielijst</h3>
-<!-- Werknemer, Status, ActieSoort en Prioriteit Filters -->
-<div style="display: flex; align-items: center; margin-bottom: 10px; gap: 20px;">
-    <div style="display: flex; align-items: center;">
+<!-- Zoek en Werknemer, Status, ActieSoort en Prioriteit Filters -->
+<RadzenStack Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap" Gap="1rem" AlignItems="AlignItems.Center" BreakPoint="BreakPoint.Small">
+    <RadzenStackItem>
+        <label for="searchInput" style="margin-right: 10px;">Zoek:</label>
+        <RadzenTextBox id="searchInput" Value="@SearchTerm" ValueChanged="@(value => { SearchTerm = value ?? string.Empty; OnSearchChanged(); })" Placeholder="Zoek actie..." Style="width: 100px;" />
+    </RadzenStackItem>
+    <RadzenStackItem>
         <label for="statusDropdown" style="margin-right: 10px;">Status:</label>
-        <RadzenDropDown id="statusDropdown" @bind-Value="SelectedStatus" Data="@Statuses"
-                        TextProperty="Text" ValueProperty="Value"
-                        Change="@((args) => FilterGrid())" Placeholder="Selecteer een status" Style="width: 100px;" />
-    </div>
-    <div style="display: flex; align-items: center;">
+        <RadzenDropDown id="statusDropdown" @bind-Value="SelectedStatus" Data="@Statuses" TextProperty="Text" ValueProperty="Value" Change="@((args) => FilterGrid())" Placeholder="Selecteer een status" Style="width: 100px;" />
+    </RadzenStackItem>
+    <RadzenStackItem>
         <label for="werknemerDropdown" style="margin-right: 10px;">Voor:</label>
-        <RadzenDropDown id="werknemerDropdown" @bind-Value="SelectedWerknemerId" Data="@Werknemers"
-                        TextProperty="DisplayName" ValueProperty="WerknId"
-                        Change="@((args) => FilterGrid())" Placeholder="Selecteer een werknemer" Style="width: 100px;" />
-    </div>
-
-    <div style="display: flex; align-items: center;">
+        <RadzenDropDown id="werknemerDropdown" @bind-Value="SelectedWerknemerId" Data="@Werknemers" TextProperty="DisplayName" ValueProperty="WerknId" Change="@((args) => FilterGrid())" Placeholder="Selecteer een werknemer" Style="width: 100px;" />
+    </RadzenStackItem>
+    <RadzenStackItem>
         <label for="actiesoortDropdown" style="margin-right: 10px;">Soort actie:</label>
-        <RadzenDropDown id="actiesoortDropdown" @bind-Value="SelectedActieSoortId" Data="@ActieSoorten"
-                        TextProperty="Omschrijving" ValueProperty="Id"
-                        Change="@((args) => FilterGrid())" Placeholder="Selecteer een actie soort" Style="width: 250px;" />
-    </div>
-    <div style="display: flex; align-items: center;">
+        <RadzenDropDown id="actiesoortDropdown" @bind-Value="SelectedActieSoortId" Data="@ActieSoorten" TextProperty="Omschrijving" ValueProperty="Id" Change="@((args) => FilterGrid())" Placeholder="Selecteer een actie soort" Style="width: 250px;" />
+    </RadzenStackItem>
+    <RadzenStackItem>
         <label for="priorityDropdown" style="margin-right: 10px;">met prioriteit:</label>
-        <RadzenDropDown id="priorityDropdown" @bind-Value="SelectedPriorityId" Data="@Priorities"
-                        TextProperty="Omschrijving" ValueProperty="Prioriteit"
-                        Change="@((args) => FilterGrid())" Placeholder="Selecteer een prioriteit" Style="width: 100px;" />
-    </div>
-</div>
-<RadzenCard Variant="Variant.Outlined">
-    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1.5rem;" Wrap="FlexWrap.Wrap">
-        <RadzenButton Click="@ClearSelection" Text="Clear Selection" />
-        @if (selectedActie?.Any() == true)
-        {
-            <div>
-                Selected Actie: @selectedActie[0].FldOmschrijving @selectedActie[0].FldMid
-            </div>
-        }
-    </RadzenStack>
-</RadzenCard>
+        <RadzenDropDown id="priorityDropdown" @bind-Value="SelectedPriorityId" Data="@Priorities" TextProperty="Omschrijving" ValueProperty="Prioriteit" Change="@((args) => FilterGrid())" Placeholder="Selecteer een prioriteit" Style="width: 100px;" />
+    </RadzenStackItem>
+</RadzenStack>
 
 <RadzenDataGrid @ref="dataGrid" Data="@FilteredActions" TItem="Actie" AllowFiltering="true" AllowSorting="true" AllowPaging="true" PageSize="10" 
                 SelectionMode="DataGridSelectionMode.Single" @bind-Value=@selectedActie
                 RowDoubleClick="@((args) => EditAction(args))">
     <Columns>
-        @* <RadzenDataGridColumn Property="FldMid" Title="ID" Width="80px" /> *@
+        <RadzenDataGridColumn Width="80px" TextAlign="TextAlign.Center" Title="Actie">
+            <Template Context="actie">
+                <RadzenButton ButtonStyle="ButtonStyle.Primary" Icon="edit" Size="ButtonSize.Small" Click="@(() => EditAction(actie))" />
+            </Template>
+        </RadzenDataGridColumn>
         <RadzenDataGridColumn Property="FldMActieSoort" Title="Soort" Width="150px">
             <Template Context="actie">
                 @if (actie.FldMActieSoort.HasValue && ActieSoortLookup.TryGetValue(actie.FldMActieSoort.Value, out var omschrijving))
@@ -119,6 +107,13 @@
     private List<Priority> Priorities = new();
     private RadzenDataGrid<Actie> dataGrid; // Referentie naar de grid
     private IList<Actie> selectedActie;
+    private string SearchTerm { get; set; } = string.Empty;
+
+    private void OnSearchChanged()
+    {
+        Console.WriteLine($"SearchTerm changed to: '{SearchTerm}'");
+        FilterGrid();
+    }
 
     private List<StatusOption> Statuses = new List<StatusOption>
     {
@@ -168,7 +163,15 @@
 
     private void FilterGrid()
     {
+        Console.WriteLine($"FilterGrid called, SearchTerm: '{SearchTerm ?? "null"}', IsNullOrWhiteSpace: {string.IsNullOrWhiteSpace(SearchTerm)}");
         var query = actions.AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(SearchTerm))
+        {
+            Console.WriteLine($"Applying search filter with SearchTerm: '{SearchTerm}'");
+            query = query.Where(a => a != null && a.FldOmschrijving != null && a.FldOmschrijving.Contains(SearchTerm, StringComparison.CurrentCultureIgnoreCase));
+            Console.WriteLine($"Filtered query count: {query.Count()}"); // Debug de gefilterde resultaten
+        }
 
         if (SelectedWerknemerId.HasValue)
         {
@@ -202,26 +205,35 @@
     }
 
 
-    private async Task EditAction(DataGridRowMouseEventArgs<Actie> args)
+    private async Task EditAction(object args)
     {
-        Console.WriteLine("EditAction triggered for action: " + args.Data?.FldOmschrijving);
-        if (args.Data != null)
+        Actie actie = null;
+        if (args is DataGridRowMouseEventArgs<Actie> eventArgs)
         {
-            Console.WriteLine("Opening dialog with Action ID: " + args.Data.FldMid);
+            Console.WriteLine("EditAction triggered via RowDoubleClick for action: " + eventArgs.Data?.FldOmschrijving);
+            actie = eventArgs.Data;
+        }
+        else if (args is Actie directActie)
+        {
+            Console.WriteLine("EditAction triggered via button for action: " + directActie?.FldOmschrijving);
+            actie = directActie;
+        }
+
+        if (actie != null)
+        {
+            Console.WriteLine("Opening dialog with Action ID: " + actie.FldMid);
             var parameters = new Dictionary<string, object>
-            {
-                { "Action", args.Data },
-                { "ActieSoortLookup", ActieSoortLookup },
-                { "Priorities", Priorities }
-            };
+        {
+            { "Action", actie },
+            { "ActieSoortLookup", ActieSoortLookup },
+            { "Priorities", Priorities }
+        };
             try
             {
-                Console.WriteLine("Attempting to open DialogService, DialogService is " + (DialogService != null ? "not null" : "null"));
-                await Task.Delay(100); // Test vertraging
-                Console.WriteLine("Delay complete, opening dialog...");
                 var dialogTask = DialogService.OpenAsync<EditActionDialog>("Edit Action", parameters,
                     new DialogOptions { Width = "500px", Height = "auto" });
                 var result = await dialogTask;
+                Console.WriteLine("Dialog closed with result: " + result);
                 if (result != null)
                 {
                     await ActieService.InitializeAsync();
@@ -233,10 +245,6 @@
             catch (Exception ex)
             {
                 Console.WriteLine("Dialog error caught: " + ex.Message);
-                if (ex.InnerException != null)
-                {
-                    Console.WriteLine("Inner exception: " + ex.InnerException.Message);
-                }
             }
         }
         else
@@ -244,5 +252,4 @@
             Console.WriteLine("No action data available in EditAction.");
         }
     }
-
- }
+}
