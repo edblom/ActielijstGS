@@ -4,10 +4,27 @@
 @inject DialogService DialogService
 @inject HttpClient HttpClient
 
-
-<RadzenFormField Text="Description">
-    <RadzenTextArea @bind-Value="Action.FldOmschrijving" Cols="60" Rows="4" />
+<RadzenStack Orientation="Orientation.Horizontal" Gap="10px">
+    <RadzenFormField Text="Datum">
+        <RadzenDatePicker @bind-Value="Action.FldMDatum" DateFormat="dd-MM-yyyy" ReadOnly />
+    </RadzenFormField>
+    <RadzenFormField Text="Van">
+        <RadzenNumeric @bind-Value="Action.WerknId" Style="width:100%" AllowClear="true" ReadOnly/>
+    </RadzenFormField>
+    <RadzenFormField Text="id">
+        <RadzenNumeric @bind-Value="Action.FldMid" Style="width:100%" AllowClear="true" ReadOnly />
+    </RadzenFormField>
+</RadzenStack>
+<RadzenRow>
+    <RadzenFormField Text="Omschrijving">
+        <RadzenTextArea @bind-Value="Action.FldOmschrijving" Style="width:100%" cols="80" Rows="4" />
+    </RadzenFormField>
+</RadzenRow>
+<RadzenRow>
+<RadzenFormField Text="Soort actie">
+    <RadzenDropDown Data="@actionTypes" TextProperty="Omschrijving" ValueProperty="Id" @bind-Value="Action.FldMActieSoort" Style="width:100%" AllowClear="true" />
 </RadzenFormField>
+</RadzenRow>
 <RadzenFormField Text="Action Date">
     <RadzenDatePicker @bind-Value="Action.FldMActieDatum" DateFormat="dd-MM-yyyy" Style="width:70%" />
 </RadzenFormField>
@@ -17,9 +34,7 @@
 <RadzenFormField Text="Completed">
     <RadzenDatePicker @bind-Value="Action.FldMActieGereed" DateFormat="dd-MM-yyyy" Style="width:70%" AllowClear="true" />
 </RadzenFormField>
-<RadzenFormField Text="Action Type">
-    <RadzenDropDown Data="@actionTypes" TextProperty="Omschrijving" ValueProperty="Id" @bind-Value="Action.FldMActieSoort" Style="width:100%" AllowClear="true" />
-</RadzenFormField>
+
 <RadzenFormField Text="Priority">
     <RadzenNumeric @bind-Value="Action.FldMPrioriteit" Style="width:100%" AllowClear="true" />
 </RadzenFormField>

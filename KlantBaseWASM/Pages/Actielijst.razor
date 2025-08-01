@@ -42,12 +42,12 @@
                 SelectionMode="DataGridSelectionMode.Single" @bind-Value=@selectedActie
                 RowDoubleClick="@((args) => EditAction(args))">
     <Columns>
-        <RadzenDataGridColumn Width="80px" TextAlign="TextAlign.Center" Title="Actie">
+        <RadzenDataGridColumn Width="60px" TextAlign="TextAlign.Center" Title="Actie" Sortable="false" Filterable="false">
             <Template Context="actie">
                 <RadzenButton ButtonStyle="ButtonStyle.Primary" Icon="edit" Size="ButtonSize.Small" Click="@(() => EditAction(actie))" />
             </Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn Property="FldMActieSoort" Title="Soort" Width="150px">
+        <RadzenDataGridColumn Property="FldMActieSoort" Title="Soort" Width="150px" FilterGrid="">
             <Template Context="actie">
                 @if (actie.FldMActieSoort.HasValue && ActieSoortLookup.TryGetValue(actie.FldMActieSoort.Value, out var omschrijving))
                 {
