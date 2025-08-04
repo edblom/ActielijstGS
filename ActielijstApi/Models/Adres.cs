@@ -18,7 +18,8 @@ namespace ActielijstApi.Models
         public string? ZOEKCODE { get; set; }
 
         [Column("BEDRIJF")]
-        public string? Bedrijf { get; set; } // Voor "Bedrijf" custom property
+        public string? Bedrijf { get; set; }
+        // Voor "Bedrijf" custom property
         //public string? Tav { get; set; }
         //public string? Geachte { get; set; }
         //public string? VestigAdr { get; set; }
@@ -26,7 +27,8 @@ namespace ActielijstApi.Models
         //public string? VestigPlaats { get; set; }
         //public string? Postadres { get; set; }
         //public string? Pc { get; set; }
-        //public string? Wpl { get; set; }
+        [Column("wpl")]
+        public string? Plaats { get; set; }
         //public string? Land { get; set; }
         //public string? Tel { get; set; }
         //public string? TelPrive { get; set; }

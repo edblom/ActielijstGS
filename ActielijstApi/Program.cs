@@ -2,7 +2,9 @@ using ActielijstApi;
 using ActielijstApi.Data;
 using ActielijstApi.Models;
 using ActielijstApi.Services;
+using ActieLijstAPI.Services;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,9 +14,8 @@ using Microsoft.OpenApi.Models;
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Text.Json.Serialization;
 using System.Text.Json;
-using Microsoft.AspNetCore.Http.Json;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -55,6 +56,10 @@ builder.Services.AddScoped<CorrespondenceService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<GlobalsService>();
 builder.Services.AddScoped<IActieService, ActieService>();
+builder.Services.AddScoped<KlantService>();
+builder.Services.AddScoped<ProjectService>();
+builder.Services.AddScoped<ContactpersoonService>();
+builder.Services.AddScoped<OpdrachtService>();
 
 // Voeg CORS toe
 builder.Services.AddCors(options =>

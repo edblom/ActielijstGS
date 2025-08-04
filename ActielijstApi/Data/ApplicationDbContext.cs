@@ -26,6 +26,7 @@ namespace ActielijstApi.Data
         public DbSet<ProjectType> ProjectTypes { get; set; }
         public DbSet<AssignmentCategory> AssignmentCategories { get; set; }
         public DbSet<Status> Statuses { get; set; }
+        public DbSet<Contactpersonen> ContactPersonen { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -33,6 +34,11 @@ namespace ActielijstApi.Data
             modelBuilder.Entity<Werknemer>()
                 .ToTable("Werknemers", "dbo")
                 .HasKey(w => w.WerknId);
+
+            // Werknemer
+            modelBuilder.Entity<Contactpersonen>()
+                .ToTable("contactpersonen", "dbo")
+                .HasKey(c => c.Id);
 
             // ActieSoort
             modelBuilder.Entity<ActieSoort>()

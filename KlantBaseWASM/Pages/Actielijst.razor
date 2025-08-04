@@ -47,7 +47,7 @@
                 <RadzenButton ButtonStyle="ButtonStyle.Primary" Icon="edit" Size="ButtonSize.Small" Click="@(() => EditAction(actie))" />
             </Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn Property="FldMActieSoort" Title="Soort" Width="150px" FilterGrid="">
+        <RadzenDataGridColumn Property="FldMActieSoort" Title="Soort" Width="150px" >
             <Template Context="actie">
                 @if (actie.FldMActieSoort.HasValue && ActieSoortLookup.TryGetValue(actie.FldMActieSoort.Value, out var omschrijving))
                 {
@@ -226,7 +226,8 @@
         {
             { "Action", actie },
             { "ActieSoortLookup", ActieSoortLookup },
-            { "Priorities", Priorities }
+            { "Priorities", Priorities },
+            { "Werknemers", Werknemers}
         };
             try
             {
@@ -238,8 +239,8 @@
                 {
                     await ActieService.InitializeAsync();
                     actions = await ActieService.GetActionsAsync();
-                    FilterGrid();
-                    StateHasChanged();
+                    // FilterGrid();
+                    // StateHasChanged();
                 }
             }
             catch (Exception ex)

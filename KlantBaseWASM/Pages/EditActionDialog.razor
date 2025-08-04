@@ -1,18 +1,39 @@
 ﻿@using Radzen
 @using Radzen.Blazor
 @using KlantBaseWASM.Models
-@inject DialogService DialogService
+@using KlantBaseWASM.Dtos
+@using KlantBaseWASM.Services
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Components.Web
+@using Newtonsoft.Json
+@inject IHttpClientFactory HttpClientFactory 
 @inject HttpClient HttpClient
+@inject DialogService DialogService
+@inject DetailsService DetailsService
 
 <RadzenStack Orientation="Orientation.Horizontal" Gap="10px">
-    <RadzenFormField Text="Datum">
-        <RadzenDatePicker @bind-Value="Action.FldMDatum" DateFormat="dd-MM-yyyy" ReadOnly />
+    <RadzenText TextStyle="TextStyle.H6">
+        Actie @Action.FldMid: gemaakt @(Action.FldMDatum?.ToString("dd-MM-yyyy") ?? "N/A"): door @(Werknemers.FirstOrDefault(w => w.WerknId == Action.WerknId)?.Voornaam ?? "Onbekend")
+    </RadzenText>
+</RadzenStack>
+<RadzenFormField Text="Klant">
+    <RadzenTextBox @bind-Value="KlantDetails" ReadOnly="true" Style="width: 100%;" />
+</RadzenFormField>
+<RadzenFormField Text="Project">
+    <RadzenTextBox @bind-Value="ProjectDetails" ReadOnly="true" Style="width: 100%;" />
+</RadzenFormField>
+<RadzenFormField Text="Contactpersoon">
+    <RadzenTextBox @bind-Value="ContactpersoonDetails" ReadOnly="true" Style="width: 100%;" />
+</RadzenFormField>
+<RadzenFormField Text="Opdracht">
+    <RadzenTextBox @bind-Value="OpdrachtDetails" ReadOnly="true" Style="width: 100%;" />
+</RadzenFormField>
+<RadzenStack Orientation="Orientation.Horizontal" Gap="1rem" AlignItems="AlignItems.Center">
+    <RadzenFormField Text="Voor">
+        <RadzenDropDown Data="@Werknemers" TextProperty="Voornaam" ValueProperty="WerknId" @bind-Value="Action.FldMActieVoor" Style="width:100%" AllowClear="true" />
     </RadzenFormField>
-    <RadzenFormField Text="Van">
-        <RadzenNumeric @bind-Value="Action.WerknId" Style="width:100%" AllowClear="true" ReadOnly/>
-    </RadzenFormField>
-    <RadzenFormField Text="id">
-        <RadzenNumeric @bind-Value="Action.FldMid" Style="width:100%" AllowClear="true" ReadOnly />
+    <RadzenFormField Text="en/of">
+        <RadzenDropDown Data="@Werknemers" TextProperty="Voornaam" ValueProperty="WerknId" @bind-Value="Action.FldMActieVoor2" Style="width:100%" AllowClear="true" />
     </RadzenFormField>
 </RadzenStack>
 <RadzenRow>
@@ -21,20 +42,24 @@
     </RadzenFormField>
 </RadzenRow>
 <RadzenRow>
-<RadzenFormField Text="Soort actie">
-    <RadzenDropDown Data="@actionTypes" TextProperty="Omschrijving" ValueProperty="Id" @bind-Value="Action.FldMActieSoort" Style="width:100%" AllowClear="true" />
-</RadzenFormField>
+    <RadzenFormField Text="Soort actie">
+        <RadzenDropDown Data="@actionTypes" TextProperty="Omschrijving" ValueProperty="Id" @bind-Value="Action.FldMActieSoort" Style="width:100%" AllowClear="true" />
+    </RadzenFormField>
 </RadzenRow>
-<RadzenFormField Text="Action Date">
+<RadzenFormField Text="Uitvoeren voor:">
     <RadzenDatePicker @bind-Value="Action.FldMActieDatum" DateFormat="dd-MM-yyyy" Style="width:70%" />
 </RadzenFormField>
-<RadzenFormField Text="Assigned To">
-    <RadzenDropDown Data="@employees" TextProperty="Voornaam" ValueProperty="WerknId" @bind-Value="Action.FldMActieVoor" Style="width:100%" AllowClear="true" />
-</RadzenFormField>
-<RadzenFormField Text="Completed">
-    <RadzenDatePicker @bind-Value="Action.FldMActieGereed" DateFormat="dd-MM-yyyy" Style="width:70%" AllowClear="true" />
-</RadzenFormField>
-
+<RadzenRow>
+    <RadzenStack Orientation="Orientation.Horizontal" Gap="1rem" AlignItems="AlignItems.End">
+        <RadzenText>Actie gereed:</RadzenText>
+        <RadzenFormField>
+            <RadzenCheckBox @bind-Value="IsCompleted" />
+        </RadzenFormField>
+        <RadzenText>
+            @(Action.FldMActieGereed?.ToString("ddd dd-MM-yyyy") ?? "N/A")
+        </RadzenText>
+    </RadzenStack>
+</RadzenRow>
 <RadzenFormField Text="Priority">
     <RadzenNumeric @bind-Value="Action.FldMPrioriteit" Style="width:100%" AllowClear="true" />
 </RadzenFormField>
@@ -46,9 +71,28 @@
 @code {
     [Parameter] public Actie Action { get; set; } = new();
     private List<ActieSoort> actionTypes = new();
-    private List<Werknemer> employees = new();
+    [Parameter] public List<Werknemer> Werknemers { get; set; }
     [Parameter] public Dictionary<int, string> ActieSoortLookup { get; set; }
     [Parameter] public List<Priority> Priorities { get; set; }
+    private string KlantDetails { get; set; }
+    private string ProjectDetails { get; set; }
+    private string ContactpersoonDetails { get; set; }
+    private string OpdrachtDetails { get; set; }
+    private bool? IsCompleted
+    {
+        get => Action.FldMActieGereed.HasValue;
+        set
+        {
+            if (value == true && !Action.FldMActieGereed.HasValue)
+            {
+                Action.FldMActieGereed = DateTime.Now;
+            }
+            else if (value == false && Action.FldMActieGereed.HasValue)
+            {
+                Action.FldMActieGereed = null;
+            }
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -58,7 +102,11 @@
             {
                 actionTypes = ActieSoortLookup.Select(kvp => new ActieSoort { Id = kvp.Key, Omschrijving = kvp.Value }).ToList();
             }
-            employees = await HttpClient.GetFromJsonAsync<List<Werknemer>>("api/Werknemers/actueel") ?? new List<Werknemer>();
+
+            KlantDetails = await DetailsService.GetKlantDetailsAsync(Action.FldMKlantId);
+            ProjectDetails = await DetailsService.GetProjectDetailsAsync(Action.FldMProjectId);
+            ContactpersoonDetails = await DetailsService.GetContactpersoonDetailsAsync(Action.FldMContactPers); // string parameter
+            OpdrachtDetails = await DetailsService.GetOpdrachtDetailsAsync(Action.FldOpdrachtId);
         }
         catch (Exception ex)
         {
@@ -70,6 +118,7 @@
     {
         try
         {
+            var httpClient = HttpClientFactory.CreateClient("ActielijstAPI");
             var actionToSave = new Actie
             {
                 FldMid = Action.FldMid,
@@ -85,12 +134,12 @@
                 FldMActieVoor = Action.FldMActieVoor,
                 FldMActieVoor2 = Action.FldMActieVoor2,
                 FldMActieGereed = Action.FldMActieGereed,
-                FldMActieSoort = Action.FldMActieSoort, // String value
+                FldMActieSoort = Action.FldMActieSoort,
                 FldMPrioriteit = Action.FldMPrioriteit
             };
-            var response = await HttpClient.PutAsJsonAsync($"api/acties/{Action.FldMid}", actionToSave);
+            var response = await httpClient.PutAsJsonAsync($"api/acties/{Action.FldMid}", actionToSave);
             response.EnsureSuccessStatusCode();
-            DialogService.Close(true); // Sluit met succes
+            DialogService.Close(true);
         }
         catch (Exception ex)
         {
