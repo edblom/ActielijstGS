@@ -31,4 +31,8 @@
     <Folder Include="Migrations\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\KlantBaseShare\KlantBaseShare.csproj" />
+  </ItemGroup>
+
 </Project>

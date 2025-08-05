@@ -1,4 +1,4 @@
-﻿using KlantBaseWASM.Dtos;
+﻿using KlantBaseShare.Dtos;
 using Microsoft.AspNetCore.Components;
 using System;
 using System.Net.Http;

@@ -1,7 +1,7 @@
 ﻿@using Radzen
 @using Radzen.Blazor
 @using KlantBaseWASM.Models
-@using KlantBaseWASM.Dtos
+@using KlantBaseShare.Dtos
 @using KlantBaseWASM.Services
 @using Microsoft.AspNetCore.Components
 @using Microsoft.AspNetCore.Components.Web
@@ -201,7 +201,7 @@
 
     private async Task LoadContactpersoonData(LoadDataArgs args)
     {
-        lexvar term = args.Filter ?? searchContactpersoonTerm;
+        var term = args.Filter ?? searchContactpersoonTerm;
         Console.WriteLine($"Zoeken naar Contactpersoonen met term: {term}");  // Log voor debug
         var results = await DetailsService.SearchContactpersoonAsync(term);
         Console.WriteLine($"Resultaten gevonden: {results.Count}");  // Log aantal resultaten
