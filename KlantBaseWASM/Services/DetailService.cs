@@ -35,28 +35,26 @@ namespace KlantBaseWASM.Services
             return null;
         }
 
-        public async Task<string> GetProjectDetailsAsync(int? id)
+        public async Task<ProjectDTO> GetProjectDetailsAsync(int? id)
         {
             if (id.HasValue && id.Value != 0)
             {
                 try
                 {
                     var response = await _httpClient.GetFromJsonAsync<ProjectDTO>($"api/projecten/{id.Value}");
-                    return response != null
-                        ? $"Nummer: {response.ProjectNummer}, Omschrijving: {response.Omschrijving}"
-                        : "Onbekend (geen response)";
+                    return response;
                 }
                 catch (HttpRequestException ex)
                 {
                     Console.WriteLine($"HTTP Error fetching project: {ex.Message}");
-                    return "Onbekend (netwerkfout)";
+                    return null;
                 }
             }
             Console.WriteLine($"ProjectId is null or 0: {id}");
-            return "Onbekend (ongeldig ID)";
+            return null;
         }
 
-        public async Task<string> GetContactpersoonDetailsAsync(string id)
+        public async Task<ContactpersoonDTO> GetContactpersoonDetailsAsync(string id)
         {
             if (!string.IsNullOrWhiteSpace(id))
             {
@@ -65,54 +63,90 @@ namespace KlantBaseWASM.Services
                     try
                     {
                         var response = await _httpClient.GetFromJsonAsync<ContactpersoonDTO>($"api/contactpersonen/{contactId}");
-                        return response != null
-                            ? $"Naam: {response.VolledigeNaam}"
-                            : "Onbekend (geen response)";
+                        return response;
                     }
                     catch (HttpRequestException ex)
                     {
                         Console.WriteLine($"HTTP Error fetching contactpersoon by ID: {ex.Message}");
-                        return "Onbekend (netwerkfout)";
+                        return null;
                     }
                 }
                 // Als het geen getal is, toon de string direct
                 Console.WriteLine($"ContactPersId is a string: {id}");
-                return id; // Direct de string tonen
+                return null; // Direct de string tonen
             }
             Console.WriteLine("ContactPersId is null or empty");
-            return "Onbekend (ongeldig ID)";
+            return null;
         }
-        public async Task<string> GetOpdrachtDetailsAsync(int? id)
+        public async Task<OpdrachtDTO> GetOpdrachtDetailsAsync(int? id)
         {
             if (id.HasValue && id.Value != 0)
             {
                 try
                 {
                     var response = await _httpClient.GetFromJsonAsync<OpdrachtDTO>($"api/opdrachten/{id.Value}");
-                    return response != null
-                        ? $"Nummer: {response.OpdrachtNummer}, Soort: {response.SoortOpdracht}, Omschrijving: {response.Omschrijving}"
-                        : "Onbekend (geen response)";
+                    return response;
                 }
                 catch (HttpRequestException ex)
                 {
                     Console.WriteLine($"HTTP Error fetching opdracht: {ex.Message}");
-                    return "Onbekend (netwerkfout)";
+                    return null;
                 }
             }
             Console.WriteLine($"OpdrachtId is null or 0: {id}");
-            return "Onbekend (ongeldig ID)";
+            return null;
         }
-        public async Task<List<KlantSearchDTO>> SearchKlantAsync(string term)
+        public async Task<List<KlantDTO>> SearchKlantAsync(string term)
         {
             try
             {
-                var response = await _httpClient.GetFromJsonAsync<List<KlantSearchDTO>>($"api/klant/search?term={term}&limit=50");
-                return response ?? new List<KlantSearchDTO>();
+                var response = await _httpClient.GetFromJsonAsync<List<KlantDTO>>($"api/klant/search?term={term}&limit=50");
+                return response ?? new List<KlantDTO>();
             }
             catch (HttpRequestException ex)
             {
                 Console.WriteLine($"HTTP Error searching klant: {ex.Message}");
-                return new List<KlantSearchDTO>();
+                return new List<KlantDTO>();
+            }
+        }
+        public async Task<List<ProjectDTO>> SearchProjectAsync(string term)
+        {
+            try
+            {
+                var response = await _httpClient.GetFromJsonAsync<List<ProjectDTO>>($"api/projecten/search?term={term}&limit=50");
+                return response ?? new List<ProjectDTO>();
+            }
+            catch (HttpRequestException ex)
+            {
+                Console.WriteLine($"HTTP Error searching project: {ex.Message}");
+                return new List<ProjectDTO>();
+            }
+        }
+        public async Task<List<ContactpersoonDTO>> SearchContactpersoonAsync(string term)
+        {
+            try
+            {
+                var response = await _httpClient.GetFromJsonAsync<List<ContactpersoonDTO>>($"api/Contactpersonen/search?term={term}&limit=50");
+                return response ?? new List<ContactpersoonDTO>();
+            }
+            catch (HttpRequestException ex)
+            {
+                Console.WriteLine($"HTTP Error searching contactpersoon: {ex.Message}");
+                return new List<ContactpersoonDTO>();
+            }
+        }
+
+        public async Task<List<OpdrachtDTO>> SearchOpdrachtAsync(string term)
+        {
+            try
+            {
+                var response = await _httpClient.GetFromJsonAsync<List<OpdrachtDTO>>($"api/Opdrachten/search?term={term}&limit=50");
+                return response ?? new List<OpdrachtDTO>();
+            }
+            catch (HttpRequestException ex)
+            {
+                Console.WriteLine($"HTTP Error searching opdracht: {ex.Message}");
+                return new List<OpdrachtDTO>();
             }
         }
     }

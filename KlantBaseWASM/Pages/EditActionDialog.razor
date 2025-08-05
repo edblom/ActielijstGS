@@ -21,12 +21,11 @@
         <RadzenAutoComplete @bind-Value="searchKlantTerm"
                             LoadData="@LoadKlantData"
                             TextProperty="Zoekcode"
-                            ValueProperty="Id"
                             Data="@klanten"
                             Style="width: 100%;"
                             Placeholder="Zoek klant (zoekcode, naam, plaats)..."
-                            MinLength="1"
-                            Delay="200">
+                            OpenOnFocus="true"
+                            MinLength="1">
             <Template Context="klant">
                 @klant.Zoekcode - @klant.Naam (@klant.Plaats)
             </Template>
@@ -34,21 +33,60 @@
     </RadzenFormField>
     <RadzenText Text="@KlantDetails" />
 </RadzenStack>
-@* <RadzenFormField Text="Project">
-        <RadzenAutoComplete @bind-Value="Action.FldMProjectId" LoadData="@LoadProjectData" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" Style="width: 100%;" Placeholder="Zoek project..." />
-        <RadzenText Text="@ProjectDetails" />
-    </RadzenFormField>
 
+<RadzenStack Orientation="Orientation.Horizontal" Gap="10px" AlignItems="AlignItems.Center">
     <RadzenFormField Text="Contactpersoon">
-        <RadzenAutoComplete @bind-Value="Action.FldMContactPers" LoadData="@LoadContactpersoonData" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" Style="width: 100%;" Placeholder="Zoek contactpersoon..." />
-        <RadzenText Text="@ContactpersoonDetails" />
+        <RadzenAutoComplete @bind-Value="searchContactpersoonTerm"
+                            LoadData="@LoadContactpersoonData"
+                            TextProperty="Achternaam"
+                            Data="@Contactpersoonen"
+                            Style="width: 100%;"
+                            Placeholder="Zoek Contactpersoon (nummer, omschrijving)..."
+                            OpenOnFocus="true"
+                            MinLength="1">
+            <Template Context="Contactpersoon">
+                @Contactpersoon.VolledigeNaam
+            </Template>
+        </RadzenAutoComplete>
     </RadzenFormField>
+    <RadzenText Text="@ContactpersoonDetails" />
+</RadzenStack>
 
+<RadzenStack Orientation="Orientation.Horizontal" Gap="10px" AlignItems="AlignItems.Center">
+    <RadzenFormField Text="Project">
+        <RadzenAutoComplete @bind-Value="searchProjectTerm"
+                            LoadData="@LoadProjectData"
+                            TextProperty="ProjectNummer"
+                            Data="@projecten"
+                            Style="width: 100%;"
+                            Placeholder="Zoek project (nummer, omschrijving)..."
+                            OpenOnFocus="true"
+                            MinLength="1">
+            <Template Context="project">
+                @project.ProjectNummer - @project.Omschrijving
+            </Template>
+        </RadzenAutoComplete>
+    </RadzenFormField>
+    <RadzenText Text="@ProjectDetails" />
+</RadzenStack>
+
+<RadzenStack Orientation="Orientation.Horizontal" Gap="10px" AlignItems="AlignItems.Center">
     <RadzenFormField Text="Opdracht">
-        <RadzenAutoComplete @bind-Value="Action.FldOpdrachtId" LoadData="@LoadOpdrachtData" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" Style="width: 100%;" Placeholder="Zoek opdracht..." />
-        <RadzenText Text="@OpdrachtDetails" />
-    </RadzenFormField> *@
-
+        <RadzenAutoComplete @bind-Value="searchOpdrachtTerm"
+                            LoadData="@LoadOpdrachtData"
+                            TextProperty="OpdrachtNummer"
+                            Data="@Opdrachten"
+                            Style="width: 100%;"
+                            Placeholder="Zoek Opdracht (nummer, omschrijving)..."
+                            OpenOnFocus="true"
+                            MinLength="1">
+            <Template Context="Opdracht">
+                @Opdracht.OpdrachtNummer
+            </Template>
+        </RadzenAutoComplete>
+    </RadzenFormField>
+    <RadzenText Text="@OpdrachtDetails" />
+</RadzenStack>
 <RadzenStack Orientation="Orientation.Horizontal" Gap="1rem" AlignItems="AlignItems.Center">
     <RadzenFormField Text="Voor">
         <RadzenDropDown Data="@Werknemers" TextProperty="Voornaam" ValueProperty="WerknId" @bind-Value="Action.FldMActieVoor" Style="width:100%" AllowClear="true" />
@@ -95,17 +133,11 @@
     [Parameter] public List<Werknemer> Werknemers { get; set; }
     [Parameter] public Dictionary<int, string> ActieSoortLookup { get; set; }
     [Parameter] public List<Priority> Priorities { get; set; }
+
     private string KlantDetails { get; set; }
-    private string ProjectDetails { get; set; }
-    private string ContactpersoonDetails { get; set; }
-    private string OpdrachtDetails { get; set; }
-
-    private string searchKlantTerm { get; set; } = string.Empty;  // Bestaande variabele
-    private List<string> testItems = new List<string> { "Apple", "Banana", "Cherry" };  // Statische testlijst
-    private List<string> filteredItems { get; set; } = new List<string>();  // Gefilterde lijst
-
-    private List<KlantSearchDTO> klanten { get; set; } = new List<KlantSearchDTO>();  // Lokale lijst voor suggesties (initieel leeg)
+    private List<KlantDTO> klanten { get; set; } = new List<KlantDTO>();  // Lokale lijst voor suggesties (initieel leeg)
     private KlantDTO KlantCurrent = new KlantDTO();  // Huidige klant details
+    private string searchKlantTerm { get; set; } = string.Empty;  // Bestaande variabele
 
     private async Task LoadKlantData(LoadDataArgs args)
     {
@@ -129,6 +161,97 @@
         {
             Action.FldMKlantId = null;
             KlantDetails = "Onbekend";
+        }
+    }
+
+    private List<ProjectDTO> projecten { get; set; } = new List<ProjectDTO>();  // Lokale lijst voor suggesties (initieel leeg)
+    private ProjectDTO ProjectCurrent = new ProjectDTO();  // Huidige klant details
+    private string searchProjectTerm { get; set; } = string.Empty;  // Bestaande variabele
+    private string ProjectDetails { get; set; }
+
+    private async Task LoadProjectData(LoadDataArgs args)
+    {
+        var term = args.Filter ?? searchProjectTerm;
+        Console.WriteLine($"Zoeken naar projecten met term: {term}");  // Log voor debug
+        var results = await DetailsService.SearchProjectAsync(term);
+        Console.WriteLine($"Resultaten gevonden: {results.Count}");  // Log aantal resultaten
+        projecten = results;  // Update lijst
+    }
+
+    private async Task OnProjectChanged(string value)
+    {
+        searchProjectTerm = value;
+        if (int.TryParse(value, out int ProjectId))
+        {
+            Action.FldMProjectId = ProjectId;
+            ProjectDetails = "Laden..."; // Tijdelijke placeholder
+            ProjectCurrent = await DetailsService.GetProjectDetailsAsync(ProjectId); // Async call
+        }
+        else
+        {
+            Action.FldMKlantId = null;
+            ProjectDetails = "Onbekend";
+        }
+    }
+
+    private List<ContactpersoonDTO> Contactpersoonen { get; set; } = new List<ContactpersoonDTO>();  // Lokale lijst voor suggesties (initieel leeg)
+    private ContactpersoonDTO ContactpersoonCurrent = new ContactpersoonDTO();  // Huidige klant details
+    private string searchContactpersoonTerm { get; set; } = string.Empty;  // Bestaande variabele
+    private string ContactpersoonDetails { get; set; }
+
+    private async Task LoadContactpersoonData(LoadDataArgs args)
+    {
+        lexvar term = args.Filter ?? searchContactpersoonTerm;
+        Console.WriteLine($"Zoeken naar Contactpersoonen met term: {term}");  // Log voor debug
+        var results = await DetailsService.SearchContactpersoonAsync(term);
+        Console.WriteLine($"Resultaten gevonden: {results.Count}");  // Log aantal resultaten
+        Contactpersoonen = results;  // Update lijst
+    }
+
+    private async Task OnContactpersoonChanged(string value)
+    {
+        searchContactpersoonTerm = value;
+        /*
+        if (string.TryParse(value, out int ContactpersoonId))
+        {
+            Action.FldMContactPers = ContactpersoonId;
+            ContactpersoonDetails = "Laden..."; // Tijdelijke placeholder
+            ContactpersoonCurrent = await DetailsService.GetContactpersoonDetailsAsync(ContactpersoonId); // Async call
+        }
+        else
+        {
+            Action.FldMKlantId = null;
+            ContactpersoonDetails = "Onbekend";
+        }*/
+    }
+
+    private List<OpdrachtDTO> Opdrachten { get; set; } = new List<OpdrachtDTO>();  // Lokale lijst voor suggesties (initieel leeg)
+    private OpdrachtDTO OpdrachtCurrent = new OpdrachtDTO();  // Huidige klant details
+    private string searchOpdrachtTerm { get; set; } = string.Empty;  // Bestaande variabele
+    private string OpdrachtDetails { get; set; }
+
+    private async Task LoadOpdrachtData(LoadDataArgs args)
+    {
+        var term = args.Filter ?? searchOpdrachtTerm;
+        Console.WriteLine($"Zoeken naar Opdrachten met term: {term}");  // Log voor debug
+        var results = await DetailsService.SearchOpdrachtAsync(term);
+        Console.WriteLine($"Resultaten gevonden: {results.Count}");  // Log aantal resultaten
+        Opdrachten = results;  // Update lijst
+    }
+
+    private async Task OnOpdrachtChanged(string value)
+    {
+        searchOpdrachtTerm = value;
+        if (int.TryParse(value, out int OpdrachtId))
+        {
+            Action.FldOpdrachtId = OpdrachtId;
+            OpdrachtDetails = "Laden..."; // Tijdelijke placeholder
+            OpdrachtCurrent = await DetailsService.GetOpdrachtDetailsAsync(OpdrachtId); // Async call
+        }
+        else
+        {
+            Action.FldMKlantId = null;
+            OpdrachtDetails = "Onbekend";
         }
     }
 
@@ -161,12 +284,24 @@
                 var KlantCurrent = await DetailsService.GetKlantDetailsAsync(Action.FldMKlantId);   // Nieuwe methode nodig
                 searchKlantTerm = KlantCurrent?.Zoekcode ?? string.Empty;  // Stel huidige Zoekcode in
                 KlantDetails = $"{KlantCurrent?.Naam} ({KlantCurrent?.Plaats})";  // Toon details
+
+                var ProjectCurrent = await DetailsService.GetProjectDetailsAsync(Action.FldMProjectId);   // Nieuwe methode nodig
+                searchProjectTerm = ProjectCurrent?.ProjectNummer ?? string.Empty;  // Stel huidige Zoekcode in
+                ProjectDetails = $"{ProjectCurrent?.ProjectNummer} ({ProjectCurrent?.Omschrijving})";  // Toon details
+
+                var ContactpersoonCurrent = await DetailsService.GetContactpersoonDetailsAsync(Action.FldMContactPers);   // Nieuwe methode nodig
+                searchContactpersoonTerm = ContactpersoonCurrent?.Achternaam ?? string.Empty;  // Stel huidige Zoekcode in
+                ContactpersoonDetails = $"{ContactpersoonCurrent?.VolledigeNaam}";  // Toon details
+
+                var OpdrachtCurrent = await DetailsService.GetOpdrachtDetailsAsync(Action.FldOpdrachtId);   // Nieuwe methode nodig
+                searchOpdrachtTerm = OpdrachtCurrent?.OpdrachtNummer ?? string.Empty;  // Stel huidige Zoekcode in
+                OpdrachtDetails = $"{OpdrachtCurrent?.Omschrijving}";  // Toon details
             }
             Console.WriteLine($"Huidige klant ingesteld: {searchKlantTerm}");
-            // KlantDetails = await DetailsService.GetKlantDetailsAsync(Action.FldMKlantId);
-            ProjectDetails = await DetailsService.GetProjectDetailsAsync(Action.FldMProjectId);
-            ContactpersoonDetails = await DetailsService.GetContactpersoonDetailsAsync(Action.FldMContactPers); // string parameter
-            OpdrachtDetails = await DetailsService.GetOpdrachtDetailsAsync(Action.FldOpdrachtId);
+            Console.WriteLine($"Huidig project ingesteld: {searchProjectTerm}");
+            Console.WriteLine($"Huidige contactpersoon ingesteld: {searchContactpersoonTerm}");
+            Console.WriteLine($"Huidigw opdracht ingesteld: {searchOpdrachtTerm}");
+
         }
         catch (Exception ex)
         {

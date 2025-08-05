@@ -1,6 +1,7 @@
 ﻿using ActielijstApi.Data;
 using ActielijstApi.Dtos;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -31,5 +32,18 @@ public class ProjectService
                 ProjectNummer = project.FldExternNummer,
                 Omschrijving = project.FldProjectNaam
             };
+    }
+    public async Task<List<ProjectDTO>> SearchAsync(string term, int limit = 50)
+    {
+        var query = _context.Projecten.Where(k => k.FldExternNummer.Contains(term) || k.FldProjectNaam.Contains(term));
+        return await query
+            .Select(k => new ProjectDTO
+            {
+                Id = k.Id,
+                ProjectNummer = k.FldExternNummer,
+                Omschrijving = k.FldProjectNaam,
+            })
+            .Take(limit)
+            .ToListAsync();
     }
 }

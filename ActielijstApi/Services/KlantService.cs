@@ -37,11 +37,11 @@ namespace ActieLijstAPI.Services
                     Zoekcode = klant.ZOEKCODE
                 };
         }
-        public async Task<List<KlantSearchDTO>> SearchAsync(string term, int limit = 50)
+        public async Task<List<KlantDTO>> SearchAsync(string term, int limit = 50)
         {
             var query = _context.Adressen.Where(k => k.ZOEKCODE.Contains(term) || k.Bedrijf.Contains(term));
             return await query
-                .Select(k => new KlantSearchDTO
+                .Select(k => new KlantDTO
                 {
                     Id = k.Id,
                     Zoekcode = k.ZOEKCODE,

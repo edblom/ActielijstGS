@@ -25,7 +25,7 @@ namespace ActieLijstAPI.Controllers
         }
 
         [HttpGet("search")]
-        public async Task<ActionResult<List<KlantSearchDTO>>> Search(string term, int limit = 50)
+        public async Task<ActionResult<List<KlantDTO>>> Search(string term, int limit = 50)
         {
             var results = await _klantService.SearchAsync(term, limit);
             return Ok(results);

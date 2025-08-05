@@ -1,6 +1,7 @@
 ﻿using ActielijstApi.Data;
 using ActielijstApi.Dtos;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -36,4 +37,20 @@ public class ContactpersoonService
                 Achternaam = contact.achternaam
             };
     }
+
+    public async Task<List<ContactpersoonDTO>> SearchAsync(string term, int limit = 50)
+    {
+        var query = _context.ContactPersonen.Where(k => k.achternaam.Contains(term) || k.roepnaam.Contains(term));
+        return await query
+            .Select(k => new ContactpersoonDTO
+            {
+                Voornaam = k.roepnaam, // FldVoornaam lijkt niet te bestaan, gebruik roepnaam
+                Initialen = k.voorletters,
+                Tussenvoegsel = k.tussenvoegsel,
+                Achternaam = k.achternaam
+            })
+            .Take(limit)
+            .ToListAsync();
+    }
 }
+

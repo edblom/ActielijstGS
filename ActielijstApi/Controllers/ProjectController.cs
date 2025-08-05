@@ -1,5 +1,7 @@
 ﻿using ActielijstApi.Dtos;
+using ActieLijstAPI.Services;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 [Route("api/projecten")]
@@ -18,5 +20,12 @@ public class ProjectController : ControllerBase
     {
         var project = await _projectService.GetByIdAsync(id);
         return Ok(project);
+    }
+
+    [HttpGet("search")]
+    public async Task<ActionResult<List<ProjectDTO>>> Search(string term, int limit = 50)
+    {
+        var results = await _projectService.SearchAsync(term, limit);
+        return Ok(results);
     }
 }
