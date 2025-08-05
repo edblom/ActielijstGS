@@ -1,5 +1,4 @@
-﻿using ActielijstApi.Dtos;
-using ActieLijstAPI.Services;
+﻿using KlantBaseShare.Dtos;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;

@@ -1,4 +1,4 @@
-﻿using ActielijstApi.Dtos;
+﻿using KlantBaseShare.Dtos;
 using ActieLijstAPI.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;

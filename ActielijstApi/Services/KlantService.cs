@@ -1,5 +1,5 @@
 ﻿using ActielijstApi.Data;
-using ActielijstApi.Dtos;
+using KlantBaseShare.Dtos;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;

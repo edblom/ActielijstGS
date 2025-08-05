@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Dtos\" />
     <Folder Include="wwwroot\images\" />
   </ItemGroup>
 
