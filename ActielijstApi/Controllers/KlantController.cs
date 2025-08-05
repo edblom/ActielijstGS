@@ -1,6 +1,7 @@
 ﻿using ActielijstApi.Dtos;
 using ActieLijstAPI.Services;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace ActieLijstAPI.Controllers
@@ -21,6 +22,13 @@ namespace ActieLijstAPI.Controllers
         {
             var klant = await _klantService.GetByIdAsync(id);
             return Ok(klant);
+        }
+
+        [HttpGet("search")]
+        public async Task<ActionResult<List<KlantSearchDTO>>> Search(string term, int limit = 50)
+        {
+            var results = await _klantService.SearchAsync(term, limit);
+            return Ok(results);
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using ActielijstApi.Data;
 using ActielijstApi.Dtos;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -35,6 +36,20 @@ namespace ActieLijstAPI.Services
                     Plaats = klant.Plaats,
                     Zoekcode = klant.ZOEKCODE
                 };
+        }
+        public async Task<List<KlantSearchDTO>> SearchAsync(string term, int limit = 50)
+        {
+            var query = _context.Adressen.Where(k => k.ZOEKCODE.Contains(term) || k.Bedrijf.Contains(term));
+            return await query
+                .Select(k => new KlantSearchDTO
+                {
+                    Id = k.Id,
+                    Zoekcode = k.ZOEKCODE,
+                    Naam = k.Bedrijf,
+                    Plaats = k.Plaats
+                })
+                .Take(limit)
+                .ToListAsync();
         }
     }
 }

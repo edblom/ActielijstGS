@@ -6,28 +6,49 @@
 @using Microsoft.AspNetCore.Components
 @using Microsoft.AspNetCore.Components.Web
 @using Newtonsoft.Json
-@inject IHttpClientFactory HttpClientFactory 
+@inject IHttpClientFactory HttpClientFactory
 @inject HttpClient HttpClient
 @inject DialogService DialogService
 @inject DetailsService DetailsService
 
 <RadzenStack Orientation="Orientation.Horizontal" Gap="10px">
-    <RadzenText TextStyle="TextStyle.H6">
+    <RadzenText>
         Actie @Action.FldMid: gemaakt @(Action.FldMDatum?.ToString("dd-MM-yyyy") ?? "N/A"): door @(Werknemers.FirstOrDefault(w => w.WerknId == Action.WerknId)?.Voornaam ?? "Onbekend")
     </RadzenText>
 </RadzenStack>
-<RadzenFormField Text="Klant">
-    <RadzenTextBox @bind-Value="KlantDetails" ReadOnly="true" Style="width: 100%;" />
-</RadzenFormField>
-<RadzenFormField Text="Project">
-    <RadzenTextBox @bind-Value="ProjectDetails" ReadOnly="true" Style="width: 100%;" />
-</RadzenFormField>
-<RadzenFormField Text="Contactpersoon">
-    <RadzenTextBox @bind-Value="ContactpersoonDetails" ReadOnly="true" Style="width: 100%;" />
-</RadzenFormField>
-<RadzenFormField Text="Opdracht">
-    <RadzenTextBox @bind-Value="OpdrachtDetails" ReadOnly="true" Style="width: 100%;" />
-</RadzenFormField>
+<RadzenStack Orientation="Orientation.Horizontal" Gap="10px" AlignItems="AlignItems.Center">
+    <RadzenFormField Text="Klant">
+        <RadzenAutoComplete @bind-Value="searchKlantTerm"
+                            LoadData="@LoadKlantData"
+                            TextProperty="Zoekcode"
+                            ValueProperty="Id"
+                            Data="@klanten"
+                            Style="width: 100%;"
+                            Placeholder="Zoek klant (zoekcode, naam, plaats)..."
+                            MinLength="1"
+                            Delay="200">
+            <Template Context="klant">
+                @klant.Zoekcode - @klant.Naam (@klant.Plaats)
+            </Template>
+        </RadzenAutoComplete>
+    </RadzenFormField>
+    <RadzenText Text="@KlantDetails" />
+</RadzenStack>
+@* <RadzenFormField Text="Project">
+        <RadzenAutoComplete @bind-Value="Action.FldMProjectId" LoadData="@LoadProjectData" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" Style="width: 100%;" Placeholder="Zoek project..." />
+        <RadzenText Text="@ProjectDetails" />
+    </RadzenFormField>
+
+    <RadzenFormField Text="Contactpersoon">
+        <RadzenAutoComplete @bind-Value="Action.FldMContactPers" LoadData="@LoadContactpersoonData" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" Style="width: 100%;" Placeholder="Zoek contactpersoon..." />
+        <RadzenText Text="@ContactpersoonDetails" />
+    </RadzenFormField>
+
+    <RadzenFormField Text="Opdracht">
+        <RadzenAutoComplete @bind-Value="Action.FldOpdrachtId" LoadData="@LoadOpdrachtData" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" Style="width: 100%;" Placeholder="Zoek opdracht..." />
+        <RadzenText Text="@OpdrachtDetails" />
+    </RadzenFormField> *@
+
 <RadzenStack Orientation="Orientation.Horizontal" Gap="1rem" AlignItems="AlignItems.Center">
     <RadzenFormField Text="Voor">
         <RadzenDropDown Data="@Werknemers" TextProperty="Voornaam" ValueProperty="WerknId" @bind-Value="Action.FldMActieVoor" Style="width:100%" AllowClear="true" />
@@ -78,6 +99,39 @@
     private string ProjectDetails { get; set; }
     private string ContactpersoonDetails { get; set; }
     private string OpdrachtDetails { get; set; }
+
+    private string searchKlantTerm { get; set; } = string.Empty;  // Bestaande variabele
+    private List<string> testItems = new List<string> { "Apple", "Banana", "Cherry" };  // Statische testlijst
+    private List<string> filteredItems { get; set; } = new List<string>();  // Gefilterde lijst
+
+    private List<KlantSearchDTO> klanten { get; set; } = new List<KlantSearchDTO>();  // Lokale lijst voor suggesties (initieel leeg)
+    private KlantDTO KlantCurrent = new KlantDTO();  // Huidige klant details
+
+    private async Task LoadKlantData(LoadDataArgs args)
+    {
+        var term = args.Filter ?? searchKlantTerm;
+        Console.WriteLine($"Zoeken naar klanten met term: {term}");  // Log voor debug
+        var results = await DetailsService.SearchKlantAsync(term);
+        Console.WriteLine($"Resultaten gevonden: {results.Count}");  // Log aantal resultaten
+        klanten = results;  // Update lijst
+    }
+
+    private async Task OnKlantChanged(string value)
+    {
+        searchKlantTerm = value;
+        if (int.TryParse(value, out int klantId))
+        {
+            Action.FldMKlantId = klantId;
+            KlantDetails = "Laden..."; // Tijdelijke placeholder
+            KlantCurrent = await DetailsService.GetKlantDetailsAsync(klantId); // Async call
+        }
+        else
+        {
+            Action.FldMKlantId = null;
+            KlantDetails = "Onbekend";
+        }
+    }
+
     private bool? IsCompleted
     {
         get => Action.FldMActieGereed.HasValue;
@@ -102,8 +156,14 @@
             {
                 actionTypes = ActieSoortLookup.Select(kvp => new ActieSoort { Id = kvp.Key, Omschrijving = kvp.Value }).ToList();
             }
-
-            KlantDetails = await DetailsService.GetKlantDetailsAsync(Action.FldMKlantId);
+            if (Action.FldMKlantId.HasValue)
+            {
+                var KlantCurrent = await DetailsService.GetKlantDetailsAsync(Action.FldMKlantId);   // Nieuwe methode nodig
+                searchKlantTerm = KlantCurrent?.Zoekcode ?? string.Empty;  // Stel huidige Zoekcode in
+                KlantDetails = $"{KlantCurrent?.Naam} ({KlantCurrent?.Plaats})";  // Toon details
+            }
+            Console.WriteLine($"Huidige klant ingesteld: {searchKlantTerm}");
+            // KlantDetails = await DetailsService.GetKlantDetailsAsync(Action.FldMKlantId);
             ProjectDetails = await DetailsService.GetProjectDetailsAsync(Action.FldMProjectId);
             ContactpersoonDetails = await DetailsService.GetContactpersoonDetailsAsync(Action.FldMContactPers); // string parameter
             OpdrachtDetails = await DetailsService.GetOpdrachtDetailsAsync(Action.FldOpdrachtId);
@@ -146,4 +206,5 @@
             DialogService.Alert("Error saving action: " + ex.Message);
         }
     }
+
 }

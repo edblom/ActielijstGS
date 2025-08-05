@@ -16,25 +16,23 @@ namespace KlantBaseWASM.Services
             _httpClient = clientFactory.CreateClient("ActielijstAPI");
         }
 
-        public async Task<string> GetKlantDetailsAsync(int? id)
+        public async Task<KlantDTO> GetKlantDetailsAsync(int? id)
         {
             if (id.HasValue && id.Value != 0)
             {
                 try
                 {
                     var response = await _httpClient.GetFromJsonAsync<KlantDTO>($"api/klant/{id.Value}");
-                    return response != null
-                        ? $"Naam: {response.Naam}, Plaats: {response.Plaats}, Zoekcode: {response.Zoekcode}"
-                        : "Onbekend (geen response)";
+                    return response;
                 }
                 catch (HttpRequestException ex)
                 {
                     Console.WriteLine($"HTTP Error fetching klant: {ex.Message}");
-                    return "Onbekend (netwerkfout)";
+                    return null;
                 }
             }
             Console.WriteLine($"KlantId is null or 0: {id}");
-            return "Onbekend (ongeldig ID)";
+            return null;
         }
 
         public async Task<string> GetProjectDetailsAsync(int? id)
@@ -103,6 +101,19 @@ namespace KlantBaseWASM.Services
             }
             Console.WriteLine($"OpdrachtId is null or 0: {id}");
             return "Onbekend (ongeldig ID)";
+        }
+        public async Task<List<KlantSearchDTO>> SearchKlantAsync(string term)
+        {
+            try
+            {
+                var response = await _httpClient.GetFromJsonAsync<List<KlantSearchDTO>>($"api/klant/search?term={term}&limit=50");
+                return response ?? new List<KlantSearchDTO>();
+            }
+            catch (HttpRequestException ex)
+            {
+                Console.WriteLine($"HTTP Error searching klant: {ex.Message}");
+                return new List<KlantSearchDTO>();
+            }
         }
     }
 }
