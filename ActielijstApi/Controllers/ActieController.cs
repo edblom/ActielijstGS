@@ -24,8 +24,9 @@ namespace ActielijstApi.Controllers
             [FromQuery] string? searchTerm = null,
             [FromQuery] string? status = null,
             [FromQuery] int? werknemerId = null,
-            [FromQuery] int? actieSoortId = null,
+            [FromQuery] string? actieSoortId = null,
             [FromQuery] int? priorityId = null,
+            [FromQuery] int? werknId = null, // New parameter for filtering by WerknId
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 0,
             [FromQuery] string? sortBy = null,
@@ -33,14 +34,14 @@ namespace ActielijstApi.Controllers
         {
             // Backwards compatibility: return List<Actie> if no parameters
             if (string.IsNullOrWhiteSpace(searchTerm) && string.IsNullOrWhiteSpace(status) && !werknemerId.HasValue &&
-                !actieSoortId.HasValue && !priorityId.HasValue && page == 1 && pageSize == 0 && string.IsNullOrWhiteSpace(sortBy))
+                string.IsNullOrWhiteSpace(actieSoortId) && !priorityId.HasValue && !werknId.HasValue && page == 1 && pageSize == 0 && string.IsNullOrWhiteSpace(sortBy))
             {
                 var acties = await _actieService.GetAllActiesAsync();
                 return Ok(acties);
             }
 
             // Use filtered method for server-side filtering, paging, and sorting
-            var response = await _actieService.GetFilteredActiesAsync(searchTerm, status, werknemerId, actieSoortId, priorityId, page, pageSize, sortBy, sortDirection);
+            var response = await _actieService.GetFilteredActiesAsync(searchTerm, status, werknemerId, actieSoortId, priorityId, werknId, page, pageSize, sortBy, sortDirection);
             return Ok(response);
         }
 

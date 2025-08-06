@@ -13,49 +13,58 @@
 @inject PriorityService PriorityService
 @inject NotificationService NotificationService
 
-<h3>Actielijst</h3>
+<h3>Actielijst - Voor wie</h3>
 
-<!-- Zoek en Werknemer, Status, ActieSoort en Prioriteit Filters -->
+<!-- Filters voor eerste DataGrid (Voor wie) -->
 <RadzenStack Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap" Gap="1rem" AlignItems="AlignItems.Center" BreakPoint="BreakPoint.Small">
     <RadzenStackItem>
-        <label for="searchInput" style="margin-right: 10px;">Zoek:</label>
-        <RadzenTextBox id="searchInput" Value="@SearchTerm" ValueChanged="@(value => { SearchTerm = value ?? string.Empty; OnSearchChanged(); })" Placeholder="Zoek actie..." Style="width: 100px;" />
+        <label for="searchInputVoor" style="margin-right: 10px;">Zoek:</label>
+        <RadzenTextBox id="searchInputVoor" Value="@SearchTermVoor" ValueChanged="@(value => { SearchTermVoor = value ?? string.Empty; OnSearchChangedVoor(); })" Placeholder="Zoek actie..." Style="width: 100px;" />
     </RadzenStackItem>
     <RadzenStackItem>
-        <label for="statusDropdown" style="margin-right: 10px;">Status:</label>
-        <RadzenDropDown id="statusDropdown" @bind-Value="SelectedStatus" Data="@Statuses" TextProperty="Text" ValueProperty="Value" Change="@(args => dataGrid.Reload())" Placeholder="Selecteer een status" Style="width: 100px;" />
+        <label for="statusDropdownVoor" style="margin-right: 10px;">Status:</label>
+        <RadzenDropDown id="statusDropdownVoor" @bind-Value="SelectedStatusVoor" Data="@StatusesVoor" TextProperty="Text" ValueProperty="Value" Change="@((object args) => dataGridVoor.Reload())" Placeholder="Selecteer een status" Style="width: 100px;" />
     </RadzenStackItem>
     <RadzenStackItem>
-        <label for="werknemerDropdown" style="margin-right: 10px;">Voor:</label>
-        <RadzenDropDown id="werknemerDropdown" @bind-Value="SelectedWerknemerId" Data="@Werknemers" TextProperty="DisplayName" ValueProperty="WerknId" Change="@(args => dataGrid.Reload())" Placeholder="Selecteer een werknemer" Style="width: 100px;" />
+        <label for="werknemerDropdownVoor" style="margin-right: 10px;">Voor:</label>
+        <RadzenDropDown id="werknemerDropdownVoor" @bind-Value="SelectedWerknemerIdVoor" Data="@Werknemers" TextProperty="DisplayName" ValueProperty="WerknId" Change="@((object args) => dataGridVoor.Reload())" Placeholder="Selecteer een werknemer" Style="width: 100px;" />
     </RadzenStackItem>
     <RadzenStackItem>
-        <label for="actiesoortDropdown" style="margin-right: 10px;">Soort actie:</label>
-        <RadzenDropDown id="actiesoortDropdown" @bind-Value="SelectedActieSoortId" Data="@ActieSoorten" TextProperty="Omschrijving" ValueProperty="Id" Change="@(args => dataGrid.Reload())" Placeholder="Selecteer een actie soort" Style="width: 250px;" />
+        <label for="actiesoortDropdownVoor" style="margin-right: 10px;">Soort actie:</label>
+        <RadzenDropDown id="actiesoortDropdownVoor" @bind-Value="SelectedActieSoortIdVoor" Data="@ActieSoorten" TextProperty="Omschrijving" ValueProperty="Id" Change="@((object args) => dataGridVoor.Reload())" Placeholder="Selecteer een actie soort" Style="width: 250px;" />
     </RadzenStackItem>
     <RadzenStackItem>
-        <label for="priorityDropdown" style="margin-right: 10px;">met prioriteit:</label>
-        <RadzenDropDown id="priorityDropdown" @bind-Value="SelectedPriorityId" Data="@Priorities" TextProperty="Omschrijving" ValueProperty="Prioriteit" Change="@(args => dataGrid.Reload())" Placeholder="Selecteer een prioriteit" Style="width: 100px;" />
+        <label for="priorityDropdownVoor" style="margin-right: 10px;">met prioriteit:</label>
+        <RadzenDropDown id="priorityDropdownVoor" @bind-Value="SelectedPriorityIdVoor" Data="@Priorities" TextProperty="Omschrijving" ValueProperty="Prioriteit" Change="@((object args) => dataGridVoor.Reload())" Placeholder="Selecteer een prioriteit" Style="width: 100px;" />
+    </RadzenStackItem>
+    <RadzenStackItem>
+        <label for="pageSizeDropdownVoor" style="margin-right: 10px;">Items per pagina:</label>
+        <RadzenDropDown id="pageSizeDropdownVoor" @bind-Value="SelectedPageSizeVoor" Data="@PageSizeOptions" TextProperty="Text" ValueProperty="Value" Change="@((object args) => dataGridVoor.Reload())" Placeholder="Selecteer paginagrootte" Style="width: 100px;" />
     </RadzenStackItem>
 </RadzenStack>
 
-<RadzenDataGrid @ref="dataGrid" 
-                LoadData="@LoadData" 
-                Count="@totalCount" 
-                Data="@FilteredActions" 
+<RadzenDataGrid @ref="dataGridVoor" 
+                LoadData="@LoadDataVoor" 
+                Count="@totalCountVoor" 
+                Data="@FilteredActionsVoor" 
                 TItem="Actie" 
                 AllowFiltering="true" 
                 AllowSorting="true" 
                 AllowPaging="true" 
-                PageSize="10"
+                PageSize="@SelectedPageSizeVoor"
                 PageSizeOptions="@pageSizeOptions"
+                ShowPagingSummary="true"
                 SelectionMode="DataGridSelectionMode.Single" 
-                @bind-Value=@selectedActie
+                @bind-Value="@selectedActieVoor"
                 RowDoubleClick="@((args) => EditAction(args))">
+    <PagingSummaryTemplate>
+        <RadzenIcon Icon="database" Style="color: var(--rz-primary); font-size: var(--rz-pager-summary-font-size);" />
+       Pagina @context.CurrentPage van @context.NumberOfPages <b>(totaal @context.TotalCount records)</b>
+    </PagingSummaryTemplate>
     <Columns>
         <RadzenDataGridColumn Width="60px" TextAlign="TextAlign.Center" Title="Actie" Sortable="false" Filterable="false">
             <Template Context="actie">
-                <RadzenButton ButtonStyle="ButtonStyle.Primary" Icon="edit" Size="ButtonSize.Small" Click="@(() => EditAction(actie))" />
+                <RadzenButton ButtonStyle="ButtonStyle.Primary" Icon="edit" Size="ButtonSize.Small" Click="@(e => EditAction(actie))" />
             </Template>
         </RadzenDataGridColumn>
         <RadzenDataGridColumn Property="FldMActieSoort" Title="Soort" Width="150px">
@@ -92,38 +101,145 @@
                 <RadzenCheckBox Value="@(actie.FldMActieGereed.HasValue)" Disabled="true" />
             </Template>
         </RadzenDataGridColumn>
-        @* <RadzenDataGridColumn Title="Links" Width="200px">
+    </Columns>
+</RadzenDataGrid>
+
+<h3>Actielijst - Van wie</h3>
+
+<!-- Filters voor tweede DataGrid (Van wie) -->
+<RadzenStack Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap" Gap="1rem" AlignItems="AlignItems.Center" BreakPoint="BreakPoint.Small">
+    <RadzenStackItem>
+        <label for="searchInputVan" style="margin-right: 10px;">Zoek:</label>
+        <RadzenTextBox id="searchInputVan" Value="@SearchTermVan" ValueChanged="@(value => { SearchTermVan = value ?? string.Empty; OnSearchChangedVan(); })" Placeholder="Zoek actie..." Style="width: 100px;" />
+    </RadzenStackItem>
+    <RadzenStackItem>
+        <label for="statusDropdownVan" style="margin-right: 10px;">Status:</label>
+        <RadzenDropDown id="statusDropdownVan" @bind-Value="SelectedStatusVan" Data="@StatusesVan" TextProperty="Text" ValueProperty="Value" Change="@((object args) => dataGridVan.Reload())" Placeholder="Selecteer een status" Style="width: 100px;" />
+    </RadzenStackItem>
+    <RadzenStackItem>
+        <label for="werknIdDropdown" style="margin-right: 10px;">Van:</label>
+        <RadzenDropDown id="werknIdDropdown" @bind-Value="SelectedWerknId" Data="@Werknemers" TextProperty="DisplayName" ValueProperty="WerknId" Change="@((object args) => dataGridVan.Reload())" Placeholder="Selecteer een werknemer" Style="width: 100px;" />
+    </RadzenStackItem>
+    <RadzenStackItem>
+        <label for="actiesoortDropdownVan" style="margin-right: 10px;">Soort actie:</label>
+        <RadzenDropDown id="actiesoortDropdownVan" @bind-Value="SelectedActieSoortIdVan" Data="@ActieSoorten" TextProperty="Omschrijving" ValueProperty="Id" Change="@((object args) => dataGridVan.Reload())" Placeholder="Selecteer een actie soort" Style="width: 250px;" />
+    </RadzenStackItem>
+    <RadzenStackItem>
+        <label for="priorityDropdownVan" style="margin-right: 10px;">met prioriteit:</label>
+        <RadzenDropDown id="priorityDropdownVan" @bind-Value="SelectedPriorityIdVan" Data="@Priorities" TextProperty="Omschrijving" ValueProperty="Prioriteit" Change="@((object args) => dataGridVan.Reload())" Placeholder="Selecteer een prioriteit" Style="width: 100px;" />
+    </RadzenStackItem>
+    <RadzenStackItem>
+        <label for="pageSizeDropdownVan" style="margin-right: 10px;">Items per pagina:</label>
+        <RadzenDropDown id="pageSizeDropdownVan" @bind-Value="SelectedPageSizeVan" Data="@PageSizeOptions" TextProperty="Text" ValueProperty="Value" Change="@((object args) => dataGridVan.Reload())" Placeholder="Selecteer paginagrootte" Style="width: 100px;" />
+    </RadzenStackItem>
+</RadzenStack>
+
+<RadzenDataGrid @ref="dataGridVan" 
+                LoadData="@LoadDataVan" 
+                Count="@totalCountVan" 
+                Data="@FilteredActionsVan" 
+                TItem="Actie" 
+                AllowFiltering="true" 
+                AllowSorting="true" 
+                AllowPaging="true" 
+                PageSize="@SelectedPageSizeVan"
+                PageSizeOptions="@pageSizeOptions"
+                ShowPagingSummary="true"
+                SelectionMode="DataGridSelectionMode.Single" 
+                @bind-Value="@selectedActieVan"
+                RowDoubleClick="@((args) => EditAction(args))">
+    <PagingSummaryTemplate>
+        <RadzenIcon Icon="database" Style="color: var(--rz-primary); font-size: var(--rz-pager-summary-font-size);" />
+        Pagina @context.CurrentPage van @context.NumberOfPages <b>(totaal @context.TotalCount records)</b>
+    </PagingSummaryTemplate>
+    <Columns>
+        <RadzenDataGridColumn Width="60px" TextAlign="TextAlign.Center" Title="Actie" Sortable="false" Filterable="false">
             <Template Context="actie">
-                <NavLink href="@($"project/{actie.FldMProjectId}")">Project</NavLink> |
-                <NavLink href="@($"klant/{actie.FldMKlantId}")">Klant</NavLink> |
-                <NavLink href="@($"contactpersoon/{actie.FldMContactPers}")">Contact</NavLink> |
-                <NavLink href="@($"opdracht/{actie.FldOpdrachtId}")">Opdracht</NavLink>
+                <RadzenButton ButtonStyle="ButtonStyle.Primary" Icon="edit" Size="ButtonSize.Small" Click="@(e => EditAction(actie))" />
             </Template>
-        </RadzenDataGridColumn> *@
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Property="FldMActieSoort" Title="Soort" Width="150px">
+            <Template Context="actie">
+                @if (actie.FldMActieSoort != null && int.TryParse(actie.FldMActieSoort, out var actieSoortId) && ActieSoortLookup.TryGetValue(actieSoortId, out var omschrijving))
+                {
+                    @omschrijving
+                }
+                else
+                {
+                    <span></span>
+                }
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Property="FldOmschrijving" Title="Omschrijving" Width="300px" />
+        <RadzenDataGridColumn Property="FldMActieVoorInitialen" Title="Voor" Width="50px" />
+        <RadzenDataGridColumn Property="FldMActieVoor2Initialen" Title="Voor2" Width="50px" />
+        <RadzenDataGridColumn Property="FldMActieDatum" Title="Actie voor" Width="100px" FormatString="{0:dd-MM-yyyy}" />
+        <RadzenDataGridColumn Property="FldMPrioriteit" Title="Prioriteit" Width="80px">
+            <Template Context="actie">
+                @if (actie.FldMPrioriteit.HasValue && Priorities.Any(p => p.Prioriteit == actie.FldMPrioriteit.Value))
+                {
+                    var priority = Priorities.First(p => p.Prioriteit == actie.FldMPrioriteit.Value);
+                    <span style="background-color: @priority.Kleur; padding: 2px 5px; border-radius: 3px;">@priority.Omschrijving</span>
+                }
+                else
+                {
+                    <span></span>
+                }
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Property="FldMActieGereed" Title="Gereed" Width="50px">
+            <Template Context="actie">
+                <RadzenCheckBox Value="@(actie.FldMActieGereed.HasValue)" Disabled="true" />
+            </Template>
+        </RadzenDataGridColumn>
     </Columns>
 </RadzenDataGrid>
 
 @code {
-    IEnumerable<int> pageSizeOptions = new int[] { 10, 20, 30 };
-    private int totalCount;
-    private List<Actie> FilteredActions = new();
+    IEnumerable<int> pageSizeOptions = new int[] { 5, 10, 20 };
+    private int totalCountVoor;
+    private List<Actie> FilteredActionsVoor = new();
+    private int? SelectedWerknemerIdVoor = null; // Standaard "Alles"
+    private string? SelectedStatusVoor = "Openstaand"; // Initiële waarde "Openstaand"
+    private int? SelectedActieSoortIdVoor = null; // Standaard "Alle soorten"
+    private int? SelectedPriorityIdVoor; // Standaard "Alle prioriteiten"
+    private int SelectedPageSizeVoor = 5; // Default page size voor
+    private RadzenDataGrid<Actie> dataGridVoor;
+    private IList<Actie> selectedActieVoor;
+    private string SearchTermVoor { get; set; } = string.Empty;
+
+    private int totalCountVan;
+    private List<Actie> FilteredActionsVan = new();
+    private int? SelectedWerknId = null; // Standaard "Alles"
+    private string? SelectedStatusVan = "Openstaand"; // Initiële waarde "Openstaand"
+    private int? SelectedActieSoortIdVan = null; // Standaard "Alle soorten"
+    private int? SelectedPriorityIdVan; // Standaard "Alle prioriteiten"
+    private int SelectedPageSizeVan = 5; // Default page size van
+    private RadzenDataGrid<Actie> dataGridVan;
+    private IList<Actie> selectedActieVan;
+    private string SearchTermVan { get; set; } = string.Empty;
+
     private List<Werknemer> Werknemers = new();
-    private int? SelectedWerknemerId = null; // Standaard "Alles"
-    private string? SelectedStatus = "Openstaand"; // Initiële waarde "Openstaand"
-    private int? SelectedActieSoortId = null; // Standaard "Alle soorten"
-    private int? SelectedPriorityId; // Standaard "Alle prioriteiten", wordt later ingesteld op "Hoog"
     private List<ActieSoort> ActieSoorten = new();
     private Dictionary<int, string> ActieSoortLookup = new();
     private List<Priority> Priorities = new();
-    private RadzenDataGrid<Actie> dataGrid;
-    private IList<Actie> selectedActie;
-    private string SearchTerm { get; set; } = string.Empty;
-
-    private List<StatusOption> Statuses = new List<StatusOption>
+    private List<StatusOption> StatusesVoor = new List<StatusOption>
     {
         new StatusOption { Value = null, Text = "Alles" },
         new StatusOption { Value = "Gereed", Text = "Gereed" },
         new StatusOption { Value = "Openstaand", Text = "Openstaand" }
+    };
+    private List<StatusOption> StatusesVan = new List<StatusOption>
+    {
+        new StatusOption { Value = null, Text = "Alles" },
+        new StatusOption { Value = "Gereed", Text = "Gereed" },
+        new StatusOption { Value = "Openstaand", Text = "Openstaand" }
+    };
+    private List<PageSizeOption> PageSizeOptions = new List<PageSizeOption>
+    {
+        new PageSizeOption { Value = 10, Text = "10" },
+        new PageSizeOption { Value = 20, Text = "20" },
+        new PageSizeOption { Value = 50, Text = "50" }
     };
 
     private class StatusOption
@@ -132,15 +248,32 @@
         public string Text { get; set; }
     }
 
-    private void OnSearchChanged()
+    private class PageSizeOption
     {
-        Console.WriteLine($"SearchTerm changed to: '{SearchTerm}'");
-        dataGrid.Reload(); // Trigger LoadData
+        public int Value { get; set; }
+        public string Text { get; set; }
     }
 
-    void ClearSelection()
+    private void OnSearchChangedVoor()
     {
-        selectedActie = null;
+        Console.WriteLine($"SearchTermVoor changed to: '{SearchTermVoor}'");
+        dataGridVoor.Reload();
+    }
+
+    private void OnSearchChangedVan()
+    {
+        Console.WriteLine($"SearchTermVan changed to: '{SearchTermVan}'");
+        dataGridVan.Reload();
+    }
+
+    private void ClearSelectionVoor()
+    {
+        selectedActieVoor = null;
+    }
+
+    private void ClearSelectionVan()
+    {
+        selectedActieVan = null;
     }
 
     protected override async Task OnInitializedAsync()
@@ -151,14 +284,16 @@
             Werknemers.Insert(0, new Werknemer { WerknId = null, Voornaam = "Alles", Initialen = "" });
             ActieSoorten = (await ActieSoortService.GetAllActiesoortenAsync()).OrderBy(a => a.Omschrijving).ToList();
             ActieSoorten.Insert(0, new ActieSoort { Id = null, Omschrijving = "Alles" });
-            Statuses = Statuses.OrderBy(s => s.Text).ToList();
+            StatusesVoor = StatusesVoor.OrderBy(s => s.Text).ToList();
+            StatusesVan = StatusesVan.OrderBy(s => s.Text).ToList();
             Priorities = (await PriorityService.GetAllPrioritiesAsync()).OrderBy(p => p.Omschrijving).ToList();
             Priorities.Insert(0, new Priority { Id = null, Omschrijving = "Alle prioriteiten", Prioriteit = null });
             var highPriority = Priorities.FirstOrDefault(p => p.Omschrijving == "Hoog");
-            SelectedPriorityId = highPriority?.Id;
+            SelectedPriorityIdVoor = highPriority?.Id;
+            SelectedPriorityIdVan = highPriority?.Id;
             ActieSoortLookup = ActieSoorten.ToDictionary(a => a.Id ?? 0, a => a.Omschrijving);
             await ActieService.InitializeAsync();
-            await dataGrid.Reload(); // Trigger LoadData
+            await Task.WhenAll(dataGridVoor.Reload(), dataGridVan.Reload());
         }
         catch (Exception ex)
         {
@@ -167,30 +302,57 @@
         }
     }
 
-    private async Task LoadData(LoadDataArgs args)
+    private async Task LoadDataVoor(LoadDataArgs args)
     {
         try
         {
             var response = await ActieService.GetFilteredActionsAsync(
-                SearchTerm,
-                SelectedStatus,
-                SelectedWerknemerId,
-                SelectedActieSoortId,
-                SelectedPriorityId,
-                page: (args.Skip ?? 0) / (args.Top ?? 10) + 1,
-                pageSize: args.Top ?? 10,
+                SearchTermVoor,
+                SelectedStatusVoor,
+                SelectedWerknemerIdVoor,
+                SelectedActieSoortIdVoor,
+                SelectedPriorityIdVoor,
+                page: (args.Skip ?? 0) / (args.Top ?? SelectedPageSizeVoor) + 1,
+                pageSize: args.Top ?? SelectedPageSizeVoor,
                 sortBy: args.OrderBy?.Split(" ")[0],
                 sortDirection: args.OrderBy?.EndsWith(" desc") == true ? "desc" : "asc"
             );
-            FilteredActions = response.Items;
-            totalCount = response.TotalCount;
-            Console.WriteLine($"Total Actions:{totalCount} Filtered:{FilteredActions.Count}");
+            FilteredActionsVoor = response.Items;
+            totalCountVoor = response.TotalCount;
+            Console.WriteLine($"-----------------Actie Voor:{FilteredActionsVoor.Count} totaal:{totalCountVoor}");
             StateHasChanged();
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error loading filtered actions: {ex}");
-            await DialogService.Alert("Error loading filtered actions: " + ex.Message);
+            Console.WriteLine($"Error loading filtered actions (Voor): {ex}");
+            await DialogService.Alert("Error loading filtered actions (Voor): " + ex.Message);
+        }
+    }
+
+    private async Task LoadDataVan(LoadDataArgs args)
+    {
+        try
+        {
+            var response = await ActieService.GetFilteredActionsByWerknIdAsync(
+                SearchTermVan,
+                SelectedStatusVan,
+                SelectedActieSoortIdVan,
+                SelectedPriorityIdVan,
+                SelectedWerknId,
+                page: (args.Skip ?? 0) / (args.Top ?? SelectedPageSizeVan) + 1,
+                pageSize: args.Top ?? SelectedPageSizeVan,
+                sortBy: args.OrderBy?.Split(" ")[0],
+                sortDirection: args.OrderBy?.EndsWith(" desc") == true ? "desc" : "asc"
+            );
+            FilteredActionsVan = response.Items;
+            totalCountVan = response.TotalCount;
+            Console.WriteLine($"-------------Actie Van:{FilteredActionsVan.Count} totaal:{totalCountVan}");
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading filtered actions (Van): {ex}");
+            await DialogService.Alert("Error loading filtered actions (Van): " + ex.Message);
         }
     }
 
@@ -226,7 +388,7 @@
                 if (result != null)
                 {
                     await ActieService.InitializeAsync();
-                    await dataGrid.Reload(); // Refresh DataGrid
+                    await Task.WhenAll(dataGridVoor.Reload(), dataGridVan.Reload());
                 }
             }
             catch (Exception ex)

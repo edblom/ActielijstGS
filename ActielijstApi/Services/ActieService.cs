@@ -23,27 +23,17 @@ namespace ActielijstApi.Services
             return await _context.Acties.ToListAsync();
         }
 
-
-        public async Task<List<Actie>> GetActiesByUserAsync(int userId, string filterType)
-        {
-            var acties = filterType.ToLower() switch
-            {
-                "assigned" => await _context.Acties.Where(a => (a.FldMActieVoor.HasValue && a.FldMActieVoor.Value == userId) || (a.FldMActieVoor2.HasValue && a.FldMActieVoor2.Value == userId)).ToListAsync(),
-                "created" => await _context.Acties.Where(a => a.WerknId.HasValue && a.WerknId.Value == userId).ToListAsync(),
-                _ => await _context.Acties.Where(a => (a.FldMActieVoor.HasValue && a.FldMActieVoor.Value == userId) || (a.FldMActieVoor2.HasValue && a.FldMActieVoor2.Value == userId) || (a.WerknId.HasValue && a.WerknId.Value == userId)).ToListAsync()
-            };
-            return acties;
-        }
         public async Task<ActieResponse> GetFilteredActiesAsync(
-                string? searchTerm,
-                string? status,
-                int? werknemerId,
-                int? actieSoortId,
-                int? priorityId,
-                int page,
-                int pageSize,
-                string? sortBy,
-                string? sortDirection)
+            string? searchTerm,
+            string? status,
+            int? werknemerId,
+            string? actieSoortId,
+            int? priorityId,
+            int? werknId,
+            int page,
+            int pageSize,
+            string? sortBy,
+            string? sortDirection)
         {
             var query = _context.Acties.AsQueryable();
 
@@ -67,13 +57,17 @@ namespace ActielijstApi.Services
             {
                 query = query.Where(a => a.FldMActieVoor == werknemerId || a.FldMActieVoor2 == werknemerId);
             }
-            if (actieSoortId.HasValue)
+            if (!string.IsNullOrWhiteSpace(actieSoortId))
             {
-                query = query.Where(a => a.FldMActieSoort == actieSoortId.ToString());
+                query = query.Where(a => a.FldMActieSoort == actieSoortId);
             }
             if (priorityId.HasValue)
             {
                 query = query.Where(a => a.FldMPrioriteit == priorityId);
+            }
+            if (werknId.HasValue)
+            {
+                query = query.Where(a => a.WerknId == werknId);
             }
 
             // Total count for paging
@@ -123,6 +117,18 @@ namespace ActielijstApi.Services
                 TotalCount = totalCount
             };
         }
+
+        public async Task<List<Actie>> GetActiesByUserAsync(int userId, string filterType)
+        {
+            var acties = filterType.ToLower() switch
+            {
+                "assigned" => await _context.Acties.Where(a => (a.FldMActieVoor.HasValue && a.FldMActieVoor.Value == userId) || (a.FldMActieVoor2.HasValue && a.FldMActieVoor2.Value == userId)).ToListAsync(),
+                "created" => await _context.Acties.Where(a => a.WerknId.HasValue && a.WerknId.Value == userId).ToListAsync(),
+                _ => await _context.Acties.Where(a => (a.FldMActieVoor.HasValue && a.FldMActieVoor.Value == userId) || (a.FldMActieVoor2.HasValue && a.FldMActieVoor2.Value == userId) || (a.WerknId.HasValue && a.WerknId.Value == userId)).ToListAsync()
+            };
+            return acties;
+        }
+
         public async Task<Actie?> GetActieByIdAsync(int id)
         {
             return await _context.Acties.FirstOrDefaultAsync(a => a.FldMid == id);
@@ -140,7 +146,6 @@ namespace ActielijstApi.Services
             var existingActie = await _context.Acties.FirstOrDefaultAsync(a => a.FldMid == id);
             if (existingActie == null) return false;
 
-            // Update alle velden behalve SSMA_TimeStamp
             existingActie.FldMDatum = actie.FldMDatum;
             existingActie.WerknId = actie.WerknId;
             existingActie.FldMKlantId = actie.FldMKlantId;

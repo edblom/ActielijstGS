@@ -75,7 +75,7 @@ namespace ActielijstApi
                 try
                 {
                     var inspecties = await context.Inspecties.ToListAsync();
-                    Console.WriteLine(JsonSerializer.Serialize(inspecties));
+                    //Console.WriteLine(JsonSerializer.Serialize(inspecties));
                     return Results.Ok(inspecties);
                 }
                 catch (Exception ex)
