@@ -150,6 +150,7 @@
             ActieSoortLookup = ActieSoorten.ToDictionary(a => a.Id ?? 0, a => a.Omschrijving);
             await ActieService.InitializeAsync();
             actions = (await ActieService.GetActionsAsync()).OrderBy(a => a.FldMActieDatum).ToList();
+            Console.WriteLine($"Retrieved {actions.Count} actions");
             FilteredActions = actions;
             selectedActie = actions.Take(1).ToList(); // Standaard eerste actie selecteren
             FilterGrid();

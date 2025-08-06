@@ -12,7 +12,7 @@
 @inject DetailsService DetailsService
 
 <RadzenStack Orientation="Orientation.Horizontal" Gap="10px">
-    <RadzenText>
+    <RadzenText TextStyle="TextStyle.H6" Style="@PrioriteitKleurStyle" TextAlign="TextAlign.Center">
         Actie @Action.FldMid: gemaakt @(Action.FldMDatum?.ToString("dd-MM-yyyy") ?? "N/A"): door @(Werknemers.FirstOrDefault(w => w.WerknId == Action.WerknId)?.Voornaam ?? "Onbekend")
     </RadzenText>
 </RadzenStack>
@@ -104,6 +104,9 @@
     <RadzenFormField Text="Soort actie">
         <RadzenDropDown Data="@actionTypes" TextProperty="Omschrijving" ValueProperty="Id" @bind-Value="Action.FldMActieSoort" Style="width:100%" AllowClear="true" />
     </RadzenFormField>
+    <RadzenFormField Text="Priority">
+        <RadzenDropDown Data="@Priorities" TextProperty="Omschrijving" ValueProperty="prioriteit" @bind-Value="Action.FldMPrioriteit" Style="width:100%" AllowClear="true" />
+    </RadzenFormField>
 </RadzenRow>
 <RadzenFormField Text="Uitvoeren voor:">
     <RadzenDatePicker @bind-Value="Action.FldMActieDatum" DateFormat="dd-MM-yyyy" Style="width:70%" />
@@ -119,9 +122,7 @@
         </RadzenText>
     </RadzenStack>
 </RadzenRow>
-<RadzenFormField Text="Priority">
-    <RadzenNumeric @bind-Value="Action.FldMPrioriteit" Style="width:100%" AllowClear="true" />
-</RadzenFormField>
+
 <div class="mt-3">
     <RadzenButton Text="Save" Click="@SaveAction" />
     <RadzenButton Text="Cancel" Click="@(() => DialogService.Close())" />
@@ -138,6 +139,26 @@
     private List<KlantDTO> klanten { get; set; } = new List<KlantDTO>();  // Lokale lijst voor suggesties (initieel leeg)
     private KlantDTO KlantCurrent = new KlantDTO();  // Huidige klant details
     private string searchKlantTerm { get; set; } = string.Empty;  // Bestaande variabele
+
+    private Priority selectedPriority { get; set; } = null;  // Bestaande variabele
+    private string PrioriteitKleurStyle { get; set; } = string.Empty;  // Nieuw: Style voor titel-kleur
+
+    private async Task OnPrioriteitChanged(object value)
+    {
+        if (int.TryParse(value?.ToString(), out int prioriteitId))
+        {
+            selectedPriority = Priorities.FirstOrDefault(p => p.Prioriteit == prioriteitId);
+            Action.FldMPrioriteit = prioriteitId;
+            PrioriteitKleurStyle = selectedPriority != null ? $"background-color: {selectedPriority.Kleur}; font-weight: bold;" : string.Empty;  // Nieuw: Update titel-style
+        }
+        else
+        {
+            selectedPriority = null;
+            Action.FldMPrioriteit = null;
+            PrioriteitKleurStyle = string.Empty;
+        }
+        StateHasChanged();  // Forceer render om titel bij te werken
+    }
 
     private async Task LoadKlantData(LoadDataArgs args)
     {
@@ -297,6 +318,12 @@
                 searchOpdrachtTerm = OpdrachtCurrent?.OpdrachtNummer ?? string.Empty;  // Stel huidige Zoekcode in
                 OpdrachtDetails = $"{OpdrachtCurrent?.Omschrijving}";  // Toon details
             }
+            if (Action.FldMPrioriteit.HasValue && Priorities.Any())
+            {
+                selectedPriority = Priorities.FirstOrDefault(p => p.Prioriteit == Action.FldMPrioriteit.Value);
+                PrioriteitKleurStyle = selectedPriority != null ? $"background-color: {selectedPriority.Kleur}; font-weight: bold;" : string.Empty;  // Nieuw: Initial kleur
+            }
+            Console.WriteLine($"Huidige prioriteit leur ingesteld: {PrioriteitKleurStyle}");
             Console.WriteLine($"Huidige klant ingesteld: {searchKlantTerm}");
             Console.WriteLine($"Huidig project ingesteld: {searchProjectTerm}");
             Console.WriteLine($"Huidige contactpersoon ingesteld: {searchContactpersoonTerm}");
