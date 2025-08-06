@@ -26,16 +26,24 @@ namespace KlantBaseWASM.Services
             Console.WriteLine($"Werknemers initialized with {_werknemers.Count} items.");
         }
 
-        public async Task<List<Actie>> GetActionsAsync()
+        public async Task<ActieResponse> GetFilteredActionsAsync(string? searchTerm, string? status, int? werknemerId, int? actieSoortId, int? priorityId, int page = 1, int pageSize = 10, string? sortBy = null, string? sortDirection = "asc")
         {
-            if (_werknemers == null || _werknemers.Count == 0)
-            {
-                await InitializeAsync();
-            }
+            var query = new Dictionary<string, string>();
+            if (!string.IsNullOrWhiteSpace(searchTerm)) query["searchTerm"] = searchTerm;
+            if (!string.IsNullOrWhiteSpace(status)) query["status"] = status;
+            if (werknemerId.HasValue) query["werknemerId"] = werknemerId.ToString();
+            if (actieSoortId.HasValue) query["actieSoortId"] = actieSoortId.ToString();
+            if (priorityId.HasValue) query["priorityId"] = priorityId.ToString();
+            query["page"] = page.ToString();
+            query["pageSize"] = pageSize.ToString();
+            if (!string.IsNullOrWhiteSpace(sortBy)) query["sortBy"] = sortBy;
+            query["sortDirection"] = sortDirection;
 
-            var actions = await _httpClient.GetFromJsonAsync<List<Actie>>("api/acties") ?? new List<Actie>();
+            var queryString = string.Join("&", query.Select(kvp => $"{kvp.Key}={Uri.EscapeDataString(kvp.Value)}"));
+            var response = await _httpClient.GetFromJsonAsync<ActieResponse>($"api/acties?{queryString}") ?? new ActieResponse { Items = new List<Actie>(), TotalCount = 0 };
 
-            foreach (var actie in actions)
+            // Add initialen (client-side, as in original)
+            foreach (var actie in response.Items)
             {
                 var werknemerVoor = _werknemers.FirstOrDefault(w => w.WerknId == actie.FldMActieVoor);
                 actie.FldMActieVoorInitialen = werknemerVoor != null
@@ -47,7 +55,7 @@ namespace KlantBaseWASM.Services
                     : "Onbekend";
             }
 
-            return actions;
+            return response;
         }
 
         private string GenerateInitialen(string? voornaam, string? initialen)
