@@ -1,7 +1,7 @@
-﻿using KlantBaseShare.Dtos;
+﻿using Microsoft.AspNetCore.Mvc;
 using ActielijstApi.Models;
 using ActielijstApi.Services;
-using Microsoft.AspNetCore.Mvc;
+using KlantBaseShare.Dtos;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -18,13 +18,33 @@ namespace ActielijstApi.Controllers
             _actieService = actieService;
         }
 
+        // GET: api/acties
         [HttpGet]
-        public async Task<ActionResult<List<Actie>>> GetAllActies()
+        public async Task<ActionResult> GetAllActies(
+            [FromQuery] string? searchTerm = null,
+            [FromQuery] string? status = null,
+            [FromQuery] int? werknemerId = null,
+            [FromQuery] int? actieSoortId = null,
+            [FromQuery] int? priorityId = null,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 0,
+            [FromQuery] string? sortBy = null,
+            [FromQuery] string? sortDirection = "asc")
         {
-            var acties = await _actieService.GetAllActiesAsync();
-            return Ok(acties);
+            // Backwards compatibility: return List<Actie> if no parameters
+            if (string.IsNullOrWhiteSpace(searchTerm) && string.IsNullOrWhiteSpace(status) && !werknemerId.HasValue &&
+                !actieSoortId.HasValue && !priorityId.HasValue && page == 1 && pageSize == 0 && string.IsNullOrWhiteSpace(sortBy))
+            {
+                var acties = await _actieService.GetAllActiesAsync();
+                return Ok(acties);
+            }
+
+            // Use filtered method for server-side filtering, paging, and sorting
+            var response = await _actieService.GetFilteredActiesAsync(searchTerm, status, werknemerId, actieSoortId, priorityId, page, pageSize, sortBy, sortDirection);
+            return Ok(response);
         }
 
+        // GET: api/acties/user/{userId}/{filterType}
         [HttpGet("user/{userId}/{filterType}")]
         public async Task<ActionResult<List<Actie>>> GetActiesByUser(int userId, string filterType)
         {
@@ -32,6 +52,7 @@ namespace ActielijstApi.Controllers
             return Ok(acties);
         }
 
+        // GET: api/acties/{id}
         [HttpGet("{id}")]
         public async Task<ActionResult<Actie>> GetActie(int id)
         {
@@ -40,6 +61,7 @@ namespace ActielijstApi.Controllers
             return Ok(actie);
         }
 
+        // POST: api/acties
         [HttpPost]
         public async Task<ActionResult<Actie>> PostActie(Actie actie)
         {
@@ -47,6 +69,7 @@ namespace ActielijstApi.Controllers
             return CreatedAtAction(nameof(GetActie), new { id = createdActie.FldMid }, createdActie);
         }
 
+        // PUT: api/acties/{id}
         [HttpPut("{id}")]
         public async Task<IActionResult> PutActie(int id, Actie actie)
         {
@@ -56,6 +79,7 @@ namespace ActielijstApi.Controllers
             return NoContent();
         }
 
+        // PATCH: api/acties/{id}
         [HttpPatch("{id}")]
         public async Task<IActionResult> PatchActie(int id, [FromBody] PatchActieDto updates)
         {
@@ -64,6 +88,7 @@ namespace ActielijstApi.Controllers
             return NoContent();
         }
 
+        // DELETE: api/acties/{id}
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteActie(int id)
         {

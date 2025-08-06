@@ -8,11 +8,21 @@ namespace ActielijstApi.Services
     public interface IActieService
     {
         Task<List<Actie>> GetAllActiesAsync();
+        Task<ActieResponse> GetFilteredActiesAsync(
+            string? searchTerm,
+            string? status,
+            int? werknemerId,
+            int? actieSoortId,
+            int? priorityId,
+            int page,
+            int pageSize,
+            string? sortBy,
+            string? sortDirection);
         Task<List<Actie>> GetActiesByUserAsync(int userId, string filterType);
         Task<Actie?> GetActieByIdAsync(int id);
         Task<Actie> CreateActieAsync(Actie actie);
         Task<bool> UpdateActieAsync(int id, Actie actie);
-        Task<bool> PatchActieAsync(int id, PatchActieDto updates); // Gebruik DTO
+        Task<bool> PatchActieAsync(int id, PatchActieDto updates);
         Task<bool> DeleteActieAsync(int id);
     }
 }

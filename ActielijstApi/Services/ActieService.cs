@@ -23,6 +23,7 @@ namespace ActielijstApi.Services
             return await _context.Acties.ToListAsync();
         }
 
+
         public async Task<List<Actie>> GetActiesByUserAsync(int userId, string filterType)
         {
             var acties = filterType.ToLower() switch
@@ -33,7 +34,95 @@ namespace ActielijstApi.Services
             };
             return acties;
         }
+        public async Task<ActieResponse> GetFilteredActiesAsync(
+                string? searchTerm,
+                string? status,
+                int? werknemerId,
+                int? actieSoortId,
+                int? priorityId,
+                int page,
+                int pageSize,
+                string? sortBy,
+                string? sortDirection)
+        {
+            var query = _context.Acties.AsQueryable();
 
+            // Filtering
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                query = query.Where(a => a.FldOmschrijving != null && a.FldOmschrijving.ToLower().Contains(searchTerm.ToLower()));
+            }
+            if (!string.IsNullOrWhiteSpace(status))
+            {
+                if (status == "Gereed")
+                {
+                    query = query.Where(a => a.FldMActieGereed != null);
+                }
+                else if (status == "Openstaand")
+                {
+                    query = query.Where(a => a.FldMActieGereed == null);
+                }
+            }
+            if (werknemerId.HasValue)
+            {
+                query = query.Where(a => a.FldMActieVoor == werknemerId || a.FldMActieVoor2 == werknemerId);
+            }
+            if (actieSoortId.HasValue)
+            {
+                query = query.Where(a => a.FldMActieSoort == actieSoortId.ToString());
+            }
+            if (priorityId.HasValue)
+            {
+                query = query.Where(a => a.FldMPrioriteit == priorityId);
+            }
+
+            // Total count for paging
+            var totalCount = await query.CountAsync();
+
+            // Sorting
+            if (!string.IsNullOrWhiteSpace(sortBy))
+            {
+                if (sortDirection?.ToLower() == "desc")
+                {
+                    query = sortBy.ToLower() switch
+                    {
+                        "fldmactiedatum" => query.OrderByDescending(a => a.FldMActieDatum),
+                        "fldomschrijving" => query.OrderByDescending(a => a.FldOmschrijving),
+                        "fldmprioriteit" => query.OrderByDescending(a => a.FldMPrioriteit),
+                        _ => query.OrderBy(a => a.FldMActieDatum)
+                    };
+                }
+                else
+                {
+                    query = sortBy.ToLower() switch
+                    {
+                        "fldmactiedatum" => query.OrderBy(a => a.FldMActieDatum),
+                        "fldomschrijving" => query.OrderBy(a => a.FldOmschrijving),
+                        "fldmprioriteit" => query.OrderBy(a => a.FldMPrioriteit),
+                        _ => query.OrderBy(a => a.FldMActieDatum)
+                    };
+                }
+            }
+            else
+            {
+                query = query.OrderBy(a => a.FldMActieDatum);
+            }
+
+            // Paging (pageSize = 0 means no paging)
+            if (pageSize > 0)
+            {
+                query = query.Skip((page - 1) * pageSize).Take(pageSize);
+            }
+
+            // Execute query
+            var acties = await query.ToListAsync();
+
+            return new ActieResponse
+            {
+                Items = acties,
+                TotalCount = totalCount
+            };
+        }
         public async Task<Actie?> GetActieByIdAsync(int id)
         {
             return await _context.Acties.FirstOrDefaultAsync(a => a.FldMid == id);
@@ -67,7 +156,6 @@ namespace ActielijstApi.Services
             existingActie.FldMActieGereed = actie.FldMActieGereed;
             existingActie.FldMActieSoort = actie.FldMActieSoort;
             existingActie.FldMPrioriteit = actie.FldMPrioriteit;
-            // SSMA_TimeStamp wordt automatisch bijgewerkt door de database
 
             try
             {
@@ -93,7 +181,7 @@ namespace ActielijstApi.Services
 
             if (updates.fldMActieGereed.HasValue)
             {
-                actie.FldMActieGereed = updates.fldMActieGereed.Value; // Kleine 'f' gebruikt
+                actie.FldMActieGereed = updates.fldMActieGereed.Value;
             }
 
             await _context.SaveChangesAsync();
