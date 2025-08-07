@@ -23,19 +23,19 @@
     </RadzenStackItem>
     <RadzenStackItem>
         <label for="statusDropdownVoor" style="margin-right: 10px;">Status:</label>
-        <RadzenDropDown id="statusDropdownVoor" @bind-Value="SelectedStatusVoor" Data="@StatusesVoor" TextProperty="Text" ValueProperty="Value" Change="@((object args) => dataGridVoor.Reload())" Placeholder="Selecteer een status" Style="width: 100px;" />
+        <RadzenDropDown id="statusDropdownVoor" @bind-Value="SelectedStatusVoor" Data="@StatusesVoor" AllowClear="true" TextProperty="Text" ValueProperty="Value" Change="@((object args) => dataGridVoor.Reload())" Placeholder="Selecteer een status" Style="width: 100px;" />
     </RadzenStackItem>
     <RadzenStackItem>
         <label for="werknemerDropdownVoor" style="margin-right: 10px;">Voor:</label>
-        <RadzenDropDown id="werknemerDropdownVoor" @bind-Value="SelectedWerknemerIdVoor" Data="@Werknemers" TextProperty="DisplayName" ValueProperty="WerknId" Change="@((object args) => dataGridVoor.Reload())" Placeholder="Selecteer een werknemer" Style="width: 100px;" />
+        <RadzenDropDown id="werknemerDropdownVoor" @bind-Value="SelectedWerknemerIdVoor" Data="@Werknemers" AllowClear="true" TextProperty="DisplayName" ValueProperty="WerknId" Change="@((object args) => dataGridVoor.Reload())" Placeholder="Selecteer een werknemer" Style="width: 100px;" />
     </RadzenStackItem>
     <RadzenStackItem>
         <label for="actiesoortDropdownVoor" style="margin-right: 10px;">Soort actie:</label>
-        <RadzenDropDown id="actiesoortDropdownVoor" @bind-Value="SelectedActieSoortIdVoor" Data="@ActieSoorten" TextProperty="Omschrijving" ValueProperty="Id" Change="@((object args) => dataGridVoor.Reload())" Placeholder="Selecteer een actie soort" Style="width: 250px;" />
+        <RadzenDropDown id="actiesoortDropdownVoor" @bind-Value="SelectedActieSoortIdVoor" Data="@ActieSoorten" AllowClear="true" TextProperty="Omschrijving" ValueProperty="Id" Change="@((object args) => dataGridVoor.Reload())" Placeholder="Selecteer een actie soort" Style="width: 250px;" />
     </RadzenStackItem>
     <RadzenStackItem>
         <label for="priorityDropdownVoor" style="margin-right: 10px;">met prioriteit:</label>
-        <RadzenDropDown id="priorityDropdownVoor" @bind-Value="SelectedPriorityIdVoor" Data="@Priorities" TextProperty="Omschrijving" ValueProperty="Prioriteit" Change="@((object args) => dataGridVoor.Reload())" Placeholder="Selecteer een prioriteit" Style="width: 100px;" />
+        <RadzenDropDown id="priorityDropdownVoor" @bind-Value="SelectedPriorityIdVoor" Data="@Priorities" AllowClear="true" TextProperty="Omschrijving" ValueProperty="Prioriteit" Change="@((object args) => dataGridVoor.Reload())" Placeholder="Selecteer een prioriteit" Style="width: 100px;" />
     </RadzenStackItem>
     <RadzenStackItem>
         <label for="pageSizeDropdownVoor" style="margin-right: 10px;">Items per pagina:</label>
@@ -44,7 +44,8 @@
 </RadzenStack>
 
 <RadzenDataGrid @ref="dataGridVoor" 
-                LoadData="@LoadDataVoor" 
+                LoadData="@LoadDataVoor"
+                IsLoading=@isLoadingVoor
                 Count="@totalCountVoor" 
                 Data="@FilteredActionsVoor" 
                 TItem="Actie" 
@@ -114,27 +115,28 @@
     </RadzenStackItem>
     <RadzenStackItem>
         <label for="statusDropdownVan" style="margin-right: 10px;">Status:</label>
-        <RadzenDropDown id="statusDropdownVan" @bind-Value="SelectedStatusVan" Data="@StatusesVan" TextProperty="Text" ValueProperty="Value" Change="@((object args) => dataGridVan.Reload())" Placeholder="Selecteer een status" Style="width: 100px;" />
+        <RadzenDropDown id="statusDropdownVan" @bind-Value="SelectedStatusVan" Data="@StatusesVan" AllowClear="true" TextProperty="Text" ValueProperty="Value" Change="@((object args) => dataGridVan.Reload())" Placeholder="Selecteer een status" Style="width: 100px;" />
     </RadzenStackItem>
     <RadzenStackItem>
         <label for="werknIdDropdown" style="margin-right: 10px;">Van:</label>
-        <RadzenDropDown id="werknIdDropdown" @bind-Value="SelectedWerknId" Data="@Werknemers" TextProperty="DisplayName" ValueProperty="WerknId" Change="@((object args) => dataGridVan.Reload())" Placeholder="Selecteer een werknemer" Style="width: 100px;" />
+        <RadzenDropDown id="werknIdDropdown" @bind-Value="SelectedWerknId" Data="@Werknemers" AllowClear="true" TextProperty="DisplayName" ValueProperty="WerknId" Change="@((object args) => dataGridVan.Reload())" Placeholder="Selecteer een werknemer" Style="width: 100px;" />
     </RadzenStackItem>
     <RadzenStackItem>
         <label for="actiesoortDropdownVan" style="margin-right: 10px;">Soort actie:</label>
-        <RadzenDropDown id="actiesoortDropdownVan" @bind-Value="SelectedActieSoortIdVan" Data="@ActieSoorten" TextProperty="Omschrijving" ValueProperty="Id" Change="@((object args) => dataGridVan.Reload())" Placeholder="Selecteer een actie soort" Style="width: 250px;" />
+        <RadzenDropDown id="actiesoortDropdownVan" @bind-Value="SelectedActieSoortIdVan" AllowClear="true" Data="@ActieSoorten" TextProperty="Omschrijving" ValueProperty="Id" Change="@((object args) => dataGridVan.Reload())" Placeholder="Selecteer een actie soort" Style="width: 250px;" />
     </RadzenStackItem>
     <RadzenStackItem>
         <label for="priorityDropdownVan" style="margin-right: 10px;">met prioriteit:</label>
-        <RadzenDropDown id="priorityDropdownVan" @bind-Value="SelectedPriorityIdVan" Data="@Priorities" TextProperty="Omschrijving" ValueProperty="Prioriteit" Change="@((object args) => dataGridVan.Reload())" Placeholder="Selecteer een prioriteit" Style="width: 100px;" />
+        <RadzenDropDown id="priorityDropdownVan" @bind-Value="SelectedPriorityIdVan" Data="@Priorities" AllowClear="true" TextProperty="Omschrijving" ValueProperty="Prioriteit" Change="@((object args) => dataGridVan.Reload())" Placeholder="Selecteer een prioriteit" Style="width: 100px;" />
     </RadzenStackItem>
     <RadzenStackItem>
         <label for="pageSizeDropdownVan" style="margin-right: 10px;">Items per pagina:</label>
-        <RadzenDropDown id="pageSizeDropdownVan" @bind-Value="SelectedPageSizeVan" Data="@PageSizeOptions" TextProperty="Text" ValueProperty="Value" Change="@((object args) => dataGridVan.Reload())" Placeholder="Selecteer paginagrootte" Style="width: 100px;" />
+        <RadzenDropDown id="pageSizeDropdownVan" @bind-Value="SelectedPageSizeVan" Data="@PageSizeOptions" AllowClear="true" TextProperty="Text" ValueProperty="Value" Change="@((object args) => dataGridVan.Reload())" Placeholder="Selecteer paginagrootte" Style="width: 100px;" />
     </RadzenStackItem>
 </RadzenStack>
 
-<RadzenDataGrid @ref="dataGridVan" 
+<RadzenDataGrid @ref="dataGridVan"
+                IsLoading=@isLoadingVan
                 LoadData="@LoadDataVan" 
                 Count="@totalCountVan" 
                 Data="@FilteredActionsVan" 
@@ -197,6 +199,8 @@
 
 @code {
     IEnumerable<int> pageSizeOptions = new int[] { 5, 10, 20 };
+    bool isLoadingVan = true;
+    bool isLoadingVoor =true;
     private int totalCountVoor;
     private List<Actie> FilteredActionsVoor = new();
     private int? SelectedWerknemerIdVoor = null; // Standaard "Alles"
@@ -278,16 +282,14 @@
 
     protected override async Task OnInitializedAsync()
     {
+        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
         try
         {
             Werknemers = (await WerknemerService.GetWerknemersAsync()).OrderBy(w => w.Initialen).ToList();
-            Werknemers.Insert(0, new Werknemer { WerknId = null, Voornaam = "Alles", Initialen = "" });
             ActieSoorten = (await ActieSoortService.GetAllActiesoortenAsync()).OrderBy(a => a.Omschrijving).ToList();
-            ActieSoorten.Insert(0, new ActieSoort { Id = null, Omschrijving = "Alles" });
             StatusesVoor = StatusesVoor.OrderBy(s => s.Text).ToList();
             StatusesVan = StatusesVan.OrderBy(s => s.Text).ToList();
             Priorities = (await PriorityService.GetAllPrioritiesAsync()).OrderBy(p => p.Omschrijving).ToList();
-            Priorities.Insert(0, new Priority { Id = null, Omschrijving = "Alle prioriteiten", Prioriteit = null });
             var highPriority = Priorities.FirstOrDefault(p => p.Omschrijving == "Hoog");
             SelectedPriorityIdVoor = highPriority?.Id;
             SelectedPriorityIdVan = highPriority?.Id;
@@ -300,12 +302,18 @@
             Console.WriteLine($"Error loading actions: {ex}");
             await DialogService.Alert("Error loading actions: " + ex.Message);
         }
+        finally
+        {
+            stopwatch.Stop();
+            Console.WriteLine($"Totale laadtijd: {stopwatch.ElapsedMilliseconds} ms");
+        }
     }
 
     private async Task LoadDataVoor(LoadDataArgs args)
     {
         try
         {
+            isLoadingVoor = true;
             var response = await ActieService.GetFilteredActionsAsync(
                 SearchTermVoor,
                 SelectedStatusVoor,
@@ -321,6 +329,7 @@
             totalCountVoor = response.TotalCount;
             Console.WriteLine($"-----------------Actie Voor:{FilteredActionsVoor.Count} totaal:{totalCountVoor}");
             StateHasChanged();
+            isLoadingVoor = false;
         }
         catch (Exception ex)
         {
@@ -333,6 +342,7 @@
     {
         try
         {
+            isLoadingVan = true;
             var response = await ActieService.GetFilteredActionsByWerknIdAsync(
                 SearchTermVan,
                 SelectedStatusVan,
@@ -348,6 +358,7 @@
             totalCountVan = response.TotalCount;
             Console.WriteLine($"-------------Actie Van:{FilteredActionsVan.Count} totaal:{totalCountVan}");
             StateHasChanged();
+            isLoadingVan = false;
         }
         catch (Exception ex)
         {

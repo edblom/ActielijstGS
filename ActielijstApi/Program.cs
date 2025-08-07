@@ -50,6 +50,10 @@ builder.Services.AddSwaggerGen(c =>
         Console.WriteLine($"Waarschuwing: XML-documentatiebestand niet gevonden op {xmlPath}");
     }
 });
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
+});
 
 // Voeg services toe
 builder.Services.AddScoped<CorrespondenceService>();
