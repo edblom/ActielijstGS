@@ -18,7 +18,7 @@
         public DateTime? FldMActieGereed { get; set; }
         public string? FldMActieSoort { get; set; } // String, matches database
         public int? FldMPrioriteit { get; set; }
-        public byte[]? SsmA_TimeStamp { get; set; }
+        //public byte[]? SsmA_TimeStamp { get; set; }
         public string? FldMActieVoorInitialen { get; set; }
         public string? FldMActieVoor2Initialen { get; set; }
     }

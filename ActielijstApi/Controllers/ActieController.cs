@@ -1,7 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using ActielijstApi.Models;
+﻿using ActielijstApi.Models;
 using ActielijstApi.Services;
 using KlantBaseShare.Dtos;
+using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -32,6 +33,7 @@ namespace ActielijstApi.Controllers
             [FromQuery] string? sortBy = null,
             [FromQuery] string? sortDirection = "asc")
         {
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
             // Backwards compatibility: return List<Actie> if no parameters
             if (string.IsNullOrWhiteSpace(searchTerm) && string.IsNullOrWhiteSpace(status) && !werknemerId.HasValue &&
                 string.IsNullOrWhiteSpace(actieSoortId) && !priorityId.HasValue && !werknId.HasValue && page == 1 && pageSize == 0 && string.IsNullOrWhiteSpace(sortBy))
@@ -42,6 +44,8 @@ namespace ActielijstApi.Controllers
 
             // Use filtered method for server-side filtering, paging, and sorting
             var response = await _actieService.GetFilteredActiesAsync(searchTerm, status, werknemerId, actieSoortId, priorityId, werknId, page, pageSize, sortBy, sortDirection);
+            stopwatch.Stop();
+            Console.WriteLine($"ActieController : {stopwatch.ElapsedMilliseconds} ms");
             return Ok(response);
         }
 

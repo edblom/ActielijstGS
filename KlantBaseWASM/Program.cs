@@ -16,6 +16,9 @@ builder.Services.AddScoped<TooltipService>();
 builder.Services.AddScoped<ContextMenuService>();
 builder.Services.AddRadzenComponents();
 
+// Configureer logging om System.Net.Http-logs uit te schakelen
+builder.Logging.AddFilter("System.Net.Http", LogLevel.Error); // Alleen Error of hoger
+
 // Configure HttpClient for ActielijstAPI (local during development)
 builder.Services.AddHttpClient("ActielijstAPI", client =>
 {

@@ -56,8 +56,8 @@ namespace ActielijstApi.Models
         [Column("fldMPrioriteit")]
         public int? FldMPrioriteit { get; set; } // NULL toegestaan
 
-        [Column("SSMA_TimeStamp")]
-        [Timestamp]
-        public byte[]? SSMA_TimeStamp { get; set; } // NOT NULL, timestamp
+        //[Column("SSMA_TimeStamp")]
+        //[Timestamp]
+        //public byte[]? SSMA_TimeStamp { get; set; } // NOT NULL, timestamp
     }
 }

@@ -1,6 +1,7 @@
 ﻿using KlantBaseWASM.Models;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
@@ -37,6 +38,7 @@ namespace KlantBaseWASM.Services
             string? sortBy = null,
             string? sortDirection = "asc")
         {
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
             var query = new Dictionary<string, string>();
             if (!string.IsNullOrWhiteSpace(searchTerm)) query["searchTerm"] = searchTerm;
             if (!string.IsNullOrWhiteSpace(status)) query["status"] = status;
@@ -47,10 +49,10 @@ namespace KlantBaseWASM.Services
             query["pageSize"] = pageSize.ToString();
             if (!string.IsNullOrWhiteSpace(sortBy)) query["sortBy"] = sortBy;
             query["sortDirection"] = sortDirection;
-
+            Console.WriteLine($"WASM querystring ActieService response: {stopwatch.ElapsedMilliseconds} ms");
             var queryString = string.Join("&", query.Select(kvp => $"{kvp.Key}={Uri.EscapeDataString(kvp.Value)}"));
             var response = await _httpClient.GetFromJsonAsync<ActieResponse>($"api/acties?{queryString}") ?? new ActieResponse { Items = new List<Actie>(), TotalCount = 0 };
-
+            Console.WriteLine($"WASM before initialen ActieService response: {stopwatch.ElapsedMilliseconds} ms");
             // Add initialen (client-side)
             foreach (var actie in response.Items)
             {
@@ -63,7 +65,8 @@ namespace KlantBaseWASM.Services
                     ? GenerateInitialen(werknemerVoor2.Voornaam, werknemerVoor2.Initialen)
                     : "Onbekend";
             }
-
+            stopwatch.Stop();
+            Console.WriteLine($"WASM ActieServie response: {stopwatch.ElapsedMilliseconds} ms");
             return response;
         }
 
