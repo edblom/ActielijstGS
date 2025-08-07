@@ -37,10 +37,6 @@
         <label for="priorityDropdownVoor" style="margin-right: 10px;">met prioriteit:</label>
         <RadzenDropDown id="priorityDropdownVoor" @bind-Value="SelectedPriorityIdVoor" Data="@Priorities" AllowClear="true" TextProperty="Omschrijving" ValueProperty="Prioriteit" Change="@((object args) => dataGridVoor.Reload())" Placeholder="Selecteer een prioriteit" Style="width: 100px;" />
     </RadzenStackItem>
-    <RadzenStackItem>
-        <label for="pageSizeDropdownVoor" style="margin-right: 10px;">Items per pagina:</label>
-        <RadzenDropDown id="pageSizeDropdownVoor" @bind-Value="SelectedPageSizeVoor" Data="@PageSizeOptions" TextProperty="Text" ValueProperty="Value" Change="@((object args) => dataGridVoor.Reload())" Placeholder="Selecteer paginagrootte" Style="width: 100px;" />
-    </RadzenStackItem>
 </RadzenStack>
 
 <RadzenDataGrid @ref="dataGridVoor" 
@@ -128,10 +124,6 @@
     <RadzenStackItem>
         <label for="priorityDropdownVan" style="margin-right: 10px;">met prioriteit:</label>
         <RadzenDropDown id="priorityDropdownVan" @bind-Value="SelectedPriorityIdVan" Data="@Priorities" AllowClear="true" TextProperty="Omschrijving" ValueProperty="Prioriteit" Change="@((object args) => dataGridVan.Reload())" Placeholder="Selecteer een prioriteit" Style="width: 100px;" />
-    </RadzenStackItem>
-    <RadzenStackItem>
-        <label for="pageSizeDropdownVan" style="margin-right: 10px;">Items per pagina:</label>
-        <RadzenDropDown id="pageSizeDropdownVan" @bind-Value="SelectedPageSizeVan" Data="@PageSizeOptions" AllowClear="true" TextProperty="Text" ValueProperty="Value" Change="@((object args) => dataGridVan.Reload())" Placeholder="Selecteer paginagrootte" Style="width: 100px;" />
     </RadzenStackItem>
 </RadzenStack>
 
@@ -311,6 +303,7 @@
 
     private async Task LoadDataVoor(LoadDataArgs args)
     {
+        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
         try
         {
             isLoadingVoor = true;
@@ -336,10 +329,16 @@
             Console.WriteLine($"Error loading filtered actions (Voor): {ex}");
             await DialogService.Alert("Error loading filtered actions (Voor): " + ex.Message);
         }
+        finally
+        {
+            stopwatch.Stop();
+            Console.WriteLine($"laadtijd Voor: {stopwatch.ElapsedMilliseconds} ms");
+        }
     }
 
     private async Task LoadDataVan(LoadDataArgs args)
     {
+        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
         try
         {
             isLoadingVan = true;
@@ -364,6 +363,11 @@
         {
             Console.WriteLine($"Error loading filtered actions (Van): {ex}");
             await DialogService.Alert("Error loading filtered actions (Van): " + ex.Message);
+        }
+        finally
+        {
+            stopwatch.Stop();
+            Console.WriteLine($"laadtijd Van: {stopwatch.ElapsedMilliseconds} ms");
         }
     }
 
