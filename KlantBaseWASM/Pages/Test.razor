@@ -1,0 +1,115 @@
+﻿@page "/test"
+@using System.Diagnostics
+@using Microsoft.JSInterop
+@using Radzen
+@using Radzen.Blazor
+@using KlantBaseWASM.Models
+@inject HttpClient HttpClient
+@inject IJSRuntime JSRuntime
+
+<h3>Test ActieLijst</h3>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
+<RadzenDataGrid TItem="Actie"
+                Data="@acties"
+                Count="@totalItems"
+                LoadData="@LoadData"
+                AllowPaging="true"
+                PageSize="5"
+                AllowVirtualization="true">
+    <Columns>
+        <RadzenDataGridColumn TItem="Actie" Property="fldMid" Title="ID" Width="80px" />
+        <RadzenDataGridColumn TItem="Actie" Property="fldOmschrijving" Title="Omschrijving" Width="200px" />
+        <RadzenDataGridColumn TItem="Actie" Property="fldMActieDatum" Title="Actie Datum" Width="120px" FormatString="{0:dd-MM-yyyy}" />
+        <RadzenDataGridColumn TItem="Actie" Property="fldMPrioriteit" Title="Prioriteit" Width="100px" />
+    </Columns>
+</RadzenDataGrid>
+
+@code {
+    private IReadOnlyList<Actie> acties = new List<Actie>().AsReadOnly();
+    private int totalItems;
+    private string? errorMessage;
+    private bool isLoading;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!isLoading)
+        {
+            await LogTiming($"HttpClient BaseAddress: {HttpClient.BaseAddress?.ToString() ?? "Not set"}");
+            await LoadData(new LoadDataArgs { Skip = 0, Top = 5 });
+        }
+    }
+
+    private async Task LoadData(LoadDataArgs args)
+    {
+        if (isLoading) return;
+        isLoading = true;
+
+        var stopwatch = Stopwatch.StartNew();
+
+        try
+        {
+            // Phase 1: API Call
+            var apiStopwatch = Stopwatch.StartNew();
+            var query = $"/api/acties?pageNumber={args.Skip / args.Top + 1}&pageSize={args.Top}";
+            var fullUrl = HttpClient.BaseAddress != null ? new Uri(HttpClient.BaseAddress, query).ToString() : query;
+            await LogTiming($"API Query: {fullUrl}");
+            var response = await HttpClient.GetAsync(query);
+            if (!response.IsSuccessStatusCode)
+            {
+                errorMessage = $"API call failed: {response.StatusCode} ({response.ReasonPhrase})";
+                await LogTiming(errorMessage);
+                isLoading = false;
+                return;
+            }
+            var json = await response.Content.ReadAsStringAsync();
+            apiStopwatch.Stop();
+            await LogTiming($"API Call Duration: {apiStopwatch.ElapsedMilliseconds}ms");
+            await LogTiming($"Raw JSON: {json}");
+
+            // Phase 2: Deserialization
+            var deserStopwatch = Stopwatch.StartNew();
+            var deserializedActies = System.Text.Json.JsonSerializer.Deserialize<List<Actie>>(json);
+            acties = deserializedActies?.AsReadOnly() ?? new List<Actie>().AsReadOnly();
+            deserStopwatch.Stop();
+            await LogTiming($"Deserialization Duration: {deserStopwatch.ElapsedMilliseconds}ms");
+            await LogTiming($"Records Loaded: {acties.Count}");
+
+            // Phase 3: Update state
+            var stateStopwatch = Stopwatch.StartNew();
+            totalItems = acties.Count; // Replace with actual total from API if available
+            await InvokeAsync(StateHasChanged);
+            stateStopwatch.Stop();
+            await LogTiming($"State Update Duration: {stateStopwatch.ElapsedMilliseconds}ms");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading data: {ex.Message}";
+            await LogTiming(errorMessage);
+        }
+
+        isLoading = false;
+        stopwatch.Stop();
+        await LogTiming($"Total LoadData Duration: {stopwatch.ElapsedMilliseconds}ms");
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender && !isLoading)
+        {
+            var renderStopwatch = Stopwatch.StartNew();
+            await base.OnAfterRenderAsync(firstRender);
+            renderStopwatch.Stop();
+            await LogTiming($"Rendering Duration: {renderStopwatch.ElapsedMilliseconds}ms");
+        }
+    }
+
+    private async Task LogTiming(string message)
+    {
+        await JSRuntime.InvokeVoidAsync("console.log", $"[Test.razor] {message}");
+    }
+}

@@ -27,13 +27,13 @@ namespace KlantBaseWASM.Services
         }
 
         public async Task<ActieResponse> GetFilteredActionsAsync(
-            string? searchTerm,
-            string? status,
-            int? werknemerId,
-            int? actieSoortId,
-            int? priorityId,
+            string? searchTerm =null,
+            string? status =null,
+            int? werknemerId = null,
+            int? actieSoortId = null,
+            int? priorityId = null,
             int page = 1,
-            int pageSize = 10,
+            int pageSize = 0,
             string? sortBy = null,
             string? sortDirection = "asc")
         {

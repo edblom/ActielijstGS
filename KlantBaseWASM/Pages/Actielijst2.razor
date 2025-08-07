@@ -1,0 +1,82 @@
+﻿@page "/actielijst2"
+@using Radzen
+@using Radzen.Blazor
+@using KlantBaseWASM.Models
+@using KlantBaseWASM.Services
+@using System.Diagnostics
+@inject DialogService DialogService
+@inject ActieService ActieService
+@inject WerknemerService WerknemerService
+@inject ActieSoortService ActieSoortService
+@inject PriorityService PriorityService
+@inject NotificationService NotificationService
+@inject ILogger<Actielijst2> Logger
+
+<h3>Mijn Actielijst (met Timing Logging)</h3>
+
+<RadzenDataGrid TItem="Actie" Data="@acties" AllowFiltering="true" AllowSorting="true">
+    <Columns>
+        <RadzenDataGridColumn TItem="Actie" Property="FldMid" Title="ID" />
+        <RadzenDataGridColumn TItem="Actie" Property="FldMDatum" Title="Datum" />
+        <RadzenDataGridColumn TItem="Actie" Property="WerknId" Title="Werknemer ID" />
+        <RadzenDataGridColumn TItem="Actie" Property="FldOmschrijving" Title="Omschrijving" />
+        <RadzenDataGridColumn TItem="Actie" Property="FldMActieDatum" Title="Actie Datum" />
+        <RadzenDataGridColumn TItem="Actie" Property="FldMPrioriteit" Title="Prioriteit" />
+        <RadzenDataGridColumn TItem="Actie" Property="FldMActieVoorInitialen" Title="Actie Voor" />
+        <RadzenDataGridColumn TItem="Actie" Property="FldMActieVoor2Initialen" Title="Actie Voor 2" />
+    </Columns>
+</RadzenDataGrid>
+
+<p>Laadtijd API: @loadTime ms | Deserialisatie: @deserializeTime ms | Rendering: @renderTime ms</p>
+<p>Foutmelding: @errorMessage</p>
+
+@code {
+    private List<Actie> acties = new ();
+    private long loadTime;
+    private long deserializeTime;
+    private long renderTime;
+    private string errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Logger.LogInformation("Initializing Actielijst2...");
+        var stopwatchTotal = Stopwatch.StartNew();
+        var stopwatchDeserialize = new Stopwatch();
+        var stopwatchRender = new Stopwatch();
+        errorMessage = null;
+
+        try
+        {
+            await ActieService.InitializeAsync();
+            Logger.LogInformation("Start laden acties zonder parameters...");
+
+            stopwatchDeserialize.Start();
+            var response = await ActieService.GetFilteredActionsAsync();
+            stopwatchDeserialize.Stop();
+            deserializeTime = stopwatchDeserialize.ElapsedMilliseconds;
+
+            acties = response.Items;
+
+            stopwatchRender.Start();
+            await InvokeAsync(StateHasChanged);
+            stopwatchRender.Stop();
+            renderTime = stopwatchRender.ElapsedMilliseconds;
+
+            stopwatchTotal.Stop();
+            loadTime = stopwatchTotal.ElapsedMilliseconds;
+            Logger.LogInformation($"LoadData totaal duurde {loadTime} ms | Deserialisatie: {deserializeTime} ms | Rendering: {renderTime} ms | Aantal acties: {acties?.Count ?? 0}");
+            if (acties.Count == 0)
+            {
+                NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Warning, Summary = "Geen acties", Detail = "Er zijn geen acties gevonden." });
+            }
+        }
+        catch (Exception ex)
+        {
+            stopwatchTotal.Stop();
+            loadTime = stopwatchTotal.ElapsedMilliseconds;
+            errorMessage = ex.Message;
+            Logger.LogError(ex, $"Fout bij laden acties, duurde {loadTime} ms");
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Fout", Detail = ex.Message });
+        }
+    }
+}
